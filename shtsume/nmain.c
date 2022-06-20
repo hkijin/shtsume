@@ -13,7 +13,7 @@
 #include "shogi.h"
 #include "usi.h"
 #include "shtsume.h"
-#include "ntest.h"
+//#include "ntest.h"
 
 static const struct option longopts[] = {
     {"help", no_argument, NULL, 'h'},
