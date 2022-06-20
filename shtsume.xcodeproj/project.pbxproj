@@ -7,7 +7,20 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		689734BA28605D6800665FC6 /* main.c in Sources */ = {isa = PBXBuildFile; fileRef = 689734B928605D6800665FC6 /* main.c */; };
+		689734CD28605E5800665FC6 /* dtools.c in Sources */ = {isa = PBXBuildFile; fileRef = 689734C128605E5800665FC6 /* dtools.c */; };
+		689734CE28605E5800665FC6 /* base.c in Sources */ = {isa = PBXBuildFile; fileRef = 689734C328605E5800665FC6 /* base.c */; };
+		689734D128605E5800665FC6 /* global.c in Sources */ = {isa = PBXBuildFile; fileRef = 689734CA28605E5800665FC6 /* global.c */; };
+		689734D228605E5800665FC6 /* bitboard.c in Sources */ = {isa = PBXBuildFile; fileRef = 689734CB28605E5800665FC6 /* bitboard.c */; };
+		689734D328605E5800665FC6 /* usi.c in Sources */ = {isa = PBXBuildFile; fileRef = 689734CC28605E5800665FC6 /* usi.c */; };
+		689734E328605E9500665FC6 /* shtsume.c in Sources */ = {isa = PBXBuildFile; fileRef = 689734D528605E9500665FC6 /* shtsume.c */; };
+		689734E428605E9500665FC6 /* nsearchinf.c in Sources */ = {isa = PBXBuildFile; fileRef = 689734D628605E9500665FC6 /* nsearchinf.c */; };
+		689734E528605E9500665FC6 /* nevasion.c in Sources */ = {isa = PBXBuildFile; fileRef = 689734D728605E9500665FC6 /* nevasion.c */; };
+		689734E628605E9500665FC6 /* ndtools.c in Sources */ = {isa = PBXBuildFile; fileRef = 689734D828605E9500665FC6 /* ndtools.c */; };
+		689734E828605E9500665FC6 /* ntbase.c in Sources */ = {isa = PBXBuildFile; fileRef = 689734DC28605E9500665FC6 /* ntbase.c */; };
+		689734E928605E9500665FC6 /* ncheck.c in Sources */ = {isa = PBXBuildFile; fileRef = 689734DD28605E9500665FC6 /* ncheck.c */; };
+		689734EA28605E9500665FC6 /* nbase.c in Sources */ = {isa = PBXBuildFile; fileRef = 689734DE28605E9500665FC6 /* nbase.c */; };
+		689734EC28605E9500665FC6 /* nusi.c in Sources */ = {isa = PBXBuildFile; fileRef = 689734E228605E9500665FC6 /* nusi.c */; };
+		689734F028606E6300665FC6 /* nmain.c in Sources */ = {isa = PBXBuildFile; fileRef = 689734DF28605E9500665FC6 /* nmain.c */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -24,7 +37,32 @@
 
 /* Begin PBXFileReference section */
 		689734B628605D6800665FC6 /* shtsume */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = shtsume; sourceTree = BUILT_PRODUCTS_DIR; };
-		689734B928605D6800665FC6 /* main.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = main.c; sourceTree = "<group>"; };
+		689734C128605E5800665FC6 /* dtools.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = dtools.c; sourceTree = "<group>"; };
+		689734C228605E5800665FC6 /* shogi.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = shogi.h; sourceTree = "<group>"; };
+		689734C328605E5800665FC6 /* base.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = base.c; sourceTree = "<group>"; };
+		689734C428605E5800665FC6 /* usi.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = usi.h; sourceTree = "<group>"; };
+		689734C628605E5800665FC6 /* tests.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = tests.h; sourceTree = "<group>"; };
+		689734C728605E5800665FC6 /* problem.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = problem.c; sourceTree = "<group>"; };
+		689734C828605E5800665FC6 /* tests.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = tests.c; sourceTree = "<group>"; };
+		689734C928605E5800665FC6 /* dtools.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = dtools.h; sourceTree = "<group>"; };
+		689734CA28605E5800665FC6 /* global.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = global.c; sourceTree = "<group>"; };
+		689734CB28605E5800665FC6 /* bitboard.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = bitboard.c; sourceTree = "<group>"; };
+		689734CC28605E5800665FC6 /* usi.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = usi.c; sourceTree = "<group>"; };
+		689734D528605E9500665FC6 /* shtsume.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = shtsume.c; sourceTree = "<group>"; };
+		689734D628605E9500665FC6 /* nsearchinf.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = nsearchinf.c; sourceTree = "<group>"; };
+		689734D728605E9500665FC6 /* nevasion.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = nevasion.c; sourceTree = "<group>"; };
+		689734D828605E9500665FC6 /* ndtools.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = ndtools.c; sourceTree = "<group>"; };
+		689734DA28605E9500665FC6 /* ntest.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ntest.h; sourceTree = "<group>"; };
+		689734DB28605E9500665FC6 /* ntest.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = ntest.c; sourceTree = "<group>"; };
+		689734DC28605E9500665FC6 /* ntbase.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = ntbase.c; sourceTree = "<group>"; };
+		689734DD28605E9500665FC6 /* ncheck.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = ncheck.c; sourceTree = "<group>"; };
+		689734DE28605E9500665FC6 /* nbase.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = nbase.c; sourceTree = "<group>"; };
+		689734DF28605E9500665FC6 /* nmain.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = nmain.c; sourceTree = "<group>"; };
+		689734E028605E9500665FC6 /* shtsume.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = shtsume.h; sourceTree = "<group>"; };
+		689734E128605E9500665FC6 /* ndtools.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ndtools.h; sourceTree = "<group>"; };
+		689734E228605E9500665FC6 /* nusi.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = nusi.c; sourceTree = "<group>"; };
+		689734ED28605F2400665FC6 /* README.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
+		689734EE28605F7300665FC6 /* LICENCE */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = LICENCE; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -41,7 +79,11 @@
 		689734AD28605D6800665FC6 = {
 			isa = PBXGroup;
 			children = (
-				689734B828605D6800665FC6 /* shtsume */,
+				689734EE28605F7300665FC6 /* LICENCE */,
+				689734ED28605F2400665FC6 /* README.md */,
+				689734C028605E5800665FC6 /* shshogi */,
+				689734D428605E9500665FC6 /* shtsume */,
+				689734F128606F1F00665FC6 /* test */,
 				689734B728605D6800665FC6 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -54,12 +96,49 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
-		689734B828605D6800665FC6 /* shtsume */ = {
+		689734C028605E5800665FC6 /* shshogi */ = {
 			isa = PBXGroup;
 			children = (
-				689734B928605D6800665FC6 /* main.c */,
+				689734C128605E5800665FC6 /* dtools.c */,
+				689734C228605E5800665FC6 /* shogi.h */,
+				689734C328605E5800665FC6 /* base.c */,
+				689734C428605E5800665FC6 /* usi.h */,
+				689734C928605E5800665FC6 /* dtools.h */,
+				689734CA28605E5800665FC6 /* global.c */,
+				689734CB28605E5800665FC6 /* bitboard.c */,
+				689734CC28605E5800665FC6 /* usi.c */,
+			);
+			path = shshogi;
+			sourceTree = "<group>";
+		};
+		689734D428605E9500665FC6 /* shtsume */ = {
+			isa = PBXGroup;
+			children = (
+				689734D528605E9500665FC6 /* shtsume.c */,
+				689734D628605E9500665FC6 /* nsearchinf.c */,
+				689734D728605E9500665FC6 /* nevasion.c */,
+				689734D828605E9500665FC6 /* ndtools.c */,
+				689734DC28605E9500665FC6 /* ntbase.c */,
+				689734DD28605E9500665FC6 /* ncheck.c */,
+				689734DE28605E9500665FC6 /* nbase.c */,
+				689734DF28605E9500665FC6 /* nmain.c */,
+				689734E028605E9500665FC6 /* shtsume.h */,
+				689734E128605E9500665FC6 /* ndtools.h */,
+				689734E228605E9500665FC6 /* nusi.c */,
 			);
 			path = shtsume;
+			sourceTree = "<group>";
+		};
+		689734F128606F1F00665FC6 /* test */ = {
+			isa = PBXGroup;
+			children = (
+				689734C628605E5800665FC6 /* tests.h */,
+				689734C728605E5800665FC6 /* problem.c */,
+				689734C828605E5800665FC6 /* tests.c */,
+				689734DA28605E9500665FC6 /* ntest.h */,
+				689734DB28605E9500665FC6 /* ntest.c */,
+			);
+			path = test;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -119,7 +198,20 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				689734BA28605D6800665FC6 /* main.c in Sources */,
+				689734E528605E9500665FC6 /* nevasion.c in Sources */,
+				689734D128605E5800665FC6 /* global.c in Sources */,
+				689734CD28605E5800665FC6 /* dtools.c in Sources */,
+				689734E828605E9500665FC6 /* ntbase.c in Sources */,
+				689734E328605E9500665FC6 /* shtsume.c in Sources */,
+				689734CE28605E5800665FC6 /* base.c in Sources */,
+				689734D228605E5800665FC6 /* bitboard.c in Sources */,
+				689734E428605E9500665FC6 /* nsearchinf.c in Sources */,
+				689734E928605E9500665FC6 /* ncheck.c in Sources */,
+				689734F028606E6300665FC6 /* nmain.c in Sources */,
+				689734EC28605E9500665FC6 /* nusi.c in Sources */,
+				689734EA28605E9500665FC6 /* nbase.c in Sources */,
+				689734D328605E5800665FC6 /* usi.c in Sources */,
+				689734E628605E9500665FC6 /* ndtools.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
