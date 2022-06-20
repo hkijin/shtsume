@@ -63,6 +63,7 @@
 		689734E228605E9500665FC6 /* nusi.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = nusi.c; sourceTree = "<group>"; };
 		689734ED28605F2400665FC6 /* README.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		689734EE28605F7300665FC6 /* LICENCE */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = LICENCE; sourceTree = "<group>"; };
+		689734F2286077DF00665FC6 /* .gitignore */ = {isa = PBXFileReference; lastKnownFileType = text; path = .gitignore; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -79,6 +80,7 @@
 		689734AD28605D6800665FC6 = {
 			isa = PBXGroup;
 			children = (
+				689734F2286077DF00665FC6 /* .gitignore */,
 				689734EE28605F7300665FC6 /* LICENCE */,
 				689734ED28605F2400665FC6 /* README.md */,
 				689734C028605E5800665FC6 /* shshogi */,
@@ -99,14 +101,14 @@
 		689734C028605E5800665FC6 /* shshogi */ = {
 			isa = PBXGroup;
 			children = (
-				689734C128605E5800665FC6 /* dtools.c */,
 				689734C228605E5800665FC6 /* shogi.h */,
-				689734C328605E5800665FC6 /* base.c */,
-				689734C428605E5800665FC6 /* usi.h */,
-				689734C928605E5800665FC6 /* dtools.h */,
 				689734CA28605E5800665FC6 /* global.c */,
+				689734C328605E5800665FC6 /* base.c */,
 				689734CB28605E5800665FC6 /* bitboard.c */,
+				689734C428605E5800665FC6 /* usi.h */,
 				689734CC28605E5800665FC6 /* usi.c */,
+				689734C928605E5800665FC6 /* dtools.h */,
+				689734C128605E5800665FC6 /* dtools.c */,
 			);
 			path = shshogi;
 			sourceTree = "<group>";
@@ -114,17 +116,17 @@
 		689734D428605E9500665FC6 /* shtsume */ = {
 			isa = PBXGroup;
 			children = (
+				689734E028605E9500665FC6 /* shtsume.h */,
 				689734D528605E9500665FC6 /* shtsume.c */,
 				689734D628605E9500665FC6 /* nsearchinf.c */,
 				689734D728605E9500665FC6 /* nevasion.c */,
-				689734D828605E9500665FC6 /* ndtools.c */,
 				689734DC28605E9500665FC6 /* ntbase.c */,
 				689734DD28605E9500665FC6 /* ncheck.c */,
 				689734DE28605E9500665FC6 /* nbase.c */,
 				689734DF28605E9500665FC6 /* nmain.c */,
-				689734E028605E9500665FC6 /* shtsume.h */,
-				689734E128605E9500665FC6 /* ndtools.h */,
 				689734E228605E9500665FC6 /* nusi.c */,
+				689734E128605E9500665FC6 /* ndtools.h */,
+				689734D828605E9500665FC6 /* ndtools.c */,
 			);
 			path = shtsume;
 			sourceTree = "<group>";
