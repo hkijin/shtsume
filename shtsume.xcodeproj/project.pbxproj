@@ -80,12 +80,10 @@
 		689734AD28605D6800665FC6 = {
 			isa = PBXGroup;
 			children = (
+				689734F32860869C00665FC6 /* source */,
 				689734F2286077DF00665FC6 /* .gitignore */,
 				689734EE28605F7300665FC6 /* LICENCE */,
 				689734ED28605F2400665FC6 /* README.md */,
-				689734C028605E5800665FC6 /* shshogi */,
-				689734D428605E9500665FC6 /* shtsume */,
-				689734F128606F1F00665FC6 /* test */,
 				689734B728605D6800665FC6 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -140,7 +138,18 @@
 				689734DA28605E9500665FC6 /* ntest.h */,
 				689734DB28605E9500665FC6 /* ntest.c */,
 			);
-			path = test;
+			name = test;
+			path = ../test;
+			sourceTree = "<group>";
+		};
+		689734F32860869C00665FC6 /* source */ = {
+			isa = PBXGroup;
+			children = (
+				689734C028605E5800665FC6 /* shshogi */,
+				689734D428605E9500665FC6 /* shtsume */,
+				689734F128606F1F00665FC6 /* test */,
+			);
+			path = source;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
