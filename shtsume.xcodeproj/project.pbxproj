@@ -37,6 +37,7 @@
 
 /* Begin PBXFileReference section */
 		6896341828629F60007EA17E /* release_note.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = release_note.md; sourceTree = "<group>"; };
+		689634192862AD13007EA17E /* benchmark.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = benchmark.md; sourceTree = "<group>"; };
 		689734B628605D6800665FC6 /* shtsume */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = shtsume; sourceTree = BUILT_PRODUCTS_DIR; };
 		689734C128605E5800665FC6 /* dtools.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = dtools.c; sourceTree = "<group>"; };
 		689734C228605E5800665FC6 /* shogi.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = shogi.h; sourceTree = "<group>"; };
@@ -82,6 +83,7 @@
 			isa = PBXGroup;
 			children = (
 				6896341828629F60007EA17E /* release_note.md */,
+				689634192862AD13007EA17E /* benchmark.md */,
 			);
 			path = Docs;
 			sourceTree = "<group>";
