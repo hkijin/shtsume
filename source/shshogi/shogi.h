@@ -358,13 +358,9 @@ union _bitboard_t{
 #define BB_TEST(a)          ((a).pos[0]|(a).pos[1]|(a).pos[2])
 
 //bitboard上の位置posの駒の有無
-#ifdef __SSE4_1__
-#define BPOS_TEST(bb,p)     !(_mm_testz_si128(g_bpos[p].qpos,(bb).qpos))
-#else
 #define BPOS_TEST(bb,p)     ((p)<27 ? (bb).pos[0]&g_bpos[p].pos[0]:\
                              (p)<54 ? (bb).pos[1]&g_bpos[p].pos[1]:\
                              (p)<81 ? (bb).pos[2]&g_bpos[p].pos[2]:0)
-#endif //__SSE4_1__
 
 extern bitboard_t g_bpos[N_SQUARE];  //Horizontal order        (-)
 extern bitboard_t g_vpos[N_SQUARE];  //Vertical order          (|)
