@@ -1,6 +1,6 @@
 //
 //  nevasion.c
-//  nsolver
+//  shtsume
 //
 //  Created by Hkijin on 2022/02/03.
 //

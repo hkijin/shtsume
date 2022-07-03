@@ -1,6 +1,6 @@
 //
 //  nusi.c
-//  nsolver
+//  shtsume
 //
 //  Created by Hkijin on 2022/02/03.
 //
@@ -71,7 +71,6 @@ void res_usi_cmd          (void)
     puts(str);
     record_log(str);
     //mt_min_pn
-    
     sprintf(str, "option name %s type spin default %d min %d max %d",
             g_usioption.mt_min_pn.op_name,
             g_usioption.mt_min_pn.default_value,
@@ -98,13 +97,6 @@ void res_usi_cmd          (void)
             g_usioption.search_level.max);
     puts(str);
     record_log(str);
-
-    //棋譜＆レポート保存フォルダ
-    sprintf(str, "option name %s type string default %s",
-            g_usioption.user_path.op_name,
-            getenv("HOME"));
-    puts(str);
-    record_log(str);
     
     //out_lvkif
     sprintf(str, "option name %s type check default %s",
@@ -117,6 +109,13 @@ void res_usi_cmd          (void)
     sprintf(str, "option name %s type check default %s",
             g_usioption.summary.op_name,
             g_usioption.summary.default_value?"true":"false");
+    puts(str);
+    record_log(str);
+    
+    //棋譜＆レポート保存フォルダ
+    sprintf(str, "option name %s type string default %s",
+            g_usioption.user_path.op_name,
+            getenv("HOME"));
     puts(str);
     record_log(str);
     
