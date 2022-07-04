@@ -276,7 +276,7 @@ void init_distance(void);
 #define LBB_UNSET(lbb,p)    (lbb).qpos = \
                             _mm_andnot_si128(g_lpos[p].qpos,(lbb).qpos)
 
-#define BB_INI(bb)          BBA_XOR(bb,bb)
+#define BB_INI(bb)          (bb).qpos = _mm_setzero_si128()
 
 typedef union _bitboard_t bitboard_t;
 union _bitboard_t{
