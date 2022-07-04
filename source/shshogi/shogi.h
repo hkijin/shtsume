@@ -276,6 +276,8 @@ void init_distance(void);
 #define LBB_UNSET(lbb,p)    (lbb).qpos = \
                             _mm_andnot_si128(g_lpos[p].qpos,(lbb).qpos)
 
+#define BB_INI(bb)          BBA_XOR(bb,bb)
+
 typedef union _bitboard_t bitboard_t;
 union _bitboard_t{
     unsigned int pos[3];
@@ -345,6 +347,8 @@ union _bitboard_t{
                             (lbb).pos[1]&=~(g_lpos[p].pos[1]),\
                             (lbb).pos[2]&=~(g_lpos[p].pos[2])
 
+#define BB_INI(bb)          memset(&(bb), 0, sizeof(bitboard_t))
+
 typedef union _bitboard_t bitboard_t;
 union _bitboard_t{
     unsigned int pos[3];
@@ -353,7 +357,6 @@ union _bitboard_t{
 #endif //__SSE2__
 
 #define BB_TRUE             g_bb_pin[0]
-#define BB_INI(bb)          memset(&(bb), 0, sizeof(bitboard_t))
 
 #define BB_TEST(a)          ((a).pos[0]|(a).pos[1]|(a).pos[2])
 

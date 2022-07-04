@@ -219,7 +219,7 @@ int max_pos(const bitboard_t *bb){
  戻り値: 利きbitboard
  */
 
-bitboard_t bb_to_effect (komainf_t koma,
+bitboard_t    bb_to_effect (komainf_t koma,
                             const bitboard_t *bb_koma,
                             const sdata_t *sdata){
     int id;
