@@ -277,7 +277,7 @@ bitboard_t effect_emu(int pos,
         case GUM: effect_um_emu(&bb, pos, occupied); break;
         case GRY: effect_ry_emu(&bb, pos, occupied); break;
         default:
-            memcpy(&bb, &g_base_effect[koma][pos], sizeof(bitboard_t));
+            BB_CPY(bb, g_base_effect[koma][pos]);
             break;
     }
     return bb;
@@ -302,7 +302,7 @@ bitboard_t effect_tbl(int pos,
         case GUM: effect_um(&bb, pos, roccupied, loccupied); break;
         case GRY: effect_ry(&bb, pos, occupied, voccupied); break;
         default:
-            memcpy(&bb, &g_base_effect[koma][pos], sizeof(bitboard_t));
+            BB_CPY(bb, g_base_effect[koma][pos]);
             break;
     }
     return bb;
