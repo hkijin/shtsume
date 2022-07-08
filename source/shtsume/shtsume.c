@@ -183,7 +183,7 @@ void bn_search                  (const sdata_t   *sdata,
     mvlist_t mvlist;
     memset(&mvlist, 0, sizeof(mvlist_t));
     memcpy(&(mvlist.tdata), &g_tdata_init, sizeof(tdata_t));
-    tdata_t th_tdata = {INFINATE-1, INFINATE-1, TSUME_MAX_DEPTH};
+    tdata_t th_tdata = {PROOF_MAX-1, INFINATE-1, TSUME_MAX_DEPTH};
     st_symmetry = symmetry_check(sdata);
     /*
      * 詰探索、手順組み立て

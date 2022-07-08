@@ -20,7 +20,7 @@
  * プログラムID
  */
 #define PROGRAM_NAME       "shtsume"
-#define VERSION_INFO       "v0.3.3"
+#define VERSION_INFO       "v0.3.5"
 #define AUTHOR_NAME        "hkijin"
 
 /*
@@ -307,10 +307,15 @@ void disproof_koma_and(const sdata_t *sdata, mvlist_t *mvlist, mvlist_t *list);
 #define GC_DELETE_RATE      20
 #define GC_TSUMI_RATE       50
 #define GC_DELETE_OFFSET    5
+#define HASH_FUNC(zkey, tbase)    ((zkey)&((tbase)->mask))
 
 typedef struct _tbase_t tbase_t;
 struct _tbase_t
 {
+    zkey_t       mask;                   /* ハッシュ関数に使用するマスク */
+    uint64_t     sz_tbl;                 /* indexのサイズ            */
+    uint64_t     sz_elm;                 /* 局面表で扱う要素数         */
+    
     uint64_t     size;                   /* 局面表のサイズ           　*/
     uint64_t     num;                    /* 確保したmcardの要素数      */
     uint64_t     pr_num;                 /* GCから保護しているmcard数   */

@@ -62,7 +62,7 @@ void tsearchinf_update          (const sdata_t *sdata,
     //hashfull
     double
     hashfull =  (double)tbase->num;
-    hashfull /= (double)tbase->size;
+    hashfull /= (double)tbase->sz_elm;
     hashfull *= 1000;
     g_tsearchinf.hashfull = (int)hashfull;
 #ifndef DEBUG

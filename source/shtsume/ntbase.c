@@ -77,29 +77,67 @@ static bool src_check     (const sdata_t  *sdata,
 /* -----------
  実装
  ------------ */
+
 tbase_t*   create_tbase     (uint64_t base_size)
 {
+    /* 構造体生成
+     */
     tbase_t *tbase = (tbase_t *)calloc(1, sizeof(tbase_t));
     if(!tbase) return NULL;
-    tbase->table = (zfolder_t **)calloc(base_size, sizeof(zfolder_t *));
+    /* INDEX生成
+       サイズはbase_sizeより大きな２のベキ乗とする。            //INDEX (メモリ）設定値
+    if     (base_size<(1<<14)) tbase->sz_tbl = (1<<14);  //16384  16K    1
+    else if(base_size<(1<<15)) tbase->sz_tbl = (1<<15);                  2
+    else if(base_size<(1<<16)) tbase->sz_tbl = (1<<16);                  4
+    else if(base_size<(1<<17)) tbase->sz_tbl = (1<<17);
+    else if(base_size<(1<<18)) tbase->sz_tbl = (1<<18);
+    else if(base_size<(1<<19)) tbase->sz_tbl = (1<<19);
+    else if(base_size<(1<<20)) tbase->sz_tbl = (1<<20);  //1M     8M     64
+    else if(base_size<(1<<21)) tbase->sz_tbl = (1<<21);
+    else if(base_size<(1<<22)) tbase->sz_tbl = (1<<22);
+    else if(base_size<(1<<23)) tbase->sz_tbl = (1<<23);
+    else if(base_size<(1<<24)) tbase->sz_tbl = (1<<24);                  1024
+    else if(base_size<(1<<25)) tbase->sz_tbl = (1<<25);                  2048
+    else if(base_size<(1<<26)) tbase->sz_tbl = (1<<26);                  4096
+    else if(base_size<(1<<27)) tbase->sz_tbl = (1<<27);                  8192
+    else if(base_size<(1<<28)) tbase->sz_tbl = (1<<28);                  16384
+    else if(base_size<(1<<29)) tbase->sz_tbl = (1<<29);                  32768
+    else                       tbase->sz_tbl = (1<<30);  //1G     8G     65536
+    */
+    int i=14;
+    while(true){
+        if(i==30 || (1<<i)>base_size) {tbase->sz_tbl = (1<<i); break;}
+        i++;
+    }
+    tbase->mask   = tbase->sz_tbl-1;
+    tbase->sz_elm = base_size;
+    
+    //INDEX生成
+    tbase->table = (zfolder_t **)calloc(tbase->sz_tbl, sizeof(zfolder_t *));
     if(!tbase->table){
         free(tbase);
         return NULL;
     }
-    tbase->zstack = (zfolder_t *)calloc(base_size, sizeof(zfolder_t));
+    
+    //未使用zfolder保管庫
+    tbase->zstack = (zfolder_t *)calloc(tbase->sz_elm, sizeof(zfolder_t));
     if(!tbase->zstack){
         free(tbase->table);
         free(tbase);
         return NULL;
     }
-    tbase->mstack = (mcard_t *)calloc(base_size, sizeof(mcard_t));
+    
+    //未使用mcard保管庫
+    tbase->mstack = (mcard_t *)calloc(tbase->sz_elm, sizeof(mcard_t));
     if(!tbase->mstack){
         free(tbase->zstack);
         free(tbase->table);
         free(tbase);
         return NULL;
     }
-    tbase->tstack = (tlist_t *)calloc(base_size, sizeof(tlist_t));
+    
+    //未使用tlist保管庫
+    tbase->tstack = (tlist_t *)calloc(tbase->sz_elm, sizeof(tlist_t));
     if(!tbase->tstack){
         free(tbase->mstack);
         free(tbase->zstack);
@@ -110,11 +148,11 @@ tbase_t*   create_tbase     (uint64_t base_size)
     tbase->zpool = tbase->zstack;
     tbase->mpool = tbase->mstack;
     tbase->tpool = tbase->tstack;
-    uint64_t i=0;
     zfolder_t *zfolder = tbase->zstack;
     mcard_t *mcard = tbase->mstack;
     tlist_t *tlist = tbase->tstack;
-    while(i<base_size-1){
+    i=0;
+    while(i<tbase->sz_elm-1){
         zfolder->next = zfolder+1;
         mcard->next = mcard+1;
         tlist->next = tlist+1;
@@ -123,16 +161,15 @@ tbase_t*   create_tbase     (uint64_t base_size)
         tlist = tlist->next;
         i++;
     }
-    tbase->size = base_size;
     return tbase;
 }
 
 void initialize_tbase       (tbase_t  *tbase)
 {
-    memset(tbase->table, 0, sizeof(zfolder_t *)*tbase->size);
-    memset(tbase->zpool, 0, sizeof(zfolder_t)*tbase->size);
-    memset(tbase->mpool, 0, sizeof(mcard_t)*tbase->size);
-    memset(tbase->tpool, 0, sizeof(tlist_t)*tbase->size);
+    memset(tbase->table, 0, sizeof(zfolder_t *)*tbase->sz_tbl);
+    memset(tbase->zpool, 0, sizeof(zfolder_t)*tbase->sz_elm);
+    memset(tbase->mpool, 0, sizeof(mcard_t)*tbase->sz_elm);
+    memset(tbase->tpool, 0, sizeof(tlist_t)*tbase->sz_elm);
     
     tbase->zstack = tbase->zpool;
     tbase->mstack = tbase->mpool;
@@ -141,7 +178,7 @@ void initialize_tbase       (tbase_t  *tbase)
     zfolder_t *zfolder = tbase->zstack;
     mcard_t *mcard = tbase->mstack;
     tlist_t *tlist = tbase->tstack;
-    while(i<tbase->size-1){
+    while(i<tbase->sz_elm-1){
         zfolder->next = zfolder+1;
         mcard->next = mcard+1;
         tlist->next = tlist+1;
@@ -253,13 +290,13 @@ void tbase_gc              (tbase_t  *tbase)
     tlist_t *tlist, *new_tlist, *tl;
     st_tsumi_delete_flag = false;
     uint64_t i, delete_num = 0;
-    uint64_t gc_target = tbase->size*GC_DELETE_RATE/100;
-    uint64_t n_tsumi_max = tbase->size*GC_TSUMI_RATE/100;
+    uint64_t gc_target = tbase->sz_elm*GC_DELETE_RATE/100;
+    uint64_t n_tsumi_max = tbase->sz_elm*GC_TSUMI_RATE/100;
     //st_gc_flag = false;
     //ガベージコレクション実施宣言
     sprintf(g_str, "info string Garbage collection start. "
                    "size:%llu del_target:%llu protected:%llu gc_num:%d ",
-            tbase->size, gc_target, tbase->pr_num, g_gc_num);
+            tbase->sz_elm, gc_target, tbase->pr_num, g_gc_num);
     record_log(g_str); puts(g_str);
     do{
         if(gc_level>g_gc_max_level) g_gc_max_level = gc_level;
@@ -267,7 +304,7 @@ void tbase_gc              (tbase_t  *tbase)
         sprintf(g_str, "info string gc_level:%u", gc_level);
         record_log(g_str); puts(g_str);
         counter_reset();
-        for(i=0; i<tbase->size; i++)
+        for(i=0; i<tbase->sz_tbl; i++)
         {
             zfolder = *(tbase->table+i);
             new_zfolder = NULL;
@@ -358,7 +395,7 @@ void tbase_gc              (tbase_t  *tbase)
             "info string "
             "delete_rate %llu%%. "
             "nodes %llu. mate %d. nomate %d. unknown %d",
-            delete_num*100/tbase->size,
+            delete_num*100/tbase->sz_elm,
             g_tsearchinf.nodes,
             st_n_tsumi-st_del_tsumi,
             st_n_fudumi-st_del_fudumi,
@@ -454,7 +491,7 @@ bool hs_tbase_lookup        (const sdata_t *sdata,
                              turn_t         tn,
                              tbase_t       *tbase)
 {
-    uint64_t address = (S_ZKEY(sdata))%(tbase->size);
+    uint64_t address = HASH_FUNC(S_ZKEY(sdata), tbase);
     zfolder_t *zfolder = *(tbase->table+address);
     
     while(zfolder){
@@ -506,7 +543,7 @@ mcard_t* tbase_set_current  (const sdata_t *sdata,
                              turn_t         tn,
                              tbase_t       *tbase)
 {
-    uint64_t address = (S_ZKEY(sdata)%(tbase->size));
+    uint64_t address = HASH_FUNC(S_ZKEY(sdata), tbase);
     zfolder_t *zfolder = *(tbase->table+address);
     zfolder_t *tmp = zfolder;
     mkey_t mkey;
@@ -568,7 +605,7 @@ mcard_t* make_tree_set_item (const sdata_t *sdata,
                              bool           item,
                              tbase_t       *tbase)
 {
-    uint64_t address = S_ZKEY(sdata)%tbase->size;
+    uint64_t address = HASH_FUNC(S_ZKEY(sdata), tbase);
     zfolder_t *zfolder = *(tbase->table+address);
     
     //局面表に同一盤面があるか？
@@ -637,7 +674,7 @@ void tbase_clear_protect   (tbase_t       *tbase)
     uint64_t i;
     zfolder_t *zfolder;
     mcard_t   *mcard;
-    for(i=0; i<tbase->size; i++) {
+    for(i=0; i<tbase->sz_tbl; i++) {
         zfolder = *(tbase->table+i);
         while(zfolder){
             mcard = zfolder->mcard;
@@ -830,7 +867,7 @@ void _tbase_lookup        (const sdata_t   *sdata,
                            bool              flag,
                            tbase_t         *tbase )
 {
-    uint64_t address = (S_ZKEY(sdata)%(tbase->size));
+    uint64_t address = HASH_FUNC(S_ZKEY(sdata), tbase);
     zfolder_t *zfolder = *(tbase->table+address);
     //局面表に同一盤面があるか
     while(zfolder){
@@ -1210,7 +1247,7 @@ void tsumi_update         (const sdata_t   *sdata,
                            bool              flag,
                            tbase_t         *tbase )
 {
-    uint64_t address = (S_ZKEY(sdata)%(tbase->size));
+    uint64_t address = HASH_FUNC(S_ZKEY(sdata), tbase);
     zfolder_t *zfolder = *(tbase->table+address);
     
     //局面表に同一盤面があるか？
@@ -1382,7 +1419,7 @@ void fudumi_update        (const sdata_t   *sdata,
                            bool              flag,
                            tbase_t         *tbase )
 {
-    uint64_t address = (S_ZKEY(sdata)%(tbase->size));
+    uint64_t address = HASH_FUNC(S_ZKEY(sdata), tbase);
     zfolder_t *zfolder = *(tbase->table+address);
     
     //局面表に同一盤面があるか？
@@ -1505,7 +1542,7 @@ void fumei_update         (const sdata_t   *sdata,
                            bool              flag,
                            tbase_t         *tbase )
 {
-    uint64_t address = (S_ZKEY(sdata)%(tbase->size));
+    uint64_t address = HASH_FUNC(S_ZKEY(sdata), tbase);
     zfolder_t *zfolder = *(tbase->table+address);
     
     //局面表に同一盤面があるか？

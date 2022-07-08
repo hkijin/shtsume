@@ -714,7 +714,7 @@ void tlist_display              (const sdata_t   *sdata,
                                  turn_t              tn,
                                  tbase_t         *tbase)
 {
-    uint64_t address = (S_ZKEY(sdata)%(tbase->size));
+    uint64_t address = HASH_FUNC(S_ZKEY(sdata), tbase);
     zfolder_t *zfolder = *(tbase->table+address);
     //局面表に同一盤面があるか
     while(zfolder){

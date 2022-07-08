@@ -22,7 +22,7 @@
  ------------- */
 usioption_t g_usioption =
 {
-    {"USI_Hash", 256, 1, 7168},     //USI_HASH
+    {"USI_Hash", 256, 1, 65535},    //USI_HASH
     {"USI_Ponder", true} ,          //USI_PONDER
     {"mt_min_pn", 4, 3, 10},        //収束余詰探索 　 ->4でOK
     {"n_make_tree", 2, 1, 5},       //make_tree回数 ->2でOK
