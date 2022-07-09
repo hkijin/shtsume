@@ -892,12 +892,16 @@ void _tbase_lookup        (const sdata_t   *sdata,
         if     (cmp_res == MKEY_SUPER){
             //詰み
             if     (!mcard->tlist->tdata.pn){
+                g_mcard[SUPER_TSUMI] = mcard;
+                break;
+                /*
                 if(!g_mcard[SUPER_TSUMI]) g_mcard[SUPER_TSUMI] = mcard;
                 else{
                     unsigned int res =
                     MKEY_COMPARE(g_mcard[SUPER_TSUMI]->mkey, mcard->mkey);
                     if(res == MKEY_SUPER) g_mcard[SUPER_TSUMI] = mcard;
                 }
+                 */
             }
             //不詰み
             else if(!mcard->tlist->tdata.dn){
@@ -913,12 +917,16 @@ void _tbase_lookup        (const sdata_t   *sdata,
             }
             //不詰み
             else if(!mcard->tlist->tdata.dn){
+                g_mcard[INFER_FUDUMI] = mcard;
+                break;
+                /*
                 if(!g_mcard[INFER_FUDUMI]) g_mcard[INFER_FUDUMI] = mcard;
                 else{
                     unsigned int res =
                     MKEY_COMPARE(g_mcard[INFER_FUDUMI]->mkey, mcard->mkey);
                     if(res == MKEY_INFER) g_mcard[INFER_FUDUMI] = mcard;
                 }
+                 */
             }
             //その他
             else                            {
@@ -940,6 +948,7 @@ void _tbase_lookup        (const sdata_t   *sdata,
             //不詰み
             else if(   !mcard->tlist->tdata.dn ){
                 if(!g_mcard[EQUAL_FUDUMI]) g_mcard[EQUAL_FUDUMI] = mcard;
+                break;
             }
             //その他
             else                                {
