@@ -476,8 +476,6 @@ int create_search_report(void)
                        "info string error search_report could not be opened.");
         return num;
     }
-    //ファイル名
-    num += fprintf(fp, "%s\n", filename);
     //プログラム＆バージョン
     num += fprintf(fp, "%s(%s)\n", PROGRAM_NAME, VERSION_INFO);
     //設定値
