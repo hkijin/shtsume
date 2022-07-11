@@ -114,6 +114,7 @@ mvlist_t *generate_evasion   (const sdata_t *sdata,
     mlist_t *drop_list = NULL, *last;
     mvlist_t *mvlast;
     bool next_ou = true;
+    bool tflag = false;   //詰み可能性flag true:詰み可能性あり
     if(dir){
         dest = src;
         while(true){
@@ -124,21 +125,34 @@ mvlist_t *generate_evasion   (const sdata_t *sdata,
             //合い駒があれば着手に追加
             mlist = NULL;
             if(next_ou){
-                if(invalid_drops(sdata, dest)){}
+                if(invalid_drops(sdata, dest))
+                {
+                    /**
+                     合駒以外に王手回避の手段がなく、玉の最近接位置の合駒が無駄合の場合、
+                     詰みの可能性があるのでflagを立てておく。
+                    */
+                    if(!mvlist) tflag = true;
+                }
                 else if(hs_invalid_drops
                         (sdata, S_ATTACK(sdata)[0], dest, tbase))
                 {
                     g_invalid_drops = true;
                 }
                 else
+                {
                     mlist = evasion_drop(mlist, dest, sdata);
+                }
             }
             else     {
-                if(hs_invalid_drops(sdata, S_ATTACK(sdata)[0], dest, tbase))
+                if(mvlist) tflag = false;
+                if(tflag){}
+                else if(hs_invalid_drops
+                        (sdata, S_ATTACK(sdata)[0], dest, tbase))
                 {
                     g_invalid_drops = true;
                 }
-                else {
+                else
+                {
                     mlist = evasion_drop(mlist, dest, sdata);
                 }
             }

@@ -818,11 +818,10 @@ bool hs_invalid_drops      (const sdata_t *sdata,
     
     //王手している駒が馬の場合は無駄合判定はしない
     
-    if(koma!=SUM && koma!=GUM){
+    if(koma==SUM || koma==GUM){
         return false;
     }
     
-    assert(g_is_skoma[koma]==0);
     S_BOARD(&sbuf, src) = SPC;
     S_ZKEY(&sbuf) ^= g_zkey_seed[koma*N_SQUARE+src];  //zkey
     
