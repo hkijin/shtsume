@@ -144,8 +144,14 @@ mvlist_t *generate_evasion   (const sdata_t *sdata,
                 }
             }
             else     {
+                /**
+                   もしtflagがtrueでdestに玉方の利きがなければ無駄合とする。
+                 */
                 if(mvlist) tflag = false;
-                if(tflag){}
+                if(tflag)
+                {
+                    
+                }
                 else if(hs_invalid_drops
                         (sdata, S_ATTACK(sdata)[0], dest, tbase))
                 {

@@ -810,18 +810,14 @@ bool hs_invalid_drops      (const sdata_t *sdata,
                             unsigned int   dest,
                             tbase_t       *tbase )
 {
+    //王手している駒が龍の場合は無駄合判定はしない(ASTRAL_TRAVELER対策）
+    komainf_t koma = S_BOARD(sdata, src);
+    if(koma==SRY || koma==GRY) return false;
+    
     sdata_t sbuf, sbuf1;
     bool flag = false; //true 駒がdestの位置で成れる。
     memcpy(&sbuf, sdata, sizeof(sdata_t));
     //srcの位置の飛び駒を削除
-    komainf_t koma = S_BOARD(&sbuf, src);
-    
-    //王手している駒が馬の場合は無駄合判定はしない
-    
-    if(koma==SUM || koma==GUM){
-        return false;
-    }
-    
     S_BOARD(&sbuf, src) = SPC;
     S_ZKEY(&sbuf) ^= g_zkey_seed[koma*N_SQUARE+src];  //zkey
     
