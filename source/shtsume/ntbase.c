@@ -661,8 +661,8 @@ mcard_t* make_tree_set_item (const sdata_t *sdata,
                     mcard->protect = 1;
                     tbase->pr_num++;
                 }
+                return mcard;
             }
-            return mcard;
         }
         mcard = mcard->next;
     }
@@ -965,7 +965,7 @@ void _tbase_lookup        (const sdata_t   *sdata,
         mvlist->nouse2 =
         TOTAL_MKEY(mkey)-TOTAL_MKEY(mcard->mkey)+mvlist->nouse;
         if(flag){
-            mvlist->cu = 0;
+            mvlist->cu = mcard->current;
             mvlist->pr = mcard->protect;
         }
         return;
