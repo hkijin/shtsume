@@ -965,7 +965,7 @@ void _tbase_lookup        (const sdata_t   *sdata,
         mvlist->nouse2 =
         TOTAL_MKEY(mkey)-TOTAL_MKEY(mcard->mkey)+mvlist->nouse;
         if(flag){
-            mvlist->cu = mcard->current;
+            mvlist->cu = 0;
             mvlist->pr = mcard->protect;
         }
         return;
