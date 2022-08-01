@@ -506,7 +506,12 @@ bool hs_tbase_lookup        (const sdata_t *sdata,
     unsigned int cmp_res;
     while(mcard){
         cmp_res = MKEY_COMPARE(mkey,mcard->mkey);
-        if(cmp_res == MKEY_EQUAL || cmp_res == MKEY_SUPER)
+        if(cmp_res == MKEY_EQUAL)
+        {
+            if(!(mcard->tlist->tdata.pn))
+                return true;
+        }
+        if( cmp_res == MKEY_SUPER)
         {
             if(mcard->current || !(mcard->tlist->tdata.pn))
                 return true;
@@ -810,10 +815,7 @@ bool hs_invalid_drops      (const sdata_t *sdata,
                             unsigned int   dest,
                             tbase_t       *tbase )
 {
-    //王手している駒が龍の場合は無駄合判定はしない(ASTRAL_TRAVELER対策）
     komainf_t koma = S_BOARD(sdata, src);
-    if(koma==SRY || koma==GRY) return false;
-    
     sdata_t sbuf, sbuf1;
     bool flag = false; //true 駒がdestの位置で成れる。
     memcpy(&sbuf, sdata, sizeof(sdata_t));
