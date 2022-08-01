@@ -310,6 +310,9 @@ int proof_number_comp     (const mvlist_t *a,
     //dnの小さい着手を優先
     if(a->tdata.dn < b->tdata.dn) return -1;
     if(a->tdata.dn > b->tdata.dn) return  1;
+    //王手千日手は回避
+    if(a->cu < b->cu) return -1;
+    if(a->cu > b->cu) return  1;
     //詰んでいる着手を優先
     if (!a->tdata.pn && !a->tdata.sh) return -1;
     if (!b->tdata.pn && !b->tdata.sh) return  1;
@@ -319,9 +322,9 @@ int proof_number_comp     (const mvlist_t *a,
     //より短手数で詰む着手を優先
     if (a->tdata.sh < b->tdata.sh) return -1;
     if (a->tdata.sh > b->tdata.sh) return  1;
-    //王手千日手は回避
-    if(a->cu < b->cu) return -1;
-    if(a->cu > b->cu) return  1;
+    //駒をより多く余す着手を優先
+    if (a->nouse2 < b->nouse2) return -1;
+    if (a->nouse2 > b->nouse2) return  1;
     //動かす手優先
     if(MV_MOVE(a->mlist->move) && MV_DROP(b->mlist->move)) return -1;
     if(MV_MOVE(b->mlist->move) && MV_DROP(a->mlist->move)) return  1;
@@ -332,12 +335,12 @@ int proof_number_comp     (const mvlist_t *a,
     if(MV_MOVE(b->mlist->move)       &&
        MV_CAPTURED(b->mlist->move,s) &&
        PROMOTE(b->mlist->move)          )  return  1;
-    //成る手優先
-    if(PROMOTE(a->mlist->move) > PROMOTE(b->mlist->move))  return -1;
-    if(PROMOTE(a->mlist->move) < PROMOTE(b->mlist->move))  return  1;
     //取る手優先
     if(MV_CAPTURED(a->mlist->move, s)) return -1;
     if(MV_CAPTURED(b->mlist->move, s)) return  1;
+    //成る手優先
+    if(PROMOTE(a->mlist->move) > PROMOTE(b->mlist->move))  return -1;
+    if(PROMOTE(a->mlist->move) < PROMOTE(b->mlist->move))  return  1;
     //近距離優先
     if(a->length < b->length) return -1;
     if(a->length > b->length) return  1;

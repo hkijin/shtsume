@@ -20,7 +20,7 @@
  * プログラムID
  */
 #define PROGRAM_NAME       "shtsume"
-#define VERSION_INFO       "v0.3.12"
+#define VERSION_INFO       "v0.4.0"
 #define AUTHOR_NAME        "hkijin"
 
 /*
@@ -427,6 +427,7 @@ extern bool         g_error;
 extern unsigned int g_root_pn;
 extern unsigned int g_root_max;
 extern int          g_loop;
+extern bool         g_redundant;
 
 /*
  * 出力用
@@ -458,5 +459,55 @@ void shtsume_error_log          (const sdata_t *sdata,
  */
 void search_error_log          (const sdata_t  *sdata,
                                 tbase_t        *tbase);
+
+/**
+ * tsearchpv専用の千日手検出用table
+ */
+
+#define MTT_SIZE 2047
+//mkey card
+typedef struct _mcd_t mcd_t;
+struct _mcd_t
+{
+    mkey_t      mkey;           /* 詰方の持ち駒 */
+    mcd_t       *next;
+};
+
+//zkey folder
+typedef struct _zfr_t zfr_t;
+struct _zfr_t
+{
+    zkey_t      zkey;
+    mcd_t       *mcd;
+    zfr_t       *next;
+};
+typedef struct _mtt_t mtt_t;
+struct _mtt_t
+{
+    uint32_t    size;            /* 局面表のサイズ */
+    uint32_t    num;             /* mcdの要素数   */
+    zfr_t       **table;         /* 局面表本体    */
+    zfr_t       *zstack;         /* 未使用zfrの先頭アドレス */
+    zfr_t       *zpool;          /* zfrの先頭(消去用)     */
+    mcd_t       *mstack;         /* 未使用mcdの先頭アドレス */
+    mcd_t       *mpool;          /* mcdの先頭(消去用)     */
+};
+
+extern mtt_t   *g_mtt;
+mtt_t *create_mtt   (uint32_t  base_size);
+void  init_mtt      (mtt_t     *mtt);
+void  destroy_mtt   (mtt_t     *mtt);
+mcd_t *mcd_alloc    (mtt_t     *mtt);
+zfr_t *zfr_alloc    (mtt_t     *mtt);
+
+bool  mtt_lookup    (const sdata_t *sdata,
+                     turn_t  tn,
+                     mtt_t   *mtt);
+void  mtt_setup     (const sdata_t *sdata,
+                     turn_t  tn,
+                     mtt_t   *mtt);
+void  mtt_reset     (const sdata_t *sdata,
+                     turn_t  tn,
+                     mtt_t   *mtt);
 
 #endif /* shtsume_h */

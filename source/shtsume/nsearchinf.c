@@ -149,6 +149,10 @@ void tsearchpv_update_or        (const sdata_t *sdata,
         memcpy(&sbuf, sdata, sizeof(sdata_t));
         sdata_key_forward(&sbuf, tmp->mlist->move);
         make_tree_lookup(&sbuf, tmp, S_TURN(sdata), tbase);
+        if(g_redundant){
+            if(mtt_lookup(&sbuf, S_TURN(sdata), g_mtt))
+                tmp->cu = 1;
+        }
         tmp->length =
         g_distance[ENEMY_OU(sdata)][NEW_POS(tmp->mlist->move)];
         if(tmp->length > 1    &&
@@ -227,6 +231,7 @@ void tsearchpv_update_and       (const sdata_t *sdata,
         list = sdata_mvlist_sort(list, sdata, disproof_number_comp);
     }
     mcard_t *current = MAKE_TREE_SET_CURRENT(sdata, tn, tbase);
+    if(g_redundant)mtt_setup(sdata, tn, g_mtt);
     nsearchlog_t *log = &(g_tsearchinf.mvinf[S_COUNT(sdata)]);
     log->move = list->mlist->move;
 #if DEBUG
@@ -239,6 +244,7 @@ void tsearchpv_update_and       (const sdata_t *sdata,
         tsearchpv_update_or(&sbuf, tbase);
     }
     if(current) current->current = 0;
+    if(g_redundant)mtt_reset(sdata, tn, g_mtt);
     mvlist_free(list);
     return;
 }

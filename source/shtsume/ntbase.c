@@ -1728,3 +1728,216 @@ void fumei_update         (const sdata_t   *sdata,
     return;
 }
 
+/*
+ bmake_treeおよびtsearchpv専用の千日手検出用table
+ */
+
+mtt_t *create_mtt   (uint32_t  base_size)
+{
+    mtt_t *mtt = (mtt_t *)calloc(1, sizeof(mtt_t));
+    if(!mtt) return NULL;
+    mtt->table = (zfr_t **)calloc(base_size, sizeof(zfr_t *));
+    if(!mtt->table){
+        free(mtt);
+        return NULL;
+    }
+    mtt->zstack = (zfr_t *)calloc(base_size, sizeof(zfr_t));
+    if(!mtt->zstack){
+        free(mtt->table);
+        free(mtt);
+        return NULL;
+    }
+    mtt->mstack = (mcd_t *)calloc(base_size, sizeof(mcd_t));
+    if(!mtt->mstack){
+        free(mtt->zstack);
+        free(mtt->table);
+        free(mtt);
+        return NULL;
+    }
+    mtt->zpool = mtt->zstack;
+    mtt->mpool = mtt->mstack;
+    uint32_t i=0;
+    zfr_t *zfr = mtt->zstack;
+    mcd_t *mcd = mtt->mstack;
+    while(i<base_size-1){
+        zfr->next = zfr+1;
+        mcd->next = mcd+1;
+        zfr = zfr->next;
+        mcd = mcd->next;
+        i++;
+    }
+    mtt->size = base_size;
+    return mtt;
+}
+
+void  init_mtt      (mtt_t     *mtt)
+{
+    memset(mtt->table, 0, sizeof(zfr_t *)*mtt->size);
+    memset(mtt->zpool, 0, sizeof(zfr_t)*mtt->size);
+    memset(mtt->mpool, 0, sizeof(mcd_t)*mtt->size);
+    
+    mtt->zstack = mtt->zpool;
+    mtt->mstack = mtt->mpool;
+    
+    uint32_t i=0;
+    zfr_t *zfr = mtt->zstack;
+    mcd_t *mcd = mtt->mstack;
+    while(i<mtt->size-1){
+        zfr->next = zfr+1;
+        mcd->next = mcd+1;
+        zfr = zfr->next;
+        mcd = mcd->next;
+        i++;
+    }
+    mtt->num = 0;
+    return;
+}
+
+void  destroy_mtt   (mtt_t     *mtt)
+{
+    free(mtt->zpool);
+    free(mtt->mpool);
+    free(mtt->table);
+    free(mtt);
+    return;
+}
+
+mcd_t *mcd_alloc    (mtt_t     *mtt)
+{
+    mcd_t *mcd = mtt->mstack;
+    mtt->mstack = mcd->next;
+    memset(mcd, 0, sizeof(mcd_t));
+    return mcd;
+}
+
+zfr_t *zfr_alloc    (mtt_t     *mtt)
+{
+    zfr_t *zfr = mtt->zstack;
+    mtt->zstack = zfr->next;
+    memset(zfr, 0, sizeof(zfr_t));
+    return zfr;
+}
+
+bool  mtt_lookup    (const sdata_t *sdata,
+                     turn_t  tn,
+                     mtt_t   *mtt)
+{
+    uint32_t address = S_ZKEY(sdata)%mtt->size;
+    zfr_t *zfr = *(mtt->table+address);
+    //局面表に同一盤面はあるか
+    while(zfr){
+        if(zfr->zkey == S_ZKEY(sdata)) break;
+        zfr = zfr->next;
+    }
+    if(!zfr) return false;
+    
+    mkey_t mkey = tn?S_GMKEY(sdata):S_SMKEY(sdata);
+    mcd_t *mcd = zfr->mcd;
+    uint32_t cmp_res;
+    while(mcd){
+        cmp_res = MKEY_COMPARE(mkey,mcd->mkey);
+        if(cmp_res == MKEY_EQUAL) return true;
+        mcd = mcd->next;
+    }
+    return false;
+}
+void  mtt_setup     (const sdata_t *sdata,
+                     turn_t  tn,
+                     mtt_t   *mtt)
+{
+    uint32_t address = S_ZKEY(sdata)%mtt->size;
+    zfr_t *zfr = *(mtt->table+address);
+    //局面表に同一盤面はあるか
+    while(zfr){
+        if(zfr->zkey == S_ZKEY(sdata)) break;
+        zfr = zfr->next;
+    }
+    //zfrがない場合
+    if(!zfr){
+        mcd_t *new_mcd = mcd_alloc(mtt);
+        zfr_t *new_zfr = zfr_alloc(mtt);
+        //新規mcard作成
+        new_mcd->mkey = tn?S_GMKEY(sdata):S_SMKEY(sdata);
+        //新規zfr作成
+        new_zfr->zkey = S_ZKEY(sdata);
+        new_zfr->mcd = new_mcd;
+        new_zfr->next = *(mtt->table+address);
+        *(mtt->table+address) = new_zfr;
+        
+        mtt->num++;
+        return;
+    }
+    mkey_t mkey = tn?S_GMKEY(sdata):S_SMKEY(sdata);
+    mcd_t *mcd = zfr->mcd;
+    uint32_t cmp_res;
+    while(mcd){
+        cmp_res = MKEY_COMPARE(mkey,mcd->mkey);
+        if(cmp_res == MKEY_EQUAL) return;
+        mcd = mcd->next;
+    }
+    mcd_t *new_mcd = mcd_alloc(mtt);
+    new_mcd->mkey = mkey;
+    new_mcd->next = zfr->mcd;
+    zfr->mcd = new_mcd;
+    mtt->num++;
+    return;
+}
+void    mtt_reset   (const sdata_t *sdata,
+                     turn_t  tn,
+                     mtt_t   *mtt)
+{
+    uint32_t address = S_ZKEY(sdata)%mtt->size;
+    zfr_t *zfr = *(mtt->table+address);
+    zfr_t *zprev = NULL;
+    //局面表に同一盤面はあるか
+    while(zfr){
+        if(zfr->zkey == S_ZKEY(sdata)) break;
+        zprev = zfr;
+        zfr = zfr->next;
+    }
+    if(!zfr) return;
+    mkey_t mkey = tn?S_GMKEY(sdata):S_SMKEY(sdata);
+    mcd_t *mcd = zfr->mcd;
+    mcd_t *prev = NULL;
+    uint32_t cmp_res;
+    while(mcd){
+        cmp_res = MKEY_COMPARE(mkey,mcd->mkey);
+        if(cmp_res == MKEY_EQUAL)
+        {
+            if(prev){
+                prev->next = mcd->next;
+                mcd->next = mtt->mstack;
+                mtt->mstack = mcd;
+                mtt->num--;
+                return;
+            }
+            else if(mcd->next){
+                zfr->mcd = mcd->next;
+                mcd->next = mtt->mstack;
+                mtt->mstack = mcd;
+                mtt->num--;
+                return;
+            }
+            //mcdがなくなった場合、zfrを削除
+            else{
+                mcd->next = mtt->mstack;
+                mtt->mstack = mcd;
+                mtt->num--;
+                if(zprev){
+                    zprev->next = zfr->next;
+                    zfr->next = mtt->zstack;
+                    mtt->zstack = zfr;
+                    return;
+                }
+                else{
+                    *(mtt->table+address) = zfr->next;
+                    zfr->next = mtt->zstack;
+                    mtt->zstack = zfr;
+                    return;
+                }
+            }
+        }
+        prev = mcd;
+        mcd = mcd->next;
+    }
+}

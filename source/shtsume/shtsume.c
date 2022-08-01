@@ -22,6 +22,7 @@ unsigned int g_root_max;    //ルートpnの最大値
 //千日手エラー検出用
 //エラーなし　−１、エラー　発生深さ
 int          g_loop;
+bool         g_redundant;    //駒余りflag true 駒余り
 
 /* --------------
  スタティック変数
@@ -35,7 +36,7 @@ static unsigned int st_max_thdn;     //最大dnしきい値
 static unsigned int st_add_thpn;     //追加探索のルートpnしきい値
 static unsigned int st_max_tsh;      //最大詰み深さ（手数）
 static unsigned int st_max_dsh;      //最大不詰深さ（手数）
-static bool         st_redundant;    //駒余りflag true 駒余り
+
 static bool         st_symmetry;     //初形左右対称flag
 
 /* --------------
@@ -174,7 +175,7 @@ void bn_search                  (const sdata_t   *sdata,
     st_max_dsh     = 0;
     st_max_depth   = 0;
     //駒余りflag
-    st_redundant = false;
+    g_redundant = false;
     //探索エラー
     g_error        = false;
     g_loop         = -1;
@@ -199,7 +200,7 @@ void bn_search                  (const sdata_t   *sdata,
         st_add_thpn = st_max_thpn;
         char lv = g_search_level;
         while(lv){
-            if(st_redundant) break;
+            if(g_redundant) break;
             st_add_thpn++;
             sprintf(g_str, "info string LV%d %u手詰 "
                            "探索局面数 %llu "
@@ -231,7 +232,7 @@ void bn_search                  (const sdata_t   *sdata,
      * 詰みであればg_searchinf上に詰手順を構築
      */
     if(!tdata->pn){
-        if(st_redundant){
+        if(g_redundant){
             sprintf(g_str,"info string 駒余り詰め検出。(出力は参考手順）\n");
             record_log(g_str); puts(g_str);
         }
@@ -267,7 +268,7 @@ void make_tree                  (const sdata_t   *sdata,
             make_tree_or(sdata, mvlist, tbase);
         
         else
-            st_redundant = true;
+            g_redundant = true;
          
          
     }

@@ -42,6 +42,7 @@ short         g_max_pv_length   = 20;
 bool          g_summary         = false; //サマリーレポートの出力有無(true:有り)
 
 tbase_t *g_tbase;
+mtt_t   *g_mtt;
 char g_sfen_pos_str[256];          //GUIからの送られて来た局面文字列を保管
 char g_error_location[256];        //エラー発生箇所を示す文字列
 char g_user_path[256];             //shtsumeの出力ファイル格納場所
@@ -132,6 +133,7 @@ void res_isready_cmd      (void)
     //tbaseの作成
     uint64_t size = g_usi_hash*MCARDS_PER_MBYTE-1;
     g_tbase = create_tbase(size);
+    g_mtt = create_mtt(MTT_SIZE);
     
     //OKを返す
     char str[12];
@@ -381,6 +383,7 @@ void res_gomate_cmd       (const char *buf)
         record_log(g_str);
     }
     initialize_tbase(g_tbase);
+    init_mtt(g_mtt);
     mlist_free_stack();
     mvlist_free_stack();
     return;
