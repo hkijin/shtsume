@@ -506,14 +506,9 @@ bool hs_tbase_lookup        (const sdata_t *sdata,
     unsigned int cmp_res;
     while(mcard){
         cmp_res = MKEY_COMPARE(mkey,mcard->mkey);
-        if(cmp_res == MKEY_EQUAL)
+        if( cmp_res == MKEY_EQUAL||cmp_res == MKEY_SUPER )
         {
             if(!(mcard->tlist->tdata.pn))
-                return true;
-        }
-        if( cmp_res == MKEY_SUPER)
-        {
-            if(mcard->current || !(mcard->tlist->tdata.pn))
                 return true;
         }
         mcard = mcard->next;
