@@ -16,10 +16,10 @@
 //#include "ntest.h"
 
 static const struct option longopts[] = {
-    {"help", no_argument, NULL, 'h'},
-    {"version", no_argument, NULL, 'v'},
-    {"test", required_argument, NULL, 't'},
-    {NULL, 0, NULL, 0}
+    {"help",    no_argument,        NULL,   'h'},
+    {"version", no_argument,        NULL,   'v'},
+    {"test",    required_argument,  NULL,   't'},
+    {NULL,      0,                  NULL,   0  }
 };
 
 static void print_version (void);
@@ -44,6 +44,7 @@ int main(int argc, char * const argv[]) {
                 exit(EXIT_SUCCESS);
                 break;
             default:
+                //USIエンジンとして使用
                 break;
         }
     
