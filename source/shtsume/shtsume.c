@@ -746,7 +746,7 @@ void make_tree_or               (const sdata_t   *sdata,
     }
     
     //局面表を参照する
-    mvlist_t *tmp = list;
+    mvlist_t *prev, *tmp = list;
     sdata_t sbuf;
     while(tmp){
         memcpy(&sbuf, sdata, sizeof(sdata_t));
@@ -808,6 +808,12 @@ void make_tree_or               (const sdata_t   *sdata,
         make_plus_and(&sbuf,list,g_gc_max_level+1,ptsh,tbase);
         if(mvlist->tdata.sh>list->tdata.sh) break;
         //詰んでいない最初のmvlistを特定する。
+        tmp = list;
+        prev = list;
+        while(tmp && !tmp->tdata.pn){
+            prev = tmp;
+            tmp = tmp->next;
+        }
         while(tmp && tmp->tdata.pn && tmp->tdata.pn<INFINATE-1){
             if(tmp->next) thdata.pn = MIN(INFINATE-1,(list->next)->tdata.pn+1);
             else thdata.pn = INFINATE-1;
@@ -817,7 +823,7 @@ void make_tree_or               (const sdata_t   *sdata,
             bn_search_and(&sbuf, &thdata, tmp, tbase);
             tmp = sdata_mvlist_sort(tmp, sdata, proof_number_comp);
         }
-        list->next = tmp;
+        prev->next = tmp;
         list = sdata_mvlist_sort(list, sdata, proof_number_comp);
     }
     if(list->cu) return;
