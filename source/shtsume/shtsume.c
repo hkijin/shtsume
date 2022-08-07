@@ -709,6 +709,7 @@ void bn_search_and              (const sdata_t   *sdata,
 /*
  戻り値: 詰んでいないデータ
  */
+/*
 static mvlist_t *unknown_mvlist(mvlist_t *list)
 {
     mvlist_t *tmp = list;
@@ -719,7 +720,7 @@ static mvlist_t *unknown_mvlist(mvlist_t *list)
     }
     return tmp;
 }
-
+*/
 void make_tree_or               (const sdata_t   *sdata,
                                  mvlist_t       *mvlist,
                                  tbase_t         *tbase )
@@ -801,12 +802,12 @@ void make_tree_or               (const sdata_t   *sdata,
      ------------------------------------------------------------------- */
     while(mvlist->tdata.sh < list->tdata.sh && !list->inc)
     {
-        //先頭着手について手数の短い手がないか際探索する
+        //先頭着手について手数の短い手がないか再探索する
         uint16_t ptsh = mvlist->tdata.sh;
         memcpy(&sbuf, sdata, sizeof(sdata_t));
         sdata_move_forward(&sbuf, list->mlist->move);
         make_plus_and(&sbuf,list,g_gc_max_level+1,ptsh,tbase);
-        if(mvlist->tdata.sh>list->tdata.sh) break;
+        if(mvlist->tdata.sh>list->tdata.sh ||list->inc) break;
         //詰んでいない最初のmvlistを特定する。
         tmp = list;
         prev = list;
@@ -815,7 +816,7 @@ void make_tree_or               (const sdata_t   *sdata,
             tmp = tmp->next;
         }
         while(tmp && tmp->tdata.pn && tmp->tdata.pn<INFINATE-1){
-            if(tmp->next) thdata.pn = MIN(INFINATE-1,(list->next)->tdata.pn+1);
+            if(tmp->next) thdata.pn = MIN(INFINATE-1,(tmp->next)->tdata.pn+1);
             else thdata.pn = INFINATE-1;
             thdata.sh = TSUME_MAX_DEPTH-sdata->core.count-1;
             memcpy(&sbuf, sdata, sizeof(sdata_t));
