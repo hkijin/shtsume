@@ -7,10 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		68138C57289F65E0007BA6EB /* ndtools.c in Sources */ = {isa = PBXBuildFile; fileRef = 68138C56289F65E0007BA6EB /* ndtools.c */; };
-		685FBEBC289A48C2006601C9 /* ntest.c in Sources */ = {isa = PBXBuildFile; fileRef = 685FBEBB289A48C2006601C9 /* ntest.c */; };
-		685FBEBF289A495D006601C9 /* tests.c in Sources */ = {isa = PBXBuildFile; fileRef = 685FBEBE289A495D006601C9 /* tests.c */; };
-		685FBEC1289A4993006601C9 /* problem.c in Sources */ = {isa = PBXBuildFile; fileRef = 685FBEC0289A4993006601C9 /* problem.c */; };
+		68138C59289F692D007BA6EB /* ndtools.c in Sources */ = {isa = PBXBuildFile; fileRef = 68138C58289F692D007BA6EB /* ndtools.c */; };
 		689734CD28605E5800665FC6 /* dtools.c in Sources */ = {isa = PBXBuildFile; fileRef = 689734C128605E5800665FC6 /* dtools.c */; };
 		689734CE28605E5800665FC6 /* base.c in Sources */ = {isa = PBXBuildFile; fileRef = 689734C328605E5800665FC6 /* base.c */; };
 		689734D128605E5800665FC6 /* global.c in Sources */ = {isa = PBXBuildFile; fileRef = 689734CA28605E5800665FC6 /* global.c */; };
@@ -39,12 +36,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		68138C56289F65E0007BA6EB /* ndtools.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = ndtools.c; sourceTree = "<group>"; };
-		685FBEBA289A4878006601C9 /* ntest.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ntest.h; sourceTree = "<group>"; };
-		685FBEBB289A48C2006601C9 /* ntest.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = ntest.c; sourceTree = "<group>"; };
-		685FBEBD289A4918006601C9 /* tests.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = tests.h; sourceTree = "<group>"; };
-		685FBEBE289A495D006601C9 /* tests.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = tests.c; sourceTree = "<group>"; };
-		685FBEC0289A4993006601C9 /* problem.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = problem.c; sourceTree = "<group>"; };
+		68138C58289F692D007BA6EB /* ndtools.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = ndtools.c; sourceTree = "<group>"; };
 		687F4BDD287193DE008FBBB7 /* shtsume_ja.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = shtsume_ja.txt; sourceTree = "<group>"; };
 		6896341828629F60007EA17E /* release_note.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = release_note.md; sourceTree = "<group>"; };
 		689734B628605D6800665FC6 /* shtsume */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = shtsume; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -137,7 +129,7 @@
 				689734DD28605E9500665FC6 /* ncheck.c */,
 				689734DE28605E9500665FC6 /* nbase.c */,
 				689734DF28605E9500665FC6 /* nmain.c */,
-				68138C56289F65E0007BA6EB /* ndtools.c */,
+				68138C58289F692D007BA6EB /* ndtools.c */,
 				689734E228605E9500665FC6 /* nusi.c */,
 				689734E128605E9500665FC6 /* ndtools.h */,
 			);
@@ -147,11 +139,6 @@
 		689734F128606F1F00665FC6 /* test */ = {
 			isa = PBXGroup;
 			children = (
-				685FBEBA289A4878006601C9 /* ntest.h */,
-				685FBEBB289A48C2006601C9 /* ntest.c */,
-				685FBEBE289A495D006601C9 /* tests.c */,
-				685FBEC0289A4993006601C9 /* problem.c */,
-				685FBEBD289A4918006601C9 /* tests.h */,
 			);
 			name = test;
 			path = ../test;
@@ -229,16 +216,13 @@
 				689734CD28605E5800665FC6 /* dtools.c in Sources */,
 				689734E828605E9500665FC6 /* ntbase.c in Sources */,
 				689734E328605E9500665FC6 /* shtsume.c in Sources */,
-				685FBEC1289A4993006601C9 /* problem.c in Sources */,
 				689734CE28605E5800665FC6 /* base.c in Sources */,
-				68138C57289F65E0007BA6EB /* ndtools.c in Sources */,
 				689734D228605E5800665FC6 /* bitboard.c in Sources */,
 				689734E428605E9500665FC6 /* nsearchinf.c in Sources */,
 				689734E928605E9500665FC6 /* ncheck.c in Sources */,
 				689734F028606E6300665FC6 /* nmain.c in Sources */,
-				685FBEBF289A495D006601C9 /* tests.c in Sources */,
 				689734EC28605E9500665FC6 /* nusi.c in Sources */,
-				685FBEBC289A48C2006601C9 /* ntest.c in Sources */,
+				68138C59289F692D007BA6EB /* ndtools.c in Sources */,
 				689734EA28605E9500665FC6 /* nbase.c in Sources */,
 				689734D328605E5800665FC6 /* usi.c in Sources */,
 			);
