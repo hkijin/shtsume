@@ -84,14 +84,30 @@ static void make_plus_and       (const sdata_t   *sdata,
 //コマンドラインのHELP内容をここに記載する
 void print_help                (void)
 {
-    printf("%sは詰将棋を解くプログラムです。\n"
-           "USIプロトコルに準拠しており、詰将棋エンジンとして使用する事ができます。\n"
-           "コマンドラインからの使用法\n"
-           "  -h, --help      このHELPを表示して終了。\n"
-           "  -v, --version   バージョン情報を表示して終了。\n",
-           PROGRAM_NAME                                         );
-     
-    //system("man man\n");
+    
+    printf
+    ("%s, version %s\n"
+     " 使用法１: %s \n"
+     "         USIに準拠した詰将棋エンジンとして使用する事ができます。\n"
+     " 使用法２: コマンドラインより\n"
+     "         %s [-hvkgds][-l lv][-m size][-i limit] sfen_string\n"
+     "　       sfen_stringで指定された局面について詰探索を試みます。\n"
+     " [サポートオプション]\n"
+     " h,help   : このHELPを表示して終了します。\n"
+     " v,version: プログラムのバージョンを表示して終了します。\n"
+     " [詰探索オプション]\n"
+     " k,kifu   : レベル毎の棋譜を出力します。\n"
+     " g,log    : 探索LOGを出力します。\n"
+     " d,display: 探索後、手順確認モードに移行します。\n"
+     " n,minpn  : 末端探索証明数を指定します。デフォルト値 4\n"
+     " m,memory : 局面表で使用するメモリーサイズを指定します。デフォルト値 256(MByte)。\n"
+     " l,level  : 探索レベルを指定します。デフォルト値 0。\n"
+     " i,limit  : 思考制限時間を指定します（秒単位）。デフォルト値　-1(無制限）\n\n",
+    PROGRAM_NAME,
+    VERSION_INFO,
+    PROGRAM_NAME,
+    PROGRAM_NAME);
+    
     return;
 }
 

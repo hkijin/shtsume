@@ -129,9 +129,9 @@
 				689734DD28605E9500665FC6 /* ncheck.c */,
 				689734DE28605E9500665FC6 /* nbase.c */,
 				689734DF28605E9500665FC6 /* nmain.c */,
-				68138C58289F692D007BA6EB /* ndtools.c */,
 				689734E228605E9500665FC6 /* nusi.c */,
 				689734E128605E9500665FC6 /* ndtools.h */,
+				68138C58289F692D007BA6EB /* ndtools.c */,
 			);
 			path = shtsume;
 			sourceTree = "<group>";

@@ -33,7 +33,7 @@ usioption_t g_usioption =
 };
 
 bool          g_usi_ponder      = false;
-uint64_t      g_usi_hash        = 32;
+uint64_t      g_usi_hash        = 256;
 uint16_t      g_mt_min_pn       = 4;
 uint8_t       g_n_make_tree     = 2;
 uint8_t       g_search_level    = 0;
