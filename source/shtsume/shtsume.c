@@ -822,7 +822,8 @@ void make_tree_or               (const sdata_t   *sdata,
         uint16_t ptsh = mvlist->tdata.sh;
         memcpy(&sbuf, sdata, sizeof(sdata_t));
         sdata_move_forward(&sbuf, list->mlist->move);
-        make_plus_and(&sbuf,list,g_gc_max_level+1,ptsh,tbase);
+        //make_plus_and(&sbuf,list,g_gc_max_level+1,ptsh,tbase);
+        bns_plus_and(&sbuf,list,ptsh,tbase);
         if(mvlist->tdata.sh>list->tdata.sh ||list->inc) break;
         //詰んでいない最初のmvlistを特定する。
         tmp = list;
