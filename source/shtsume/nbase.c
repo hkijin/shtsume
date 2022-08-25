@@ -374,6 +374,13 @@ int disproof_number_comp  (const mvlist_t *a,
     //動かす手優先
     if(MV_MOVE(a->mlist->move) && MV_DROP(b->mlist->move)) return -1;
     if(MV_MOVE(b->mlist->move) && MV_DROP(a->mlist->move)) return  1;
+    //取って成る手優先
+    if(MV_MOVE(a->mlist->move)       &&
+       MV_CAPTURED(a->mlist->move,s) &&
+       PROMOTE(a->mlist->move)          )  return -1;
+    if(MV_MOVE(b->mlist->move)       &&
+       MV_CAPTURED(b->mlist->move,s) &&
+       PROMOTE(b->mlist->move)          )  return  1;
     //取る手優先
     if(MV_CAPTURED(a->mlist->move, s)) return -1;
     if(MV_CAPTURED(b->mlist->move, s)) return  1;
