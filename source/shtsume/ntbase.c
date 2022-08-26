@@ -67,12 +67,14 @@ static void _tbase_update (const sdata_t   *sdata,
                            tbase_t         *tbase );
 static bool _invalid_drops(const sdata_t   *sdata,
                            unsigned int       src,
-                           unsigned int      dest );
+                           unsigned int      dest,
+                           tbase_t         *tbase );
 static void set_tpin      (const sdata_t *sdata,
                            char *tpin             );
 static bool src_check     (const sdata_t  *sdata,
                            bitboard_t        eff,
-                           unsigned int     dest  );
+                           unsigned int     dest,
+                           tbase_t        *tbase  );
 
 /* -----------
  実装
@@ -698,8 +700,9 @@ void tbase_clear_protect   (tbase_t       *tbase)
  玉から離れた位置での無駄合い判定（局面表を使用）   hs_invalid_drops
  詰みの場合(無駄合い)　true
  ------------------------------------------------------------ */
-bool invalid_drops           (const sdata_t *sdata,
-                              unsigned int     dest )
+bool invalid_drops           (const sdata_t  *sdata,
+                              unsigned int     dest,
+                              tbase_t        *tbase  )
 {
     //destに駒を動かす手を生成する。
     bitboard_t effect;
@@ -710,47 +713,47 @@ bool invalid_drops           (const sdata_t *sdata,
         //SFU
         effect = EFFECT_TBL(dest, GFU, sdata);
         BBA_AND(effect, BB_SFU(sdata));
-        if(src_check(sdata, effect, dest)) return true;
+        if(src_check(sdata, effect, dest, tbase)) return true;
         
         //SKY
         effect = EFFECT_TBL(dest, GKY, sdata);
         BBA_AND(effect, BB_SKY(sdata));
-        if(src_check(sdata, effect, dest)) return true;
+        if(src_check(sdata, effect, dest, tbase)) return true;
         
         //SKE
         effect = EFFECT_TBL(dest, GKE, sdata);
         BBA_AND(effect, BB_SKE(sdata));
-        if(src_check(sdata, effect, dest)) return true;
+        if(src_check(sdata, effect, dest, tbase)) return true;
 
         //SGI
         effect = EFFECT_TBL(dest, GGI, sdata);
         BBA_AND(effect, BB_SGI(sdata));
-        if(src_check(sdata, effect, dest)) return true;
+        if(src_check(sdata, effect, dest, tbase)) return true;
 
         //SKI,STO,SNY,SNK,SNG
         effect = EFFECT_TBL(dest, GKI, sdata);
         BBA_AND(effect, BB_STK(sdata));
-        if(src_check(sdata, effect, dest)) return true;
+        if(src_check(sdata, effect, dest, tbase)) return true;
 
         //SKA
         effect = EFFECT_TBL(dest, GKA, sdata);
         BBA_AND(effect, BB_SKA(sdata));
-        if(src_check(sdata, effect, dest)) return true;
+        if(src_check(sdata, effect, dest, tbase)) return true;
 
         //SHI
         effect = EFFECT_TBL(dest, GHI, sdata);
         BBA_AND(effect, BB_SHI(sdata));
-        if(src_check(sdata, effect, dest)) return true;
+        if(src_check(sdata, effect, dest, tbase)) return true;
 
         //SUM
         effect = EFFECT_TBL(dest, GUM, sdata);
         BBA_AND(effect, BB_SUM(sdata));
-        if(src_check(sdata, effect, dest)) return true;
+        if(src_check(sdata, effect, dest, tbase)) return true;
 
         //SRY
         effect = EFFECT_TBL(dest, GRY, sdata);
         BBA_AND(effect, BB_SRY(sdata));
-        if(src_check(sdata, effect, dest)) return true;
+        if(src_check(sdata, effect, dest, tbase)) return true;
 
     }
     //先手番
@@ -759,47 +762,47 @@ bool invalid_drops           (const sdata_t *sdata,
         //GFU
         effect = EFFECT_TBL(dest, SFU, sdata);
         BBA_AND(effect, BB_GFU(sdata));
-        if(src_check(sdata, effect, dest)) return true;
+        if(src_check(sdata, effect, dest, tbase)) return true;
 
         //GKY
         effect = EFFECT_TBL(dest, SKY, sdata);
         BBA_AND(effect, BB_GKY(sdata));
-        if(src_check(sdata, effect, dest)) return true;
+        if(src_check(sdata, effect, dest, tbase)) return true;
 
         //GKE
         effect = EFFECT_TBL(dest, SKE, sdata);
         BBA_AND(effect, BB_GKE(sdata));
-        if(src_check(sdata, effect, dest)) return true;
+        if(src_check(sdata, effect, dest, tbase)) return true;
 
         //GGI
         effect = EFFECT_TBL(dest, SGI, sdata);
         BBA_AND(effect, BB_GGI(sdata));
-        if(src_check(sdata, effect, dest)) return true;
+        if(src_check(sdata, effect, dest, tbase)) return true;
 
         //GKI,GTO,GNY,GNK,GNG
         effect = EFFECT_TBL(dest, SKI, sdata);
         BBA_AND(effect, BB_GTK(sdata));
-        if(src_check(sdata, effect, dest)) return true;
+        if(src_check(sdata, effect, dest, tbase)) return true;
 
         //GKA
         effect = EFFECT_TBL(dest, SKA, sdata);
         BBA_AND(effect, BB_GKA(sdata));
-        if(src_check(sdata, effect, dest)) return true;
+        if(src_check(sdata, effect, dest, tbase)) return true;
 
         //GHI
         effect = EFFECT_TBL(dest, SHI, sdata);
         BBA_AND(effect, BB_GHI(sdata));
-        if(src_check(sdata, effect, dest)) return true;
+        if(src_check(sdata, effect, dest, tbase)) return true;
 
         //GUM
         effect = EFFECT_TBL(dest, SUM, sdata);
         BBA_AND(effect, BB_GUM(sdata));
-        if(src_check(sdata, effect, dest)) return true;
+        if(src_check(sdata, effect, dest, tbase)) return true;
 
         //GRY
         effect = EFFECT_TBL(dest, SUM, sdata);
         BBA_AND(effect, BB_GUM(sdata));
-        if(src_check(sdata, effect, dest)) return true;
+        if(src_check(sdata, effect, dest, tbase)) return true;
 
     }
     return false;
@@ -813,7 +816,7 @@ bool hs_invalid_drops      (const sdata_t *sdata,
     komainf_t koma = S_BOARD(sdata, src);
     //角の王手には適用しない
     //if(koma == SKA||koma==GKA) return false;
-    if(koma != SRY && koma!=GRY) return false;
+    //if(koma != SRY && koma!=GRY) return false;
     sdata_t sbuf, sbuf1;
     bool flag = false; //true 駒がdestの位置で成れる。
     memcpy(&sbuf, sdata, sizeof(sdata_t));
@@ -850,6 +853,18 @@ bool hs_invalid_drops      (const sdata_t *sdata,
             return true;
         }
     }
+    return false;
+}
+
+/* ------------------------------------------------------------------------
+ dest地点に玉の隣接地点に王手している飛駒のほか、王手になる全ての駒を動かしてみて一つでも
+ 詰みであれば無駄合とする。
+ ------------------------------------------------------------------------ */
+bool hs_invalid_drops_next (const sdata_t *sdata,
+                            unsigned int   src,
+                            unsigned int   dest,
+                            tbase_t       *tbase )
+{
     return false;
 }
 
@@ -1090,7 +1105,8 @@ void _tbase_update        (const sdata_t   *sdata,
 
 bool _invalid_drops       (const sdata_t   *sdata,
                            unsigned int       src,
-                           unsigned int      dest )
+                           unsigned int      dest,
+                           tbase_t         *tbase )
 {
     //srcの駒をdestに移した局面を作る。
     sdata_t  sbuf;
@@ -1099,9 +1115,15 @@ bool _invalid_drops       (const sdata_t   *sdata,
     ssdata.board[src]  = SPC;
     ssdata.board[dest] = koma;
     initialize_sdata(&sbuf, &ssdata);
+    turn_t tn = TURN_FLIP(S_TURN(&sbuf));
     //局面が詰みであればtrueを返す。
     if(S_NOUTE(&sbuf)){
         if(tsumi_check(&sbuf)) return true;
+        else if(hs_tbase_lookup(&sbuf, tn, tbase)){
+            g_invalid_drops = true;
+            return true;
+        }
+        
     }
     //駒が成れる場合
     if(KOMA_PROMOTE(koma, src, dest)){
@@ -1110,6 +1132,10 @@ bool _invalid_drops       (const sdata_t   *sdata,
         //局面が詰みであればtrueを返す。
         if(S_NOUTE(&sbuf)){
             if(tsumi_check(&sbuf)) return true;
+            else if(hs_tbase_lookup(&sbuf, tn, tbase)){
+                g_invalid_drops = true;
+                return true;
+            }
         }
     }
     return false;
@@ -1233,7 +1259,8 @@ void set_tpin             (const sdata_t *sdata,
 
 bool src_check            (const sdata_t  *sdata,
                            bitboard_t        eff,
-                           unsigned int     dest  )
+                           unsigned int     dest,
+                           tbase_t        *tbase )
 {
     int src;
     bitboard_t effect = eff;
@@ -1241,7 +1268,7 @@ bool src_check            (const sdata_t  *sdata,
         src = min_pos(&effect);
         if(src<0) break;
         if(!st_tpin[src]){
-            if(_invalid_drops(sdata, src, dest)) return true;
+            if(_invalid_drops(sdata, src, dest, tbase)) return true;
         }
         BBA_XOR(effect, g_bpos[src]);
     }

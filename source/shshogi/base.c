@@ -153,6 +153,7 @@ void initialize_sdata(sdata_t *sdata,
     S_GNP(sdata) += GMKEY_HI(sdata)*g_nkoma_val[GHI];
     
     S_NOUTE(sdata) = oute_check(sdata);
+    if(S_TURN(sdata))S_ZKEY(sdata) ^= g_zkey_seed[TURN_ADDRESS];
     create_effect(sdata);
     create_pin(sdata);
     return;

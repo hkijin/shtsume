@@ -20,7 +20,7 @@
  * プログラムID
  */
 #define PROGRAM_NAME       "shtsume"
-#define VERSION_INFO       "v0.5.2"
+#define VERSION_INFO       "v0.5.3"
 #define AUTHOR_NAME        "hkijin"
 
 /*
@@ -383,9 +383,18 @@ extern mcard_t *g_mcard[N_MCARD_TYPE];
 /*
  * 無駄合い判定
  */
+/*
 bool invalid_drops         (const sdata_t *sdata,
                             unsigned int   dest  );
+ */
+bool invalid_drops         (const sdata_t *sdata,
+                            unsigned int   dest ,
+                            tbase_t       *tbase );
 bool hs_invalid_drops      (const sdata_t *sdata,
+                            unsigned int   src,
+                            unsigned int   dest,
+                            tbase_t       *tbase );
+bool hs_invalid_drops_next (const sdata_t *sdata,
                             unsigned int   src,
                             unsigned int   dest,
                             tbase_t       *tbase );
