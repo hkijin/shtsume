@@ -819,10 +819,10 @@ bool hs_invalid_drops      (const sdata_t *sdata,
                             tbase_t       *tbase )
 {
     komainf_t koma = S_BOARD(sdata, src);
-    //飛角香の王手には適用しない
-    if(koma == SKA||koma==GKA) return false;
-    if(koma == SUM||koma==GUM) return false;
-    //if(koma != SRY && koma!=GRY) return false;
+    //龍の王手のみ
+    //if(koma == SKA||koma==GKA) return false;
+    //if(koma == SUM||koma==GUM) return false;
+    if(koma != SRY && koma!=GRY) return false;
     sdata_t sbuf, sbuf1;
     bool flag = false; //true 駒がdestの位置で成れる。
     memcpy(&sbuf, sdata, sizeof(sdata_t));
