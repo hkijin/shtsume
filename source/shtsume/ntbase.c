@@ -75,6 +75,11 @@ static bool src_check     (const sdata_t  *sdata,
                            bitboard_t        eff,
                            unsigned int     dest,
                            tbase_t        *tbase  );
+static void sdata_tentative_move (sdata_t *sdata,
+                                  char src,
+                                  char dest,
+                                  bool promote    );
+static bool is_move_possible(komainf_t koma, char dest);
 
 /* -----------
  実装
@@ -1103,6 +1108,18 @@ void _tbase_update        (const sdata_t   *sdata,
     return;
 }
 
+bool is_move_possible(komainf_t koma, char dest)
+{
+    switch(koma){
+        case SFU: if(dest>8)  return true; return false; break;
+        case SKY: if(dest>8)  return true; return false; break;
+        case SKE: if(dest>17) return true; return false; break;
+        case GFU: if(dest<72) return true; return false; break;
+        case GKY: if(dest<72) return true; return false; break;
+        case GKE: if(dest<63) return true; return false; break;
+        default: return true; break;
+    }
+}
 bool _invalid_drops       (const sdata_t   *sdata,
                            unsigned int       src,
                            unsigned int      dest,
@@ -1110,25 +1127,28 @@ bool _invalid_drops       (const sdata_t   *sdata,
 {
     //srcの駒をdestに移した局面を作る。
     sdata_t  sbuf;
-    ssdata_t ssdata = sdata->core;
-    komainf_t koma = ssdata.board[src];
-    ssdata.board[src]  = SPC;
-    ssdata.board[dest] = koma;
-    initialize_sdata(&sbuf, &ssdata);
-    turn_t tn = TURN_FLIP(S_TURN(&sbuf));
-    //局面が詰みであればtrueを返す。
-    if(S_NOUTE(&sbuf)){
-        if(tsumi_check(&sbuf)) return true;
-        else if(hs_tbase_lookup(&sbuf, tn, tbase)){
-            g_invalid_drops = true;
-            return true;
+    komainf_t koma = S_BOARD(sdata, src);
+    //不成でkomaがdestに移動できる場合
+    if(is_move_possible(koma,dest))
+    {
+        memcpy(&sbuf, sdata, sizeof(sdata_t));
+        sdata_tentative_move(&sbuf, src, dest, false);
+        turn_t tn = TURN_FLIP(S_TURN(&sbuf));
+        //局面が詰みであればtrueを返す。
+        if(S_NOUTE(&sbuf)){
+            if(tsumi_check(&sbuf)) return true;
+            else if(hs_tbase_lookup(&sbuf, tn, tbase)){
+                g_invalid_drops = true;
+                return true;
+            }
         }
-        
     }
+
     //駒が成れる場合
     if(KOMA_PROMOTE(koma, src, dest)){
-        ssdata.board[dest] = koma+PROMOTED;
-        initialize_sdata(&sbuf, &ssdata);
+        memcpy(&sbuf, sdata, sizeof(sdata_t));
+        sdata_tentative_move(&sbuf, src, dest, true);
+        turn_t tn = TURN_FLIP(S_TURN(&sbuf));
         //局面が詰みであればtrueを返す。
         if(S_NOUTE(&sbuf)){
             if(tsumi_check(&sbuf)) return true;
@@ -1968,4 +1988,73 @@ void    mtt_reset   (const sdata_t *sdata,
         prev = mcd;
         mcd = mcd->next;
     }
+}
+
+/* ---------------------------------------------------
+ 盤面上のsrcの位置の駒をdestの位置に変更した局面データを生成する
+ （無駄合判定用)
+ --------------------------------------------------- */
+static void sdata_tentative_move (sdata_t *sdata,
+                                  char src,
+                                  char dest,
+                                  bool promote     )
+{
+    komainf_t koma;
+    
+    /* board,zkey,mkey,occupied, bb_koma, fflag, ou */
+    //移動元(src)の駒を削除
+    koma = S_BOARD(sdata, src);
+    S_BOARD(sdata, src) = SPC;
+    S_ZKEY(sdata) ^= g_zkey_seed[koma*N_SQUARE+src];
+    if(koma == SFU)
+        S_FFLAG(sdata) =
+        FLAG_UNSET(S_FFLAG(sdata), g_file[src]);
+    else if(koma == GFU)
+        S_FFLAG(sdata) =
+        FLAG_UNSET(S_FFLAG(sdata), g_file[src]+9);
+    S_KSCORE(sdata) -= g_koma_val[koma];
+    
+    //ビットボード処理
+    SDATA_OCC_XOR(sdata, src);
+    if(koma==SOU||koma==GOU) ;
+    else sdata_bb_xor(sdata, koma, src);
+    S_TURN(sdata)?
+    (BBA_XOR(BB_SOC(sdata), g_bpos[src])):
+    (BBA_XOR(BB_GOC(sdata), g_bpos[src]));
+    
+    //移動先に駒を置く
+    if(promote) koma += PROMOTED;
+    S_BOARD(sdata, dest) = koma;
+    S_ZKEY(sdata) ^= g_zkey_seed[koma*N_SQUARE+dest];
+    if(koma == SFU)
+        S_FFLAG(sdata) = FLAG_SET(S_FFLAG(sdata), g_file[dest]);
+    else if(koma == GFU)
+        S_FFLAG(sdata) = FLAG_SET(S_FFLAG(sdata), g_file[dest]+9);
+    S_KSCORE(sdata) += g_koma_val[koma];
+    
+    //ビットボード処理
+    SDATA_OCC_XOR(sdata, dest);
+    sdata_bb_xor(sdata, koma, dest);
+    S_TURN(sdata)?
+    (BBA_XOR(BB_SOC(sdata), g_bpos[dest])):
+    (BBA_XOR(BB_GOC(sdata), g_bpos[dest]));
+    
+    /* pinned  effect */
+    create_effect(sdata);
+    create_pin(sdata);
+    if(S_TURN(sdata)){
+        if(BPOS_TEST(SEFFECT(sdata), S_GOU(sdata)))
+            S_NOUTE(sdata) = oute_check(sdata);
+        else {
+            S_NOUTE(sdata) = 0;
+        }
+    }
+    else{
+        if(BPOS_TEST(GEFFECT(sdata), S_SOU(sdata)))
+            S_NOUTE(sdata) = oute_check(sdata);
+        else {
+            S_NOUTE(sdata) = 0;
+        }
+    }
+    return;
 }

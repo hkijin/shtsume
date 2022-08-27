@@ -11,10 +11,6 @@
 #include <stdbool.h>
 #include "shogi.h"
 
-//static void sdata_bb_xor    (sdata_t *sdata, komainf_t koma, char pos);
-static int  oute_check      (sdata_t *sdata);
-static void create_pin      (sdata_t *sdata);
-static void create_effect   (sdata_t *sdata);
 static void sdata_captured  (komainf_t captured, move_t move, sdata_t *sdata);
 static void sdata_mkey_sub  (komainf_t koma, move_t move, sdata_t *sdata);
 static bool is_move_to_dest (int dest, const sdata_t *sdata);
