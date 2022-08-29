@@ -494,9 +494,9 @@ void make_tree_lookup    (const sdata_t   *sdata,
 }
 
 /* 無駄合い判定用関数 */
-bool hs_tbase_lookup        (const sdata_t *sdata,
-                             turn_t         tn,
-                             tbase_t       *tbase)
+bool hs_tbase_lookup            (const sdata_t *sdata,
+                                 turn_t         tn,
+                                 tbase_t       *tbase)
 {
     uint64_t address = HASH_FUNC(S_ZKEY(sdata), tbase);
     zfolder_t *zfolder = *(tbase->table+address);
@@ -507,7 +507,6 @@ bool hs_tbase_lookup        (const sdata_t *sdata,
     }
     if(!zfolder) return false;
     mcard_t *mcard = zfolder->mcard;
-    //mkey_t mkey = tn?S_GMKEY(sdata):S_SMKEY(sdata);
     mkey_t mkey;
     tn ? MKEY_COPY(mkey, S_GMKEY(sdata)):MKEY_COPY(mkey, S_SMKEY(sdata));
     unsigned int cmp_res;
@@ -522,6 +521,7 @@ bool hs_tbase_lookup        (const sdata_t *sdata,
     }
     return false;
 }
+
 /* データ更新関数 */
 void tbase_update           (const sdata_t *sdata,
                              mvlist_t      *mvlist,
@@ -817,6 +817,8 @@ bool hs_invalid_drops      (const sdata_t *sdata,
                             unsigned int   src,
                             unsigned int   dest,
                             tbase_t       *tbase )
+{return false;}
+/*
 {
     komainf_t koma = S_BOARD(sdata, src);
     //龍の王手のみ
@@ -861,19 +863,7 @@ bool hs_invalid_drops      (const sdata_t *sdata,
     }
     return false;
 }
-
-/* ------------------------------------------------------------------------
- dest地点に玉の隣接地点に王手している飛駒のほか、王手になる全ての駒を動かしてみて一つでも
- 詰みであれば無駄合とする。
- ------------------------------------------------------------------------ */
-bool hs_invalid_drops_next (const sdata_t *sdata,
-                            unsigned int   src,
-                            unsigned int   dest,
-                            tbase_t       *tbase )
-{
-    return false;
-}
-
+*/
 /* -----------------------------------------------------
  _tbase_lookup
  [flag] false: 詰み発見前
@@ -918,15 +908,17 @@ void _tbase_lookup        (const sdata_t   *sdata,
                 else{
                     unsigned int res =
                     MKEY_COMPARE(g_mcard[SUPER_TSUMI]->mkey, mcard->mkey);
-                    if(res == MKEY_SUPER) g_mcard[SUPER_TSUMI] = mcard;
+                    if(res == MKEY_SUPER)
+                        g_mcard[SUPER_TSUMI] = mcard;
                 }
-                 */
+                */
             }
             //不詰み
             else if(!mcard->tlist->tdata.dn){
             }
             //その他
             else                            {
+
             }
         }
         else if(cmp_res == MKEY_INFER){
@@ -938,14 +930,7 @@ void _tbase_lookup        (const sdata_t   *sdata,
             else if(!mcard->tlist->tdata.dn){
                 g_mcard[INFER_FUDUMI] = mcard;
                 break;
-                /*
-                if(!g_mcard[INFER_FUDUMI]) g_mcard[INFER_FUDUMI] = mcard;
-                else{
-                    unsigned int res =
-                    MKEY_COMPARE(g_mcard[INFER_FUDUMI]->mkey, mcard->mkey);
-                    if(res == MKEY_INFER) g_mcard[INFER_FUDUMI] = mcard;
-                }
-                 */
+
             }
             //その他
             else                            {
@@ -1134,14 +1119,16 @@ bool _invalid_drops       (const sdata_t   *sdata,
     {
         memcpy(&sbuf, sdata, sizeof(sdata_t));
         sdata_tentative_move(&sbuf, src, dest, false);
-        turn_t tn = TURN_FLIP(S_TURN(&sbuf));
+        //turn_t tn = TURN_FLIP(S_TURN(&sbuf));
         //局面が詰みであればtrueを返す。
         if(S_NOUTE(&sbuf)){
             if(tsumi_check(&sbuf)) return true;
+            /*
             else if(hs_tbase_lookup(&sbuf, tn, tbase)){
                 g_invalid_drops = true;
                 return true;
             }
+             */
         }
     }
 
@@ -1629,7 +1616,6 @@ void fumei_update         (const sdata_t   *sdata,
     mcard_t *mcard = zfolder->mcard;
     unsigned int cmp_res;
     memset(g_mcard, 0, sizeof(mcard_t *)*N_MCARD_TYPE);
-    //mkey_t mkey = tn?S_GMKEY(sdata):S_SMKEY(sdata);
     mkey_t mkey;
     tn ? MKEY_COPY(mkey, S_GMKEY(sdata)):MKEY_COPY(mkey, S_SMKEY(sdata));
     while(mcard){

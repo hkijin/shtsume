@@ -20,7 +20,7 @@
  * プログラムID
  */
 #define PROGRAM_NAME       "shtsume"
-#define VERSION_INFO       "v0.5.8"
+#define VERSION_INFO       "v0.5.9"
 #define AUTHOR_NAME        "hkijin"
 
 /*
@@ -394,10 +394,7 @@ bool hs_invalid_drops      (const sdata_t *sdata,
                             unsigned int   src,
                             unsigned int   dest,
                             tbase_t       *tbase );
-bool hs_invalid_drops_next (const sdata_t *sdata,
-                            unsigned int   src,
-                            unsigned int   dest,
-                            tbase_t       *tbase );
+
 /*
  * 着手生成
  */

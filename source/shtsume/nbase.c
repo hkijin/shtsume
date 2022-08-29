@@ -329,12 +329,14 @@ int proof_number_comp     (const mvlist_t *a,
     if(MV_MOVE(a->mlist->move) && MV_DROP(b->mlist->move)) return -1;
     if(MV_MOVE(b->mlist->move) && MV_DROP(a->mlist->move)) return  1;
     //取って成る手優先
+    /*
     if(MV_MOVE(a->mlist->move)       &&
        MV_CAPTURED(a->mlist->move,s) &&
        PROMOTE(a->mlist->move)          )  return -1;
     if(MV_MOVE(b->mlist->move)       &&
        MV_CAPTURED(b->mlist->move,s) &&
        PROMOTE(b->mlist->move)          )  return  1;
+     */
     //取る手優先
     if(MV_CAPTURED(a->mlist->move, s)) return -1;
     if(MV_CAPTURED(b->mlist->move, s)) return  1;
@@ -369,8 +371,15 @@ int disproof_number_comp  (const mvlist_t *a,
     if (a->nouse2 < b->nouse2) return -1;
     if (a->nouse2 > b->nouse2) return  1;
     //手数の長い着手を優先
-    if (a->tdata.sh < b->tdata.sh) return  1;
-    if (a->tdata.sh > b->tdata.sh) return -1;
+    if (!a->tdata.pn && !b->tdata.pn)
+    {
+        if (a->tdata.sh < b->tdata.sh) return  1;
+        if (a->tdata.sh > b->tdata.sh) return -1;
+    }
+    else{
+        if (a->tdata.sh < b->tdata.sh) return -1;
+        if (a->tdata.sh > b->tdata.sh) return  1;
+    }
     //動かす手優先
     if(MV_MOVE(a->mlist->move) && MV_DROP(b->mlist->move)) return -1;
     if(MV_MOVE(b->mlist->move) && MV_DROP(a->mlist->move)) return  1;
@@ -384,6 +393,14 @@ int disproof_number_comp  (const mvlist_t *a,
     //取る手優先
     if(MV_CAPTURED(a->mlist->move, s)) return -1;
     if(MV_CAPTURED(b->mlist->move, s)) return  1;
+    //玉の移動優先
+    if(PREV_POS(a->mlist->move)==SELF_OU(s)) return -1;
+    if(PREV_POS(b->mlist->move)==SELF_OU(s)) return  1;
+    //成る手優先
+    /*
+    if(PROMOTE(a->mlist->move) > PROMOTE(b->mlist->move))  return -1;
+    if(PROMOTE(a->mlist->move) < PROMOTE(b->mlist->move))  return  1;
+     */
     //近距離優先
     if(a->length < b->length) return -1;
     if(a->length > b->length) return  1;
