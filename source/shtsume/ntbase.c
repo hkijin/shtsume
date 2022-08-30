@@ -918,7 +918,6 @@ void _tbase_lookup        (const sdata_t   *sdata,
             }
             //その他
             else                            {
-
             }
         }
         else if(cmp_res == MKEY_INFER){

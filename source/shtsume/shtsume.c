@@ -525,7 +525,10 @@ void bn_search_and              (const sdata_t   *sdata,
     //龍、馬での離れ王手flag
     bool ryuma_flag = false;
     if(S_BOARD(sdata, S_ATTACK(sdata)[0])==(S_TURN(sdata)?SUM:GUM)||
-       S_BOARD(sdata, S_ATTACK(sdata)[0])==(S_TURN(sdata)?SRY:GRY))
+       S_BOARD(sdata, S_ATTACK(sdata)[0])==(S_TURN(sdata)?SRY:GRY)||
+       S_BOARD(sdata, S_ATTACK(sdata)[0])==(S_TURN(sdata)?SKA:GKA)||
+       S_BOARD(sdata, S_ATTACK(sdata)[0])==(S_TURN(sdata)?SHI:GHI)||
+       S_BOARD(sdata, S_ATTACK(sdata)[0])==(S_TURN(sdata)?SKY:GKY))
     {
         if(mvlist->length>2) ryuma_flag = true;
     }
