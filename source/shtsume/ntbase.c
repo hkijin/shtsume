@@ -958,16 +958,30 @@ bool hs_invalid_drops      (const sdata_t *sdata,
     sdata_t sbuf;
     //不成でdestへ移動
     memcpy(&sbuf, sdata, sizeof(sdata_t));
-    sdata_tentative_move(&sbuf, src, dest, false);
+    if(g_gc_num) sdata_tentative_move(&sbuf, src, dest, false);
+    else {
+        //srcを削除
+        S_BOARD(&sbuf, src) = SPC;
+        S_ZKEY(&sbuf) ^= g_zkey_seed[koma*N_SQUARE+src];
+        //destを追加
+        S_BOARD(&sbuf, dest) = SPC;
+        S_ZKEY(&sbuf) ^= g_zkey_seed[koma*N_SQUARE+dest];
+    }
     if(hs_tbase_lookup(&sbuf, tn, tbase)) {
         return true;
     }
     //成でdestへ移動
     if(flag){
         memcpy(&sbuf, sdata, sizeof(sdata_t));
-        sdata_tentative_move(&sbuf, src, dest, true);
-        if(S_ZKEY(&sbuf)==0xbbaf30394dcbb082){
-            SDATA_PRINTF(&sbuf, PR_BOARD);
+        if(g_gc_num)sdata_tentative_move(&sbuf, src, dest, true);
+        else{
+            //srcを削除
+            S_BOARD(&sbuf, src) = SPC;
+            S_ZKEY(&sbuf) ^= g_zkey_seed[koma*N_SQUARE+src];
+            koma += PROMOTED;
+            //destを追加
+            S_BOARD(&sbuf, dest) = SPC;
+            S_ZKEY(&sbuf) ^= g_zkey_seed[koma*N_SQUARE+dest];
         }
         if(hs_tbase_lookup(&sbuf, tn, tbase)) {
             return true;

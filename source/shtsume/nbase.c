@@ -338,17 +338,22 @@ int proof_number_comp     (const mvlist_t *a,
        PROMOTE(b->mlist->move)          )  return  1;
      */
     //取る手優先
+    /*
     if( MV_CAPTURED(a->mlist->move, s)
        >MV_CAPTURED(b->mlist->move, s)) return -1;
-    if( MV_CAPTURED(b->mlist->move, s)
-       >MV_CAPTURED(a->mlist->move, s)) return  1;
+    if( MV_CAPTURED(a->mlist->move, s)
+       <MV_CAPTURED(b->mlist->move, s)) return  1;
+    */
+    if( MV_CAPTURED(a->mlist->move, s)) return -1;
+    if( MV_CAPTURED(b->mlist->move, s)) return 1;
+     
     //安い駒でとる手優先
     /*
     if(S_BOARD(s,PREV_POS(a->mlist->move))
        <S_BOARD(s,PREV_POS(b->mlist->move)))   return -1;
     if(S_BOARD(s,PREV_POS(a->mlist->move))
        >S_BOARD(s,PREV_POS(b->mlist->move)))   return  1;
-    */
+     */
     //成る手優先
     if(PROMOTE(a->mlist->move) > PROMOTE(b->mlist->move))  return -1;
     if(PROMOTE(a->mlist->move) < PROMOTE(b->mlist->move))  return  1;
@@ -392,7 +397,7 @@ int disproof_number_comp  (const mvlist_t *a,
     //動かす手優先
     if(MV_MOVE(a->mlist->move) && MV_DROP(b->mlist->move)) return -1;
     if(MV_MOVE(b->mlist->move) && MV_DROP(a->mlist->move)) return  1;
-    //玉を動かす手優先
+    
     //玉の移動優先
     if(PREV_POS(a->mlist->move)==SELF_OU(s) &&
        PREV_POS(b->mlist->move)!=SELF_OU(s)) return -1;
@@ -409,16 +414,19 @@ int disproof_number_comp  (const mvlist_t *a,
        PROMOTE(b->mlist->move)          )  return  1;
      */
     //取る手優先
+    /*
+    if( MV_CAPTURED(a->mlist->move, s)) return -1;
+    if( MV_CAPTURED(b->mlist->move, s)) return 1;
+    */
     if( MV_CAPTURED(a->mlist->move, s)
        >MV_CAPTURED(b->mlist->move, s)) return -1;
-    if( MV_CAPTURED(b->mlist->move, s)
-       >MV_CAPTURED(a->mlist->move, s)) return  1;
+    if( MV_CAPTURED(a->mlist->move, s)
+       <MV_CAPTURED(b->mlist->move, s)) return  1;
     //安い駒でとる手優先
     if(S_BOARD(s,PREV_POS(a->mlist->move))
        <S_BOARD(s,PREV_POS(b->mlist->move)))   return -1;
     if(S_BOARD(s,PREV_POS(a->mlist->move))
        >S_BOARD(s,PREV_POS(b->mlist->move)))   return  1;
-    
     //成る手優先
     if(PROMOTE(a->mlist->move) > PROMOTE(b->mlist->move))  return -1;
     if(PROMOTE(a->mlist->move) < PROMOTE(b->mlist->move))  return  1;
