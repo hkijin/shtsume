@@ -522,8 +522,10 @@ void bn_search_and              (const sdata_t   *sdata,
                                  mvlist_t       *mvlist,
                                  tbase_t         *tbase )
 {
-    //龍、馬での離れ王手flag
+    //中合が発生する可能性を示すフラグ
     bool ryuma_flag = false;
+    if(mvlist->length>2) ryuma_flag = true;
+    /*
     if(S_BOARD(sdata, S_ATTACK(sdata)[0])==(S_TURN(sdata)?SUM:GUM)||
        S_BOARD(sdata, S_ATTACK(sdata)[0])==(S_TURN(sdata)?SRY:GRY)||
        S_BOARD(sdata, S_ATTACK(sdata)[0])==(S_TURN(sdata)?SKA:GKA)||
@@ -532,6 +534,7 @@ void bn_search_and              (const sdata_t   *sdata,
     {
         if(mvlist->length>2) ryuma_flag = true;
     }
+     */
     turn_t tn = TURN_FLIP(S_TURN(sdata));
     //着手生成
     mvlist_t *list = generate_evasion(sdata, tbase);

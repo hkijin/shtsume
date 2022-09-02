@@ -493,8 +493,12 @@ void make_tree_lookup    (const sdata_t   *sdata,
     return;
 }
 
-/* 無駄合い判定用関数 */
-bool hs_tbase_lookup            (const sdata_t *sdata,
+/* 無駄合い判定用関数
+   詰みデータあり         1
+ 　不詰、不明データあり    0
+ 　データ無し           -1
+ */
+static int _hs_tbase_lookup     (const sdata_t *sdata,
                                  turn_t         tn,
                                  tbase_t       *tbase)
 {
@@ -505,21 +509,87 @@ bool hs_tbase_lookup            (const sdata_t *sdata,
         if(zfolder->zkey == S_ZKEY(sdata)) break;
         zfolder = zfolder->next;
     }
-    if(!zfolder) return false;
+    if(!zfolder) return -1;
     mcard_t *mcard = zfolder->mcard;
     mkey_t mkey;
     tn ? MKEY_COPY(mkey, S_GMKEY(sdata)):MKEY_COPY(mkey, S_SMKEY(sdata));
     unsigned int cmp_res;
     while(mcard){
         cmp_res = MKEY_COMPARE(mkey,mcard->mkey);
+        //詰み
         if( cmp_res == MKEY_EQUAL||cmp_res == MKEY_SUPER )
         {
             if(!(mcard->tlist->tdata.pn))
-                return true;
+                return 1;
         }
+        //不詰
+        if( cmp_res == MKEY_EQUAL||cmp_res == MKEY_INFER )
+        {
+            if(!(mcard->tlist->tdata.dn))
+                return 0;
+        }
+        //不明
+        if( cmp_res == MKEY_EQUAL)
+        {
+            if((mcard->tlist->tdata.pn))
+                return 0;
+        }
+        
         mcard = mcard->next;
     }
-    return false;
+    return -1;
+}
+
+bool hs_tbase_lookup            (const sdata_t *sdata,
+                                 turn_t         tn,
+                                 tbase_t       *tbase)
+{
+    if(!S_NOUTE(sdata)) return false;
+    int res = _hs_tbase_lookup(sdata, tn, tbase);
+    if(!g_gc_num && res>=0) return res;
+    else if(!g_gc_num)      return false;
+    else if(res>=0)         return res;
+    /*
+       gcがなされている場合、無駄合判定に使用された詰みデータが消去されている場合があるので
+       確認しておく。
+     */
+    //着手生成
+#if DEBUG
+    if(S_ZKEY(sdata)==0xbbaf30394dcbb082)
+    {
+        SDATA_PRINTF(sdata, PR_BOARD);
+    }
+#endif //DEBUG
+    mvlist_t *list = generate_evasion(sdata, tbase);
+    if(!list) return true;
+    g_tsearchinf.nodes++;
+    
+    //局面表を参照する
+    mvlist_t *tmp = list, *tmp1;
+    sdata_t sbuf;
+    while(tmp){
+        memcpy(&sbuf, sdata, sizeof(sdata_t));
+        sdata_key_forward(&sbuf, tmp->mlist->move);
+        make_tree_lookup(&sbuf, tmp, tn, tbase);
+        //合い駒着手は全展開しておく
+        if(tmp->mlist->next){
+            tmp1 = mvlist_alloc();
+            tmp1->mlist = tmp->mlist->next;
+            tmp->mlist->next = NULL;
+            tmp1->next = tmp->next;
+            tmp->next = tmp1;
+        }
+        tmp = tmp->next;
+    }
+    list = sdata_mvlist_sort(list, sdata, disproof_number_comp);
+    if(!list->tdata.pn)
+    {
+        res = true;
+    }
+    else res = false;
+    //ここでは証明駒および局面表のupdateは省略する
+    mvlist_free(list);
+    return res;
 }
 
 /* データ更新関数 */
@@ -812,19 +882,19 @@ bool invalid_drops           (const sdata_t  *sdata,
     }
     return false;
 }
-
+/*
 bool hs_invalid_drops      (const sdata_t *sdata,
                             unsigned int   src,
                             unsigned int   dest,
                             tbase_t       *tbase )
-{return false;}
-/*
+//{return false;}
+
 {
     komainf_t koma = S_BOARD(sdata, src);
     //龍の王手のみ
     //if(koma == SKA||koma==GKA) return false;
     //if(koma == SUM||koma==GUM) return false;
-    if(koma != SRY && koma!=GRY) return false;
+    //if(koma != SRY && koma!=GRY) return false;
     sdata_t sbuf, sbuf1;
     bool flag = false; //true 駒がdestの位置で成れる。
     memcpy(&sbuf, sdata, sizeof(sdata_t));
@@ -864,6 +934,48 @@ bool hs_invalid_drops      (const sdata_t *sdata,
     return false;
 }
 */
+
+bool hs_invalid_drops      (const sdata_t *sdata,
+                            unsigned int   src,
+                            unsigned int   dest,
+                            tbase_t       *tbase)
+//{return false;}
+
+{
+    komainf_t koma = S_BOARD(sdata, src);
+    bool flag = false; //true 駒がdestの位置で成れる。
+    turn_t tn = TURN_FLIP(S_TURN(sdata));
+    //komaがsrcからdestに移動した場合、成れるか？
+    switch(koma){
+        case GKY: if(GKY_PROMOTE(dest)     ) flag = true; break;
+        case GKA: if(GKA_PROMOTE(src, dest)) flag = true; break;
+        case GHI: if(GHI_PROMOTE(src, dest)) flag = true; break;
+        case SKY: if(SKY_PROMOTE(dest)     ) flag = true; break;
+        case SKA: if(SKA_PROMOTE(src, dest)) flag = true; break;
+        case SHI: if(SHI_PROMOTE(src, dest)) flag = true; break;
+        default: break;
+    }
+    sdata_t sbuf;
+    //不成でdestへ移動
+    memcpy(&sbuf, sdata, sizeof(sdata_t));
+    sdata_tentative_move(&sbuf, src, dest, false);
+    if(hs_tbase_lookup(&sbuf, tn, tbase)) {
+        return true;
+    }
+    //成でdestへ移動
+    if(flag){
+        memcpy(&sbuf, sdata, sizeof(sdata_t));
+        sdata_tentative_move(&sbuf, src, dest, true);
+        if(S_ZKEY(&sbuf)==0xbbaf30394dcbb082){
+            SDATA_PRINTF(&sbuf, PR_BOARD);
+        }
+        if(hs_tbase_lookup(&sbuf, tn, tbase)) {
+            return true;
+        }
+    }
+    return false;
+}
+
 /* -----------------------------------------------------
  _tbase_lookup
  [flag] false: 詰み発見前
@@ -1980,7 +2092,7 @@ void    mtt_reset   (const sdata_t *sdata,
  盤面上のsrcの位置の駒をdestの位置に変更した局面データを生成する
  （無駄合判定用)
  --------------------------------------------------- */
-static void sdata_tentative_move (sdata_t *sdata,
+void        sdata_tentative_move (sdata_t *sdata,
                                   char src,
                                   char dest,
                                   bool promote     )

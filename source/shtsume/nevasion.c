@@ -133,14 +133,14 @@ mvlist_t *generate_evasion   (const sdata_t *sdata,
                     */
                     if(!mvlist) tflag = true;
                 }
-                /*
+                
                 else if(hs_invalid_drops
                         (sdata, S_ATTACK(sdata)[0], dest, tbase))
                 {
-                    SDATA_PRINTF(sdata, PR_BOARD|PR_ZKEY);
+                    //SDATA_PRINTF(sdata, PR_BOARD|PR_ZKEY);
                     g_invalid_drops = true;
                 }
-                */
+                
                 else
                 {
                     mlist = evasion_drop(mlist, dest, sdata);
