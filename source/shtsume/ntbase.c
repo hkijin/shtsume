@@ -887,8 +887,7 @@ bool hs_invalid_drops      (const sdata_t *sdata,
                             unsigned int   src,
                             unsigned int   dest,
                             tbase_t       *tbase )
-//{return false;}
-
+{return false;}
 {
     komainf_t koma = S_BOARD(sdata, src);
     //龍の王手のみ
@@ -939,8 +938,8 @@ bool hs_invalid_drops      (const sdata_t *sdata,
                             unsigned int   src,
                             unsigned int   dest,
                             tbase_t       *tbase)
-//{return false;}
-
+{return false;}
+/*
 {
     komainf_t koma = S_BOARD(sdata, src);
     bool flag = false; //true 駒がdestの位置で成れる。
@@ -989,6 +988,7 @@ bool hs_invalid_drops      (const sdata_t *sdata,
     }
     return false;
 }
+ */
 
 /* -----------------------------------------------------
  _tbase_lookup
