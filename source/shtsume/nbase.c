@@ -357,10 +357,6 @@ int proof_number_comp     (const mvlist_t *a,
     if(S_BOARD(s,PREV_POS(a->mlist->move))
        >S_BOARD(s,PREV_POS(b->mlist->move)))   return  1;
      */
-    //近距離優先
-    if(a->length < b->length) return -1;
-    if(a->length > b->length) return  1;
-    
     //成る手優先
     if(PROMOTE(a->mlist->move) > PROMOTE(b->mlist->move))  return -1;
     if(PROMOTE(a->mlist->move) < PROMOTE(b->mlist->move))  return  1;
@@ -370,6 +366,10 @@ int proof_number_comp     (const mvlist_t *a,
         if(MV_HAND(a->mlist->move) < MV_HAND(b->mlist->move)) return  1;
         if(MV_HAND(a->mlist->move) > MV_HAND(b->mlist->move)) return -1;
     }
+    
+    //近距離優先
+    if(a->length < b->length) return -1;
+    if(a->length > b->length) return  1;
     
     return  -1;
 }
