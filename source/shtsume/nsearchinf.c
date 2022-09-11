@@ -16,7 +16,8 @@
  -------------- */
 
 tsearchinf_t        g_tsearchinf;         /* 詰将棋探索情報            */
-clock_t             g_prev_update;
+clock_t             g_prev_update;        /* 前回のupdate時間         */
+clock_t             g_info_interval;      /* searchinf_updateの間隔  */
 uint64_t            g_prev_nodes;         /* nps計算用に前回nodesを保持 */
 
 /* --------------
@@ -73,14 +74,17 @@ void tsearchinf_update          (const sdata_t *sdata,
     //pv情報の更新
     g_tsearchinf.depth = S_COUNT(sdata);
     g_tsearchinf.score_cp = g_root_pn;
-#ifndef DEBUG
-    tsearchpn_sprintf(g_str);
-    record_log(g_str);
-    puts(g_str);
-#endif /* DEBUG */
+//#ifndef DEBUG
+    if(!g_commandline ||g_disp_search)
+    {
+        tsearchpn_sprintf(g_str);
+        record_log(g_str);
+        puts(g_str);
+    }
+//#endif /* DEBUG */
     
     g_prev_nodes = nodes;
-    g_prev_update = 1+g_tsearchinf.elapsed/CLOCKS_PER_SEC;
+    g_prev_update = g_info_interval+g_tsearchinf.elapsed/CLOCKS_PER_SEC;
     return;
 }
 
@@ -96,34 +100,63 @@ int  tsearchinf_sprintf         (char *str)
 int  tsearchpn_sprintf          (char *str)
 {
     int num = 0;
-    num += sprintf(str+num, "info ");
-    num += sprintf(str+num, "time %lu ",
-                   g_tsearchinf.elapsed*1000/CLOCKS_PER_SEC);
-    num += sprintf(str+num, "depth %u ", g_tsearchinf.depth);
-    num += sprintf(str+num, "seldepth %u ", g_tsearchinf.sel_depth);
-    num += sprintf(str+num, "nodes %llu ", g_tsearchinf.nodes);
-    if(g_tsearchinf.score_cp){
-        num += sprintf(str+num, "score cp %d ", g_tsearchinf.score_cp);
-    }
-    else{
-        if(g_tsearchinf.score_mate){
-            num += sprintf(str+num, "score mate %u ",
-                           g_tsearchinf.score_mate);
+    if(!g_commandline){
+        num += sprintf(str+num, "info ");
+        num += sprintf(str+num, "time %lu ",
+                       g_tsearchinf.elapsed*1000/CLOCKS_PER_SEC);
+        num += sprintf(str+num, "depth %u ", g_tsearchinf.depth);
+        num += sprintf(str+num, "seldepth %u ", g_tsearchinf.sel_depth);
+        num += sprintf(str+num, "nodes %llu ", g_tsearchinf.nodes);
+        if(g_tsearchinf.score_cp){
+            num += sprintf(str+num, "score cp %d ", g_tsearchinf.score_cp);
         }
         else{
-            num += sprintf(str+num, "score mate + ");
+            if(g_tsearchinf.score_mate){
+                num += sprintf(str+num, "score mate %u ",
+                               g_tsearchinf.score_mate);
+            }
+            else{
+                num += sprintf(str+num, "score mate + ");
+            }
         }
-        
+        char mvstr[8];
+        num += sprintf(str+num, "pv");
+        for(int i=0; i<g_pv_length; i++){
+            if(g_tsearchinf.mvinf[i].move.prev_pos==0
+               && g_tsearchinf.mvinf[i].move.new_pos==0) break;
+            move_to_sfen(mvstr, g_tsearchinf.mvinf[i].move);
+            num += sprintf(str+num, " %s", mvstr);
+        }
+        num += sprintf(str+num, "\n");
     }
-    char mvstr[8];
-    num += sprintf(str+num, "pv");
-    for(int i=0; i<g_max_pv_length; i++){
-        if(g_tsearchinf.mvinf[i].move.prev_pos==0
-           && g_tsearchinf.mvinf[i].move.new_pos==0) break;
-        move_to_sfen(mvstr, g_tsearchinf.mvinf[i].move);
-        num += sprintf(str+num, " %s", mvstr);
+    else{
+        num += sprintf(str+num, " %lu(sec) ",
+                       g_tsearchinf.elapsed/CLOCKS_PER_SEC);
+        num += sprintf(str+num, "depth(%u/%u) ",
+                       g_tsearchinf.depth, g_tsearchinf.sel_depth);
+        num += sprintf(str+num, "nodes %llu ", g_tsearchinf.nodes);
+        if(g_tsearchinf.score_cp){
+            num += sprintf(str+num, "pn= %d\n ", g_tsearchinf.score_cp);
+        }
+        else{
+            if(g_tsearchinf.score_mate){
+                num += sprintf(str+num, "%u詰め\n ",
+                               g_tsearchinf.score_mate);
+            }
+            else{
+                num += sprintf(str+num, "詰み(手順確認中)\n ");
+            }
+        }
+        char mvstr[8];
+        num += sprintf(str+num, "pv");
+        for(int i=0; i<g_pv_length; i++){
+            if(g_tsearchinf.mvinf[i].move.prev_pos==0
+               && g_tsearchinf.mvinf[i].move.new_pos==0) break;
+            move_to_sfen(mvstr, g_tsearchinf.mvinf[i].move);
+            num += sprintf(str+num, " %s", mvstr);
+        }
+        num += sprintf(str+num, "\n");
     }
-    num += sprintf(str+num, "\n");
     return num;
 }
 

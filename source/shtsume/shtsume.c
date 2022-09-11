@@ -90,19 +90,27 @@ void print_help                (void)
      " 使用法１: %s \n"
      "         USIに準拠した詰将棋エンジンとして使用する事ができます。\n"
      " 使用法２: コマンドラインより\n"
-     "         %s [-hvkgds][-l lv][-m size][-i limit] sfen_string\n"
+     "         %s [-hvkgdy][-n pn][-m size][-l lv][-i limit]\n"
+     "            [-j dep][-t int] sfen_string\n"
      "　       sfen_stringで指定された局面について詰探索を試みます。\n"
      " [サポートオプション]\n"
      " h,help   : このHELPを表示して終了します。\n"
      " v,version: プログラムのバージョンを表示して終了します。\n"
      " [詰探索オプション]\n"
-     " k,kifu   : レベル毎の棋譜を出力します。\n"
-     " g,log    : 探索LOGを出力します。\n"
+     " [スイッチ]\n"
+     " k,kifu   : レベル毎の棋譜を出力します。(出力先：ホームディレクトリ)\n"
+     " g,log    : 探索LOGを出力します。     (出力先：ホームディレクトリ)\n"
      " d,display: 探索後、手順確認モードに移行します。\n"
-     " n,minpn  : 末端探索証明数を指定します。デフォルト値 4\n"
+     " y,yomi   : 探索中、読み筋表示。\n"
+     " [値指定]\n"
+     " n,minpn  : 末端探索証明数を指定します。デフォルト値 4 (min 3 max 6)\n"
      " m,memory : 局面表で使用するメモリーサイズを指定します。デフォルト値 256(MByte)。\n"
-     " l,level  : 探索レベルを指定します。デフォルト値 0。\n"
-     " i,limit  : 思考制限時間を指定します（秒単位）。デフォルト値　-1(無制限）\n\n",
+     "                                               (min 1 max 65535)\n"
+     " l,level  : 探索レベルを指定します。デフォルト値 0。   (min 0  max 50) \n"
+     " i,limit  : 思考制限時間を指定します（秒単位）。デフォルト値　-1(無制限）\n"
+     " j,ydep   : 読み筋深さ。デフォルト値 5             (min 5 max 30)\n"
+     " t,yint   : 読み筋表示インターバル。デフォルト値 5(秒) (min 1 max 60)\n\n"
+     ,
     PROGRAM_NAME,
     VERSION_INFO,
     PROGRAM_NAME,
@@ -184,15 +192,15 @@ void bn_search                  (const sdata_t   *sdata,
     /* 初期化処理 */
     memset(&g_tsearchinf, 0, sizeof(tsearchinf_t));        //探索情報
     //局面表
-    g_gc_stat      = false;       /* 詰み発見後はtrue              */
-    g_gc_max_level = 0;           /* メモリ確保のためのGC強度の最大値  */
-    g_gc_num = 0;                 /* gcの実施回数                  */
+    g_gc_stat      = false;           /* 詰み発見後はtrue              */
+    g_gc_max_level = 0;               /* メモリ確保のためのGC強度の最大値  */
+    g_gc_num = 0;                     /* gcの実施回数                  */
     //中断フラグ
-    g_suspend       = false;       /* g_stop_received。後程廃止    */
-    g_stop_received = false;       /* GUIからstopを受信したらTRUE   */
+    g_suspend       = false;           /* g_stop_received。後程廃止    */
+    g_stop_received = false;           /* GUIからstopを受信したらTRUE   */
     //時間処理
-    g_prev_nodes   = 0;            /* 前回update時の探索局面数       */
-    g_prev_update  = 1;            /* 経過時間(searchinfのupdate用) */
+    g_prev_nodes   = 0;                /* 前回update時の探索局面数       */
+    g_prev_update  = g_info_interval;  /* 経過時間(searchinfのupdate用) */
     //追加探索用
     st_max_thpn    = 0;
     st_max_thdn    = 0;
@@ -225,12 +233,18 @@ void bn_search                  (const sdata_t   *sdata,
         g_tsearchinf.score_mate = mvlist.tdata.sh;
         st_add_thpn = st_max_thpn;
         char lv = g_search_level;
+        char prefix[16];
+        if(!g_commandline)
+            strncpy(prefix,"info string ", strlen("info string "));
+        else
+            memset(prefix, 0, sizeof(prefix));
         while(lv){
             if(g_redundant) break;
             st_add_thpn++;
-            sprintf(g_str, "info string LV%d %u手詰 "
+            sprintf(g_str, "%sLV%d %u手詰 "
                            "探索局面数 %llu "
                            "余詰探索 root_pn = %d",
+                    prefix,
                     g_search_level-lv,
                     g_tsearchinf.score_mate,
                     g_tsearchinf.nodes,
@@ -263,6 +277,11 @@ void bn_search                  (const sdata_t   *sdata,
             record_log(g_str); puts(g_str);
         }
         tsearchpv_update(sdata, tbase);
+        if(g_commandline && g_out_lvkif){
+            sprintf(filename,"%s/tsumelv%d.kif",
+                    g_user_path,g_search_level);
+            generate_kif_file(filename, sdata, tbase);
+        }
     }
     if(g_error){
         sprintf(g_str, "info string search error occured.");
@@ -747,9 +766,8 @@ void make_tree_or               (const sdata_t   *sdata,
                                  mvlist_t       *mvlist,
                                  tbase_t         *tbase )
 {
-#ifndef DEBUG
     tsearchinf_update(sdata, tbase, st_start, g_str);
-#endif // DEBUG
+    
     //千日手模様のエラー検出のため
     if (S_COUNT(sdata)>=TSUME_MAX_DEPTH-1) {
         return;
@@ -769,7 +787,7 @@ void make_tree_or               (const sdata_t   *sdata,
     }
     
     //局面表を参照する
-    mvlist_t *prev, *tmp = list;
+    mvlist_t *tmp = list;
     sdata_t sbuf;
     while(tmp){
         memcpy(&sbuf, sdata, sizeof(sdata_t));
@@ -779,7 +797,7 @@ void make_tree_or               (const sdata_t   *sdata,
         make_tree_lookup(&sbuf, tmp, S_TURN(sdata), tbase);
         
         //収束余詰探索用
-        if(!tmp->search||(tmp->tdata.pn && tmp->tdata.pn<MAKE_TREE_MIN_PN))
+        if(!tmp->search||(tmp->tdata.pn && tmp->tdata.pn<g_mt_min_pn))
         {
             thdata.pn = MAX(g_gc_max_level+MAKE_TREE_PN_PLUS, g_mt_min_pn);
             bn_search_and(&sbuf, &thdata, tmp, tbase);
@@ -818,37 +836,45 @@ void make_tree_or               (const sdata_t   *sdata,
     }
     /* --------------------------------------------------------------------
      GCで詰手順が再構築された場合、親局面での詰め手数より子局面での詰手数が長い場合がある。
-     これには以下の場合があるのでそれぞれのケースを確認する。
-     １、GC前より手順の長い別詰が局面表に残っている場合。
-     ２、馬鋸など１局面に２種以上詰め手順がある場合
+     これは追加探索を実施しないと検出できない詰手数をもつデータが消去されていた場合に
+     発生する。その場合は復旧のため親局面が示す詰手数となるまで追加探索を実施する。
      ------------------------------------------------------------------- */
-    while(mvlist->tdata.sh < list->tdata.sh && !list->inc)
+    if(mvlist->tdata.sh < list->tdata.sh && !list->inc)
     {
-        //先頭着手について手数の短い手がないか再探索する
-        uint16_t ptsh = mvlist->tdata.sh;
-        memcpy(&sbuf, sdata, sizeof(sdata_t));
-        sdata_move_forward(&sbuf, list->mlist->move);
-        //make_plus_and(&sbuf,list,g_gc_max_level+1,ptsh,tbase);
-        bns_plus_and(&sbuf,list,ptsh,tbase);
-        if(mvlist->tdata.sh>list->tdata.sh ||list->inc) break;
-        //詰んでいない最初のmvlistを特定する。
+#if DEBUG
+        SDATA_PRINTF(sdata, PR_BOARD|PR_ZKEY);
+        MVLIST_PRINTF_ITEM(list, sdata);
+        printf("mvlist->tdata.sh = %d\n"
+               "list->tdata.sh = %d\n",mvlist->tdata.sh, list->tdata.sh);
+#endif //DEBUG
+        //詰んでいる着手についてさらに短い詰着手がないか調べる
         tmp = list;
-        prev = list;
-        while(tmp && !tmp->tdata.pn){
-            prev = tmp;
-            tmp = tmp->next;
-        }
-        while(tmp && tmp->tdata.pn && tmp->tdata.pn<INFINATE-1){
-            if(tmp->next) thdata.pn = MIN(INFINATE-1,(tmp->next)->tdata.pn+1);
-            else thdata.pn = INFINATE-1;
-            thdata.sh = TSUME_MAX_DEPTH-sdata->core.count-1;
+        uint16_t ptsh = mvlist->tdata.sh;
+        while(!tmp->tdata.pn){
             memcpy(&sbuf, sdata, sizeof(sdata_t));
             sdata_move_forward(&sbuf, tmp->mlist->move);
-            bn_search_and(&sbuf, &thdata, tmp, tbase);
-            tmp = sdata_mvlist_sort(tmp, sdata, proof_number_comp);
+            bns_plus_and(&sbuf, tmp, ptsh, tbase);
+            tmp = tmp->next;
         }
-        prev->next = tmp;
         list = sdata_mvlist_sort(list, sdata, proof_number_comp);
+        //もし全て調べて短い詰みが見つからない場合、エラーログを出力して終了する。
+        if(mvlist->tdata.sh < list->tdata.sh && !list->inc)
+        {
+            g_error = true;
+            sprintf(g_error_location, "%s line %d", __FILE__, __LINE__);
+            shtsume_error_log(sdata, list, g_tbase);
+            if(!g_commandline)
+                sprintf(g_str,
+                    "info string search error occured. %s",
+                    g_errorlog_name);
+            else
+                sprintf(g_str,
+                        "search error occured. %s",
+                        g_errorlog_name);
+            puts(g_str);
+            record_log(g_str);
+            exit(EXIT_FAILURE);
+        }
     }
     if(list->cu) return;
     
@@ -998,9 +1024,9 @@ void bns_plus_or                (const sdata_t   *sdata,
                                  unsigned int     ptsh,
                                  tbase_t          *tbase)
 {
-#ifndef DEBUG
+//#ifndef DEBUG
     tsearchinf_update(sdata, tbase, st_start, g_str);
-#endif /* DEBUG */
+//#endif /* DEBUG */
     if(g_suspend) return;
     //初期化
     tdata_t thdata = {1, INFINATE-1, TSUME_MAX_DEPTH};
@@ -1394,6 +1420,7 @@ void make_plus_or               (const sdata_t   *sdata,
     mvlist_free(list);
     return;
 }
+
 void make_plus_and              (const sdata_t   *sdata,
                                  mvlist_t        *mvlist,
                                  unsigned int     ptpn,

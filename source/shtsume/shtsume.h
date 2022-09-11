@@ -20,7 +20,7 @@
  * プログラムID
  */
 #define PROGRAM_NAME       "shtsume"
-#define VERSION_INFO       "v0.5.14"
+#define VERSION_INFO       "v0.6.0"
 #define AUTHOR_NAME        "hkijin"
 
 /*
@@ -47,9 +47,11 @@ extern uint16_t             g_mt_min_pn;
 extern uint8_t              g_n_make_tree;
 extern uint8_t              g_search_level;
 extern bool                 g_out_lvkif;
-extern short                g_max_pv_length;
+extern short                g_pv_length;
 extern char                 g_user_path[256];
 extern bool                 g_summary;
+extern bool                 g_disp_search;
+extern bool                 g_commandline;
 
 #define TSUME_MAX_DEPTH     2000
 #define MAKE_TREE_NUM       2
@@ -59,6 +61,34 @@ extern bool                 g_summary;
 #define PROOF_MAX           2048
 #define DISPROOF_MAX        2048
 #define ADD_SEARCH_SH       20
+
+/*
+ * 探索パラメータ制限値
+ */
+#define TBASE_SIZE_DEFAULT  256
+#define TBASE_SIZE_MIN      1
+#define TBASE_SIZE_MAX      65535
+
+#define LEAF_PN_DEFAULT     4
+#define LEAF_PN_MIN         3
+#define LEAF_PN_MAX         10
+
+#define MAKE_REPEAT_DEFAULT 2
+#define MAKE_REPEAT_MIN     1
+#define MAKE_REPEAT_MAX     5
+
+#define SEARCH_LV_DEFAULT   0
+#define SEARCH_LV_MIN       0
+#define SEARCH_LV_MAX       50
+
+#define PV_LENGTH_DEFAULT   5
+#define PV_USI_DEFAULT      20
+#define PV_LENGTH_MIN       5
+#define PV_LENGTH_MAX       30
+
+#define PV_INTERVAL_DEFAULT 5
+#define PV_INTERVAL_MIN     5
+#define PV_INTERVAL_MAX     60
 
 
 /*
@@ -116,6 +146,7 @@ struct _tsearchinf_t {
 extern tsearchinf_t       g_tsearchinf;
 extern clock_t            g_prev_update;
 extern uint64_t           g_prev_nodes;
+extern clock_t            g_info_interval;
 
 
 /* -------------------------------------------------------------------------
@@ -379,6 +410,7 @@ extern short g_gc_num;
 extern tbase_t *g_tbase;
 extern char g_sfen_pos_str[256];
 extern mcard_t *g_mcard[N_MCARD_TYPE];
+
 
 /*
  * 無駄合い判定

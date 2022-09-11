@@ -30,7 +30,7 @@ static int  st_n_fudumi;          /* 局面表内の不詰データ数 */
 static int  st_del_fudumi;        /* 削除した不詰データ数   */
 static int  st_n_fumei;           /* 局面表内の不明データ数 */
 static int  st_del_fumei;         /* 削除した不明データ数   */
-static bool st_tsumi_delete_flag; /* true 詰みデータの削除 */
+static bool st_tsumi_delete_flag; /* true 詰方１手詰みデータ削除 */
 //static bool st_gc_flag;           /* gcの強度変更flag     */
 
 /* --------------
@@ -300,10 +300,15 @@ void tbase_gc              (tbase_t  *tbase)
     uint64_t gc_target = tbase->sz_elm*GC_DELETE_RATE/100;
     uint64_t n_tsumi_max = tbase->sz_elm*GC_TSUMI_RATE/100;
     //st_gc_flag = false;
+    char prefix[16];
+    if(!g_commandline)
+        strncpy(prefix, "info string ", strlen("info string "));
+    else
+        memset(prefix, 0 , sizeof(prefix));
     //ガベージコレクション実施宣言
-    sprintf(g_str, "info string Garbage collection start. "
+    sprintf(g_str, "%sGarbage collection start. "
                    "size:%llu del_target:%llu protected:%llu gc_num:%d ",
-            tbase->sz_elm, gc_target, tbase->pr_num, g_gc_num);
+            prefix,tbase->sz_elm, gc_target, tbase->pr_num, g_gc_num);
     record_log(g_str); puts(g_str);
     do{
         if(gc_level>g_gc_max_level) g_gc_max_level = gc_level;
@@ -383,14 +388,14 @@ void tbase_gc              (tbase_t  *tbase)
             *(tbase->table+i) = new_zfolder;
         }
         //gc_summary表示
-        sprintf(g_str, "info string mate    %d/%d", st_del_tsumi, st_n_tsumi);
+        sprintf(g_str, "%smate    %d/%d", prefix,st_del_tsumi, st_n_tsumi);
         record_log(g_str); puts(g_str);
-        sprintf(g_str, "info string nomate  %d/%d", st_del_fudumi, st_n_fudumi);
+        sprintf(g_str, "%snomate  %d/%d", prefix,st_del_fudumi, st_n_fudumi);
         record_log(g_str); puts(g_str);
-        sprintf(g_str, "info string unknown %d/%d", st_del_fumei, st_n_fumei);
+        sprintf(g_str, "%sunknown %d/%d", prefix,st_del_fumei, st_n_fumei);
         record_log(g_str); puts(g_str);
-        sprintf(g_str,"info string delete_num/gc_target %llu/%llu",
-                delete_num,gc_target);
+        sprintf(g_str,"%sdelete_num/gc_target %llu/%llu",
+                prefix, delete_num, gc_target);
         record_log(g_str); puts(g_str);
         if(delete_num>gc_target) break;
         if(st_n_tsumi-st_del_tsumi>n_tsumi_max) st_tsumi_delete_flag = true;
@@ -399,9 +404,10 @@ void tbase_gc              (tbase_t  *tbase)
     
     //gc情報を出力する。
     sprintf(g_str,
-            "info string "
+            "%s"
             "delete_rate %llu%%. "
             "nodes %llu. mate %d. nomate %d. unknown %d",
+            prefix,
             delete_num*100/tbase->sz_elm,
             g_tsearchinf.nodes,
             st_n_tsumi-st_del_tsumi,
@@ -411,7 +417,7 @@ void tbase_gc              (tbase_t  *tbase)
     
     record_log(g_str);
     puts(g_str);
-    sprintf(g_str, "info string Garbage collection end.");
+    sprintf(g_str, "%sGarbage collection end.",prefix);
     record_log(g_str);
     puts(g_str);
     tbase->num -= delete_num;
