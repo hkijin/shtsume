@@ -433,9 +433,8 @@ void bn_search_or               (const sdata_t   *sdata,
     //着手の並べ替え
     list = sdata_mvlist_sort(list, sdata, proof_number_comp);
     while(true){
-#ifndef DEBUG
         //予想手の出力
-        if(S_COUNT(sdata)==0){
+        if(S_COUNT(sdata)==0 && !g_commandline){
             g_tsearchinf.mvinf[S_COUNT(sdata)].move = list->mlist->move;
             char mv_str[8];
             move_to_sfen(mv_str, g_tsearchinf.mvinf[S_COUNT(sdata)].move);
@@ -443,7 +442,6 @@ void bn_search_or               (const sdata_t   *sdata,
             record_log(g_str);
             puts(g_str);
         }
-#endif /* DEBUG */
         //証明数、反証数等の更新
         mvlist->tdata.pn = list->tdata.pn;
         if(!S_COUNT(sdata)){
