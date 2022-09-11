@@ -57,7 +57,7 @@ void tsearchinf_update          (const sdata_t *sdata,
     
     //nps
     double
-    nps =  (double)(nodes-g_prev_nodes);
+    nps =  (double)(nodes-g_prev_nodes)/g_info_interval;
     g_tsearchinf.nps = (int)nps;
     
     //hashfull
@@ -66,11 +66,13 @@ void tsearchinf_update          (const sdata_t *sdata,
     hashfull /= (double)tbase->sz_elm;
     hashfull *= 1000;
     g_tsearchinf.hashfull = (int)hashfull;
-#ifndef DEBUG
-    tsearchinf_sprintf(str);
-    record_log(str);
-    puts(str);
-#endif /* DEBUG */
+
+    if(!g_commandline ||g_disp_search)
+    {
+        tsearchinf_sprintf(str);
+        record_log(str);
+        puts(str);
+    }
     //pv情報の更新
     g_tsearchinf.depth = S_COUNT(sdata);
     g_tsearchinf.score_cp = g_root_pn;
@@ -91,7 +93,7 @@ void tsearchinf_update          (const sdata_t *sdata,
 int  tsearchinf_sprintf         (char *str)
 {
     int num = 0;
-    num+=sprintf(str+num,"info ");
+    if(!g_commandline) num+=sprintf(str+num,"info ");
     num+=sprintf(str+num,"nodes %lld ", g_tsearchinf.nodes);
     num+=sprintf(str+num,"nps %d ", g_tsearchinf.nps);
     num+=sprintf(str+num,"hashfull %d" ,g_tsearchinf.hashfull);
