@@ -1145,18 +1145,21 @@ void bns_plus_or                (const sdata_t   *sdata,
     //再度並べ替え
     list = sdata_mvlist_sort(list, sdata, proof_number_comp);
     //局面表の更新
-    mvlist->tdata.pn = list->tdata.pn;
-    mvlist->tdata.dn =
-    S_COUNT(sdata) ? disproof_number(list): list->tdata.dn;
-    mvlist->tdata.sh = list->tdata.sh+1;
-    mvlist->inc = list->inc;
-    if (!mvlist->tdata.pn) {
-        proof_koma_or(sdata, mvlist, list);
+    if( mvlist->tdata.sh>list->tdata.sh || list->inc)
+    {
+        mvlist->tdata.pn = list->tdata.pn;
+        mvlist->tdata.dn =
+        S_COUNT(sdata) ? disproof_number(list): list->tdata.dn;
+        mvlist->tdata.sh = list->tdata.sh+1;
+        mvlist->inc = list->inc;
+        if (!mvlist->tdata.pn) {
+            proof_koma_or(sdata, mvlist, list);
+        }
+        else if (!mvlist->tdata.dn){
+            disproof_koma_or(sdata, mvlist, list);
+        }
+        make_tree_update(sdata, mvlist, tn, tbase);
     }
-    else if (!mvlist->tdata.dn){
-        disproof_koma_or(sdata, mvlist, list);
-    }
-    make_tree_update(sdata, mvlist, tn, tbase);
     mvlist_free(list);
     return;
     
