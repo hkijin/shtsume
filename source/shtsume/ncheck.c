@@ -956,23 +956,32 @@ mvlist_t* evasion_check         (const sdata_t *sdata,
                                  tbase_t       *tbase      )
 {
     mvlist_t *list = generate_evasion(sdata, tbase);
-    mvlist_t *mvlist = NULL, *tmp;
+    //合法手は全展開しておく
+    mvlist_t *mvlist = NULL,     //合法手
+             *tmp;
+    mlist_t  *mlist;
     sdata_t sbuf;
     move_t move;
-    while(list){
-        memcpy(&sbuf, sdata, sizeof(sdata_t));
-        move = list->mlist->move;
-        sdata_move_forward(&sbuf, move);
-        tmp = list;
-        list = tmp->next;
-        if(S_NOUTE(&sbuf)){
-            tmp->next = mvlist;
-            mvlist = tmp;
+    tmp = list;
+    while(tmp){
+        mlist = tmp->mlist;
+        while(mlist){
+            memcpy(&sbuf, sdata, sizeof(sdata_t));
+            move = mlist->move;
+            sdata_move_forward(&sbuf, move);
+            if(S_NOUTE(&sbuf)){
+                mvlist_t *new_mvlist = mvlist_alloc();
+                mlist_t *new_mlist = mlist_alloc();
+                memcpy(&(new_mlist->move), &move, sizeof(move_t));
+                new_mlist->next = NULL;
+                new_mvlist->mlist = new_mlist;
+                new_mvlist->next = mvlist;
+                mvlist = new_mvlist;
+            }
+            mlist = mlist->next;
         }
-        else{
-            tmp->next = NULL;
-            mvlist_free(tmp);
-        }
+        tmp = tmp->next;
     }
+    mvlist_free(list);
     return mvlist;
 }
