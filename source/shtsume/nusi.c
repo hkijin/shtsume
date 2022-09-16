@@ -22,24 +22,25 @@
  ------------- */
 usioption_t g_usioption =
 {
-    {"USI_Hash", 256, 1, 65535},    //USI_HASH
-    {"USI_Ponder", true} ,          //USI_PONDER
-    {"mt_min_pn", 4, 3, 10},        //収束余詰探索 　 ->4でOK
-    {"n_make_tree", 2, 1, 5},       //make_tree回数 ->2でOK
-    {"search_level", 0, 0, 50},     //search_level
-    {"out_lvkif", false},           //lv別棋譜出力
-    {"user_path", "<empty>"},       //shtsume出力fileの格納場所
-    {"summary", false}              //探索レポートの出力有無
+    {"USI_Hash"    , TBASE_SIZE_DEFAULT , TBASE_SIZE_MIN , TBASE_SIZE_MAX },
+    {"USI_Ponder"  , true             } ,
+    {"mt_min_pn"   , LEAF_PN_DEFAULT    , LEAF_PN_MIN    , LEAF_PN_MAX    },
+    {"n_make_tree" , MAKE_REPEAT_DEFAULT, MAKE_REPEAT_MIN, MAKE_REPEAT_MAX},
+    {"search_level", SEARCH_LV_DEFAULT  , SEARCH_LV_MIN  , SEARCH_LV_MAX  },
+    {"out_lvkif"   , false             },
+    {"user_path"   , "<empty>"         },
+    {"summary"     , false             }
 };
 
 bool          g_usi_ponder      = false;
-uint64_t      g_usi_hash        = 256;
-uint16_t      g_mt_min_pn       = 4;
-uint8_t       g_n_make_tree     = 2;
-uint8_t       g_search_level    = 0;
+uint64_t      g_usi_hash        = TBASE_SIZE_DEFAULT;
+uint16_t      g_mt_min_pn       = LEAF_PN_DEFAULT;
+uint8_t       g_n_make_tree     = MAKE_REPEAT_DEFAULT;
+uint8_t       g_search_level    = SEARCH_LV_DEFAULT;
 bool          g_out_lvkif       = false;
-short         g_max_pv_length   = 20;
+short         g_pv_length       = PV_USI_DEFAULT;
 bool          g_summary         = false; //サマリーレポートの出力有無(true:有り)
+bool          g_disp_search     = false;  //読み筋情報の表示(true:表示あり)
 
 tbase_t *g_tbase;
 mtt_t   *g_mtt;
@@ -80,16 +81,6 @@ void res_usi_cmd          (void)
     puts(str);
     record_log(str);
      
-    //n_make_tree
-    /*
-    sprintf(str, "option name %s type spin default %d min %d max %d",
-            g_usioption.n_make_tree.op_name,
-            g_usioption.n_make_tree.default_value,
-            g_usioption.n_make_tree.min,
-            g_usioption.n_make_tree.max);
-    puts(str);
-    record_log(str);
-     */
     //search_level
     sprintf(str, "option name %s type spin default %d min %d max %d",
             g_usioption.search_level.op_name,
@@ -134,6 +125,7 @@ void res_isready_cmd      (void)
     uint64_t size = g_usi_hash*MCARDS_PER_MBYTE-1;
     g_tbase = create_tbase(size);
     g_mtt = create_mtt(MTT_SIZE);
+    g_disp_search = true;
     
     //OKを返す
     char str[12];
@@ -364,14 +356,6 @@ void res_gomate_cmd       (const char *buf)
         puts(g_str);
     }
     else                {
-        //ループ発生の場合、エラーLOGを出力
-        /*
-        search_error_log(&g_sdata, g_tbase);
-        sprintf(g_str,
-                "info string search error occured. %s",g_errorlog_name);
-        puts(g_str);
-        record_log(g_str);
-         */
         sprintf(g_str,"info string 王手千日手.");
         puts(g_str);
         record_log(g_str);
@@ -546,19 +530,22 @@ void search_error_log          (const sdata_t  *sdata,
     //エラー情報記入
     //日時,環境、プログラムバージョン
     //発生状況
-    fprintf(fp, "発生場所　　　: %s\n", g_error_location);
-    fprintf(fp, "コンパイル日時: %s %s\n", __DATE__, __TIME__);
+    fprintf(fp, "発生場所　　　 : %s ", g_error_location);
+    fprintf(fp, "コンパイル日時 : %s %s\n", __DATE__, __TIME__);
     //局面情報
-    fprintf(fp, "局面情報(sfen)\n%s\n", g_sfen_pos_str);
-    fprintf(fp, "初期局面　　　:\n");
+    fprintf(fp, "局面情報(sfen): %s\n", g_sfen_pos_str);
+    fprintf(fp, "初期局面　　　 :\n");
     sdata_fprintf(fp, &g_sdata, PR_BOARD|PR_ZKEY);
     
+    //エラー局面
+    fprintf(fp, "エラー局面    :\n");
+    sdata_fprintf(fp, sdata, PR_BOARD|PR_ZKEY);
     //探索情報
     fprintf(fp, "探索局面数　　: %llu\n", g_tsearchinf.nodes);
     fprintf(fp, "登録局面数　　: %llu\n", tbase->num);
     fprintf(fp, "エラー手順\n");
     //エラー手順の出力
-    print_error_move_or(fp, sdata, tbase);
+    print_error_move_or(fp, &g_sdata, tbase);
     fclose(fp);
     return;
 }
@@ -715,7 +702,7 @@ void shtsume_error_log          (const sdata_t *sdata,
     time(&now);
     struct tm t = *localtime(&now);
     strftime(s, 16, "%Y%m%d%H%M%S", &t);
-    sprintf(g_errorlog_name, "%serrlog%s.txt",g_user_path,s);
+    sprintf(g_errorlog_name, "%s/errlog%s.txt",g_user_path,s);
     FILE *fp = fopen(g_errorlog_name, "w");
     if(!fp){
         perror("logfile could not be opened.");
@@ -723,21 +710,32 @@ void shtsume_error_log          (const sdata_t *sdata,
     }
     //エラー情報記入
     //日時,環境、プログラムバージョン
+    fprintf(fp,"%s %s\n",PROGRAM_NAME,VERSION_INFO);
+    fprintf(fp,"g_usi_hash = %llu(MByte)\n", g_usi_hash);
     //発生状況
-    fprintf(fp, "発生場所　　　: %s\n", g_error_location);
-    fprintf(fp, "コンパイル日時: %s %s\n", __DATE__, __TIME__);
+    fprintf(fp, "発生場所　　　 : %s\n", g_error_location);
+    fprintf(fp, "コンパイル日時 : %s %s\n", __DATE__, __TIME__);
     //局面情報
-    fprintf(fp, "局面情報(sfen)\n%s\n", g_sfen_pos_str);
-    fprintf(fp, "初期局面　　　:\n");
+    fprintf(fp, "局面情報(sfen): %s\n", g_sfen_pos_str);
+    fprintf(fp, "初期局面　　　 :\n");
     sdata_fprintf(fp, &g_sdata, PR_BOARD|PR_ZKEY);
+    fprintf(fp, "\n");
     //探索情報
-    fprintf(fp, "エラー局面　　:\n");
+    fprintf(fp, "エラー局面　　 :\n");
     sdata_fprintf(fp, sdata, PR_BOARD|PR_ZKEY);
     mvlist_fprintf_with_item(fp, mvlist,sdata);
-    fprintf(fp, "探索局面数　　: %llu\n", g_tsearchinf.nodes);
+    fprintf(fp, "探索局面数　　 : %llu\n\n", g_tsearchinf.nodes);
+    
+    //gc情報
+    fprintf(fp, "GC状況\n");
+    fprintf(fp,
+            "g_gc_max_level =      %u\n"
+            "g_gc_num       =      %u\n\n",
+            g_gc_max_level, g_gc_num);
+    //探索状況
     fprintf(fp, "探索状況\n");
     char mkey_str[32];
-    for(int i=0; i<g_loop; i++){
+    for(int i=0; i<S_COUNT(sdata); i++){
         SPRINTF_MKEY(mkey_str, g_tsearchinf.mvinf[i].mkey);
         fprintf(fp, "%d: %s 0x%llx %s\n",i,
                 g_tsearchinf.mvinf[i].move_str,

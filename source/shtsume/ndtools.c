@@ -9,6 +9,41 @@
 #include <errno.h>
 #include "ndtools.h"
 
+/* ---------------
+   スタティック変数
+ --------------- */
+static bool st_disp_flag;            /* tsume_debugの終了flag */
+
+/* ---------------
+   スタティック関数
+ --------------- */
+static void _tsume_print_or     (const sdata_t  *sdata,
+                                 tbase_t        *tbase,
+                                 unsigned int    flag );
+static void _tsume_print_and    (const sdata_t  *sdata,
+                                 tbase_t        *tbase,
+                                 unsigned int    flag );
+static int _tsume_fprint_or     (FILE           *stream,
+                                 const sdata_t  *sdata,
+                                 tbase_t        *tbase,
+                                 unsigned int    flag );
+static int _tsume_fprint_and    (FILE           *stream,
+                                 const sdata_t  *sdata,
+                                 tbase_t        *tbase,
+                                 unsigned int    flag );
+static void tsume_debug_or      (const sdata_t   *sdata,
+                                 tbase_t        *tbase);
+static void tsume_debug_and     (const sdata_t   *sdata,
+                                 tbase_t        *tbase);
+static void gen_kif_file_or     (FILE *restrict  stream,
+                                 const sdata_t   *sdata,
+                                 tbase_t         *tbase,
+                                 move_t           prev );
+static void gen_kif_file_and    (FILE *restrict  stream,
+                                 const sdata_t   *sdata,
+                                 tbase_t         *tbase,
+                                 move_t           prev );
+
 /*
  * 探索情報の表示
  * 探索深さ、着手、証明数、反証数、
@@ -176,13 +211,6 @@ int mvlist_fprintf_with_item (FILE *restrict stream,
     return num;
 }
 
-static void _tsume_print_or     (const sdata_t  *sdata,
-                                 tbase_t        *tbase,
-                                 unsigned int    flag );
-static void _tsume_print_and    (const sdata_t  *sdata,
-                                 tbase_t        *tbase,
-                                 unsigned int    flag );
-
 void tsume_print                (const sdata_t   *sdata,
                                  tbase_t         *tbase,
                                  unsigned int      flag)
@@ -193,14 +221,6 @@ void tsume_print                (const sdata_t   *sdata,
     return;
 }
 
-static int _tsume_fprint_or     (FILE           *stream,
-                                 const sdata_t  *sdata,
-                                 tbase_t        *tbase,
-                                 unsigned int    flag );
-static int _tsume_fprint_and    (FILE           *stream,
-                                 const sdata_t  *sdata,
-                                 tbase_t        *tbase,
-                                 unsigned int    flag );
 int tsume_fprint                (FILE            *stream,
                                  const sdata_t   *sdata,
                                  tbase_t         *tbase,
@@ -213,27 +233,13 @@ int tsume_fprint                (FILE            *stream,
     return num;
 }
 
-static void tsume_debug_or      (const sdata_t   *sdata,
-                                 tbase_t        *tbase);
-static void tsume_debug_and     (const sdata_t   *sdata,
-                                 tbase_t        *tbase);
-
 void tsume_debug                (const sdata_t   *sdata,
                                  tbase_t         *tbase)
 {
+    st_disp_flag = true;
     tsume_debug_or(sdata, tbase);
     return;
 }
-
-static void gen_kif_file_or      (FILE *restrict  stream,
-                                  const sdata_t   *sdata,
-                                  tbase_t         *tbase,
-                                  move_t           prev );
-
-static void gen_kif_file_and     (FILE *restrict  stream,
-                                  const sdata_t   *sdata,
-                                  tbase_t         *tbase,
-                                  move_t           prev );
 
 void generate_kif_file          (const char      *filename,
                                  const sdata_t   *sdata   ,
@@ -263,6 +269,124 @@ void generate_kif_file          (const char      *filename,
     gen_kif_file_or(fp, sdata, tbase, dummy);
     
     fclose(fp);
+    return;
+}
+
+void tlist_display              (const sdata_t   *sdata,
+                                 turn_t              tn,
+                                 tbase_t         *tbase)
+{
+    uint64_t address = HASH_FUNC(S_ZKEY(sdata), tbase);
+    zfolder_t *zfolder = *(tbase->table+address);
+    //局面表に同一盤面があるか
+    while(zfolder){
+        if(zfolder->zkey == S_ZKEY(sdata)) break;
+        zfolder = zfolder->next;
+    }
+    //無い場合、その旨出力
+    if(!zfolder){
+        printf("No data exist in tbase.\n");
+        return;
+    }
+    //同一盤面ありの場合、
+    mcard_t *mcard = zfolder->mcard;
+    unsigned int cmp_res;
+    //mkey_t mkey = tn?S_GMKEY(sdata):S_SMKEY(sdata);
+    mkey_t mkey;
+    tn ? MKEY_COPY(mkey, S_GMKEY(sdata)):MKEY_COPY(mkey, S_SMKEY(sdata));
+    memset(g_mcard, 0, sizeof(mcard_t *)*N_MCARD_TYPE);
+    uint16_t tmp_pn = 1;
+    while(mcard){
+        cmp_res = MKEY_COMPARE(mkey, mcard->mkey);
+        if     (cmp_res == MKEY_SUPER){
+            //詰み
+            if     (!mcard->tlist->tdata.pn){
+                if(!g_mcard[SUPER_TSUMI]) g_mcard[SUPER_TSUMI] = mcard;
+                else{
+                    unsigned int res =
+                    MKEY_COMPARE(g_mcard[SUPER_TSUMI]->mkey, mcard->mkey);
+                    if(res == MKEY_SUPER) g_mcard[SUPER_TSUMI] = mcard;
+                }
+            }
+            //不詰み
+            else if(!mcard->tlist->tdata.dn){
+                
+            }
+            //その他
+            else                            {
+
+            }
+        }
+        else if(cmp_res == MKEY_INFER){
+            //詰み
+            if     (!mcard->tlist->tdata.pn){
+                
+            }
+            //不詰み
+            else if(!mcard->tlist->tdata.dn){
+                if(!g_mcard[INFER_FUDUMI]) g_mcard[INFER_FUDUMI] = mcard;
+                else{
+                    unsigned int res =
+                    MKEY_COMPARE(g_mcard[INFER_FUDUMI]->mkey, mcard->mkey);
+                    if(res == MKEY_INFER) g_mcard[INFER_FUDUMI] = mcard;
+                }
+            }
+            //その他
+            else                            {
+                tlist_t *tlist = mcard->tlist;
+                while(tlist){
+                    tmp_pn = MAX(tmp_pn, tlist->tdata.pn);
+                    tlist = tlist->next;
+                }
+                if(mcard->current){
+                    tmp_pn = MAX(tmp_pn, mcard->cpn);
+                }
+            }
+        }
+        else if(cmp_res == MKEY_EQUAL){
+            //詰み
+            if     (   !mcard->tlist->tdata.pn ){
+                if(!g_mcard[EQUAL_TSUMI]) g_mcard[EQUAL_TSUMI] = mcard;
+            }
+            //不詰み
+            else if(   !mcard->tlist->tdata.dn ){
+                if(!g_mcard[EQUAL_FUDUMI]) g_mcard[EQUAL_FUDUMI] = mcard;
+            }
+            //その他
+            else                                {
+                if(!g_mcard[EQUAL_UNKNOWN]) g_mcard[EQUAL_UNKNOWN] = mcard;
+            }
+        }
+        mcard = mcard->next;
+    }
+    //データ内容表示
+    if     (g_mcard[SUPER_TSUMI])  {
+        printf("優越詰み %u手\n", g_mcard[SUPER_TSUMI]->tlist->tdata.sh);
+        return;
+    }
+    else if(g_mcard[INFER_FUDUMI]) {
+        printf("劣化不詰\n");
+        return;
+    }
+    else if(g_mcard[EQUAL_TSUMI])  {
+        printf("詰み %u手\n", g_mcard[EQUAL_TSUMI]->tlist->tdata.sh);
+        return;
+    }
+    else if(g_mcard[EQUAL_FUDUMI]) {
+        printf("不詰\n");
+        return;
+    }
+    else if(g_mcard[EQUAL_UNKNOWN]){
+        printf("不明\n");
+        tlist_t *tlist = g_mcard[EQUAL_UNKNOWN]->tlist;
+        while(tlist){
+            printf("dp=%d ", tlist->dp);
+            printf("pn=%d ", tlist->tdata.pn);
+            printf("dn=%d ", tlist->tdata.dn);
+            printf("sh=%d \n", tlist->tdata.sh);
+            tlist = tlist->next;
+        }
+    }
     return;
 }
 
@@ -470,6 +594,7 @@ int _tsume_fprint_or            (FILE           *stream,
     
     return num;
 }
+
 int _tsume_fprint_and           (FILE           *stream,
                                  const sdata_t  *sdata,
                                  tbase_t        *tbase,
@@ -582,6 +707,8 @@ void tsume_debug_or              (const sdata_t   *sdata,
         SDATA_PRINTF(sdata, PR_BOARD|PR_ZKEY);
         //着手表示
         printf("%u手目\n", S_COUNT(sdata)+1);
+        printf("ID:合法手(pn,dn,詰手数,駒余り,枚数)\n"
+               "-------------------------------\n");
         tmp = list;
         num = 0;
         while (tmp) {
@@ -596,9 +723,13 @@ void tsume_debug_or              (const sdata_t   *sdata,
             tmp = tmp->next;
         }
         //着手＆終了選択
-        printf("着手を選択してください（数字/b(back))\n");
+        printf("着手を選択してください（数字/b(back)/q(quit))\n");
         fgets(str, 7, stdin);
         if(!memcmp(str, "b", sizeof(char)*1)) break;
+        else if(!memcmp(str, "q", sizeof(char)*1)){
+            st_disp_flag = false;
+            break;
+        }
         else if(str[0]<48 || str[0]>57){
             printf("入力が間違っています。再度入力してください\n");
         }
@@ -610,6 +741,7 @@ void tsume_debug_or              (const sdata_t   *sdata,
                 memcpy(&sbuf, sdata, sizeof(sdata_t));
                 sdata_move_forward(&sbuf, tmp->mlist->move);
                 tsume_debug_and(&sbuf, tbase);
+                if(!st_disp_flag) break;
             }
         }
     }
@@ -654,6 +786,8 @@ void tsume_debug_and             (const sdata_t   *sdata,
     list = sdata_mvlist_sort(list, sdata, disproof_number_comp);
     //着手の表示
     printf("%u手目\n", S_COUNT(sdata)+1);
+    printf("ID:合法手(pn,dn,詰手数,駒余り,枚数)\n"
+           "-------------------------------\n");
     tmp = list;
     int num = 0;
     while (tmp) {
@@ -689,9 +823,13 @@ void tsume_debug_and             (const sdata_t   *sdata,
             tmp = tmp->next;
         }
         //着手&終了選択
-        printf("着手を選択してください（数字/b(back))\n");
+        printf("着手を選択してください（数字/b(back)/q(quit))\n");
         fgets(str, 7, stdin);
         if(!memcmp(str, "b", sizeof(char)*1)) break;
+        else if(!memcmp(str, "q", sizeof(char)*1)){
+            st_disp_flag = false;
+            break;
+        }
         else if(str[0]<48 || str[0]>57){
             printf("入力が間違っています。再度入力してください\n");
         }
@@ -703,128 +841,11 @@ void tsume_debug_and             (const sdata_t   *sdata,
                 memcpy(&sbuf, sdata, sizeof(sdata_t));
                 sdata_move_forward(&sbuf, tmp->mlist->move);
                 tsume_debug_or(&sbuf, tbase);
+                if(!st_disp_flag) break;
             }
         }
     }
     mvlist_free(list);
-    return;
-}
-
-void tlist_display              (const sdata_t   *sdata,
-                                 turn_t              tn,
-                                 tbase_t         *tbase)
-{
-    uint64_t address = HASH_FUNC(S_ZKEY(sdata), tbase);
-    zfolder_t *zfolder = *(tbase->table+address);
-    //局面表に同一盤面があるか
-    while(zfolder){
-        if(zfolder->zkey == S_ZKEY(sdata)) break;
-        zfolder = zfolder->next;
-    }
-    //無い場合、その旨出力
-    if(!zfolder){
-        printf("No data exist in tbase.\n");
-        return;
-    }
-    //同一盤面ありの場合、
-    mcard_t *mcard = zfolder->mcard;
-    unsigned int cmp_res;
-    //mkey_t mkey = tn?S_GMKEY(sdata):S_SMKEY(sdata);
-    mkey_t mkey;
-    tn ? MKEY_COPY(mkey, S_GMKEY(sdata)):MKEY_COPY(mkey, S_SMKEY(sdata));
-    memset(g_mcard, 0, sizeof(mcard_t *)*N_MCARD_TYPE);
-    uint16_t tmp_pn = 1;
-    while(mcard){
-        cmp_res = MKEY_COMPARE(mkey, mcard->mkey);
-        if     (cmp_res == MKEY_SUPER){
-            //詰み
-            if     (!mcard->tlist->tdata.pn){
-                if(!g_mcard[SUPER_TSUMI]) g_mcard[SUPER_TSUMI] = mcard;
-                else{
-                    unsigned int res =
-                    MKEY_COMPARE(g_mcard[SUPER_TSUMI]->mkey, mcard->mkey);
-                    if(res == MKEY_SUPER) g_mcard[SUPER_TSUMI] = mcard;
-                }
-            }
-            //不詰み
-            else if(!mcard->tlist->tdata.dn){
-                
-            }
-            //その他
-            else                            {
-
-            }
-        }
-        else if(cmp_res == MKEY_INFER){
-            //詰み
-            if     (!mcard->tlist->tdata.pn){
-                
-            }
-            //不詰み
-            else if(!mcard->tlist->tdata.dn){
-                if(!g_mcard[INFER_FUDUMI]) g_mcard[INFER_FUDUMI] = mcard;
-                else{
-                    unsigned int res =
-                    MKEY_COMPARE(g_mcard[INFER_FUDUMI]->mkey, mcard->mkey);
-                    if(res == MKEY_INFER) g_mcard[INFER_FUDUMI] = mcard;
-                }
-            }
-            //その他
-            else                            {
-                tlist_t *tlist = mcard->tlist;
-                while(tlist){
-                    tmp_pn = MAX(tmp_pn, tlist->tdata.pn);
-                    tlist = tlist->next;
-                }
-                if(mcard->current){
-                    tmp_pn = MAX(tmp_pn, mcard->cpn);
-                }
-            }
-        }
-        else if(cmp_res == MKEY_EQUAL){
-            //詰み
-            if     (   !mcard->tlist->tdata.pn ){
-                if(!g_mcard[EQUAL_TSUMI]) g_mcard[EQUAL_TSUMI] = mcard;
-            }
-            //不詰み
-            else if(   !mcard->tlist->tdata.dn ){
-                if(!g_mcard[EQUAL_FUDUMI]) g_mcard[EQUAL_FUDUMI] = mcard;
-            }
-            //その他
-            else                                {
-                if(!g_mcard[EQUAL_UNKNOWN]) g_mcard[EQUAL_UNKNOWN] = mcard;
-            }
-        }
-        mcard = mcard->next;
-    }
-    //データ内容表示
-    if     (g_mcard[SUPER_TSUMI])  {
-        printf("優越詰み %u手\n", g_mcard[SUPER_TSUMI]->tlist->tdata.sh);
-        return;
-    }
-    else if(g_mcard[INFER_FUDUMI]) {
-        printf("劣化不詰\n");
-        return;
-    }
-    else if(g_mcard[EQUAL_TSUMI])  {
-        printf("詰み %u手\n", g_mcard[EQUAL_TSUMI]->tlist->tdata.sh);
-        return;
-    }
-    else if(g_mcard[EQUAL_FUDUMI]) {
-        printf("不詰\n");
-        return;
-    }
-    else if(g_mcard[EQUAL_UNKNOWN]){
-        printf("不明\n");
-        tlist_t *tlist = g_mcard[EQUAL_UNKNOWN]->tlist;
-        while(tlist){
-            printf("dp=%d ", tlist->dp);
-            printf("pn=%d ", tlist->tdata.pn);
-            printf("dn=%d ", tlist->tdata.dn);
-            printf("sh=%d \n", tlist->tdata.sh);
-            tlist = tlist->next;
-        }
-    }
     return;
 }
 
