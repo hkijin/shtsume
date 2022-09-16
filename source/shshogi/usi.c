@@ -32,11 +32,7 @@ char g_str[SZ_USIBUFFER];             // USIコマンドバッファ
 
 char g_logfile_path[256];
 
-#if DEBUG
 bool g_log_enable = false;            //通信LOGを出力したい場合はtrueに変更する。
-#else
-bool g_log_enable = false;
-#endif /* DEBUG */
 
 /* -----------
  スタティック変数

@@ -817,9 +817,6 @@ bool drop_check                 (const sdata_t *sdata,
 {
     //自玉が王手の場合
     if(S_NOUTE(sdata)){
-#if DEBUG
-        //SDATA_PRINTF(sdata, PR_BOARD|PR_ZKEY);
-#endif //DEBUG
         return true;     //大事をとってtrueとしておく
     }
     

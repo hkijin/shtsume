@@ -378,10 +378,6 @@ void bn_search_or               (const sdata_t   *sdata,
     }
     //初形左右対称の場合、着手を右半分（１−５筋）に限定
     if(!S_COUNT(sdata) && st_symmetry){
-#if DEBUG
-        printf("before\n");
-        MVLIST_PRINTF_ITEM(list, sdata);
-#endif //DEBUG
         mvlist_t *tmp, *new_list = NULL;
         while(list){
             if(g_file[NEW_POS(list->mlist->move)]<FILE6)
@@ -400,10 +396,6 @@ void bn_search_or               (const sdata_t   *sdata,
             }
         }
         list = new_list;
-#if DEBUG
-        printf("after\n");
-        MVLIST_PRINTF_ITEM(list, sdata);
-#endif //DEBUG
     }
     
     /* ---------------
@@ -839,12 +831,6 @@ void make_tree_or               (const sdata_t   *sdata,
      ------------------------------------------------------------------- */
     if(mvlist->tdata.sh < list->tdata.sh && !list->inc)
     {
-#if DEBUG
-        SDATA_PRINTF(sdata, PR_BOARD|PR_ZKEY);
-        MVLIST_PRINTF_ITEM(list, sdata);
-        printf("mvlist->tdata.sh = %d\n"
-               "list->tdata.sh = %d\n",mvlist->tdata.sh, list->tdata.sh);
-#endif //DEBUG
         //詰んでいる着手についてさらに短い詰着手がないか調べる
         tmp = list;
         uint16_t ptsh = mvlist->tdata.sh;

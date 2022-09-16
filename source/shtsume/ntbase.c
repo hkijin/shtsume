@@ -477,15 +477,6 @@ void tbase_lookup           (const sdata_t *sdata,
                              tbase_t       *tbase  )
 {
     _tbase_lookup(sdata, mvlist, tn, false, tbase);
-#if DEBUG
-    if(S_ZKEY(sdata)==0x5b0cd113a2a3d35b){
-        printf("lookup ");
-        FPRINTF_MKEY(stdout, S_SMKEY(sdata));
-        printf("dp = %u ",S_COUNT(sdata));
-        printf("(%u, %u) ",mvlist->tdata.pn, mvlist->tdata.dn);
-        printf("nodes = %llu\n", g_tsearchinf.nodes);
-    }
-#endif //DEBUG
     return;
 }
 
@@ -560,12 +551,6 @@ bool hs_tbase_lookup            (const sdata_t *sdata,
        確認しておく。
      */
     //着手生成
-#if DEBUG
-    if(S_ZKEY(sdata)==0xbbaf30394dcbb082)
-    {
-        SDATA_PRINTF(sdata, PR_BOARD);
-    }
-#endif //DEBUG
     mvlist_t *list = generate_evasion(sdata, tbase);
     if(!list) return true;
     g_tsearchinf.nodes++;
