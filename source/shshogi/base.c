@@ -13,6 +13,8 @@
 
 static void sdata_captured  (komainf_t captured, move_t move, sdata_t *sdata);
 static void sdata_mkey_sub  (komainf_t koma, move_t move, sdata_t *sdata);
+static void key_captured    (komainf_t captured, sdata_t *sdata);
+static void key_mkey_sub    (komainf_t koma, sdata_t *sdata);
 static bool is_move_to_dest (int dest, const sdata_t *sdata);
 static bool is_evasion_drop (int dest, const sdata_t *sdata);
 
@@ -464,53 +466,39 @@ int sdata_move_forward(sdata_t *sdata, move_t move){
     
     return 1;
 }
-int sdata_key_forward (sdata_t *sdata, move_t move){
+
+int sdata_key_forward(sdata_t *sdata, move_t move){
+    //局面探索専用として以下の変数のみ更新
+    //zkey, mkey, turn, count
+    
     //投了他
     if(MV_ACTION(move)) return 0;
-
-    //board,zkey,mkey,kscore,np,ou
     komainf_t koma, captured;
     //盤上移動
     if(MV_MOVE(move)){
         //移動元の駒を削除
         koma = S_BOARD(sdata,PREV_POS(move));
-        S_BOARD(sdata,PREV_POS(move)) = SPC;
         S_ZKEY(sdata) ^= g_zkey_seed[koma*N_SQUARE+PREV_POS(move)];
-        if(koma == SFU)
-            S_FFLAG(sdata) =
-            FLAG_UNSET(S_FFLAG(sdata), g_file[PREV_POS(move)]);
-        else if(koma == GFU)
-            S_FFLAG(sdata) =
-            FLAG_UNSET(S_FFLAG(sdata), g_file[PREV_POS(move)]+9);
-        S_KSCORE(sdata) -= g_koma_val[koma];
         //移動先に駒があれば駒台に移動
         captured = S_BOARD(sdata,NEW_POS(move));
         if(captured){
             S_ZKEY(sdata) ^= g_zkey_seed[captured*N_SQUARE+NEW_POS(move)];
-            S_KSCORE(sdata) -= g_koma_val[captured];
-            sdata_captured(captured, move, sdata);
+            key_captured(captured, sdata);
         }
         //移動先に駒を置く
         if(PROMOTE(move)) koma += PROMOTED;
-        S_BOARD(sdata, NEW_POS(move)) = koma;
         S_ZKEY(sdata) ^= g_zkey_seed[koma*N_SQUARE+NEW_POS(move)];
-        if(koma == SFU)
-            S_FFLAG(sdata) = FLAG_SET(S_FFLAG(sdata), g_file[NEW_POS(move)]);
-        else if(koma == GFU)
-            S_FFLAG(sdata) = FLAG_SET(S_FFLAG(sdata), g_file[NEW_POS(move)]+9);
-        S_KSCORE(sdata) += g_koma_val[koma];
     }
-    //持ち駒使用
+    //持駒使用
     else{
         koma = MV_HAND(move)+S_TURN(sdata)*16;
         //駒を置く
-        S_BOARD(sdata, NEW_POS(move)) = koma;
         S_ZKEY(sdata) ^= g_zkey_seed[koma*N_SQUARE+NEW_POS(move)];
-        //駒台の駒数変更,fuflagの更新
-        sdata_mkey_sub(koma, move, sdata);
+        //駒台の駒数変更
+        key_mkey_sub(koma, sdata);
     }
-
-    /* count, turn */
+    
+    //手数、手番
     S_COUNT(sdata)++;
     S_TURN(sdata) = TURN_FLIP(S_TURN(sdata));
     S_ZKEY(sdata) ^= g_zkey_seed[TURN_ADDRESS];
@@ -763,6 +751,57 @@ void sdata_mkey_sub(komainf_t koma, move_t move, sdata_t *sdata)    {
             S_FFLAG(sdata) =
             FLAG_SET(S_FFLAG(sdata),g_file[NEW_POS(move)]+9);
             break;
+        case GKY: GMKEY_KY(sdata)--; break;
+        case GKE: GMKEY_KE(sdata)--; break;
+        case GGI: GMKEY_GI(sdata)--; break;
+        case GKI: GMKEY_KI(sdata)--; break;
+        case GKA: GMKEY_KA(sdata)--; break;
+        case GHI: GMKEY_HI(sdata)--; break;
+        default:  break;
+    }
+}
+void key_captured  (komainf_t captured, sdata_t *sdata){
+    switch(captured){
+        case SFU: GMKEY_FU(sdata)++; break;
+        case STO: GMKEY_FU(sdata)++; break;
+        case SKY: GMKEY_KY(sdata)++; break;
+        case SNY: GMKEY_KY(sdata)++; break;
+        case SKE: GMKEY_KE(sdata)++; break;
+        case SNK: GMKEY_KE(sdata)++; break;
+        case SGI: GMKEY_GI(sdata)++; break;
+        case SNG: GMKEY_GI(sdata)++; break;
+        case SKI: GMKEY_KI(sdata)++; break;
+        case SKA: GMKEY_KA(sdata)++; break;
+        case SUM: GMKEY_KA(sdata)++; break;
+        case SHI: GMKEY_HI(sdata)++; break;
+        case SRY: GMKEY_HI(sdata)++; break;
+        case GFU: SMKEY_FU(sdata)++; break;
+        case GTO: SMKEY_FU(sdata)++; break;
+        case GKY: SMKEY_KY(sdata)++; break;
+        case GNY: SMKEY_KY(sdata)++; break;
+        case GKE: SMKEY_KE(sdata)++; break;
+        case GNK: SMKEY_KE(sdata)++; break;
+        case GGI: SMKEY_GI(sdata)++; break;
+        case GNG: SMKEY_GI(sdata)++; break;
+        case GKI: SMKEY_KI(sdata)++; break;
+        case GKA: SMKEY_KA(sdata)++; break;
+        case GUM: SMKEY_KA(sdata)++; break;
+        case GHI: SMKEY_HI(sdata)++; break;
+        case GRY: SMKEY_HI(sdata)++; break;
+        default:  assert(false);     break;
+    }
+    return;
+}
+void key_mkey_sub  (komainf_t koma, sdata_t *sdata){
+    switch(koma){
+        case SFU: SMKEY_FU(sdata)--; break;
+        case SKY: SMKEY_KY(sdata)--; break;
+        case SKE: SMKEY_KE(sdata)--; break;
+        case SGI: SMKEY_GI(sdata)--; break;
+        case SKI: SMKEY_KI(sdata)--; break;
+        case SKA: SMKEY_KA(sdata)--; break;
+        case SHI: SMKEY_HI(sdata)--; break;
+        case GFU: GMKEY_FU(sdata)--; break;
         case GKY: GMKEY_KY(sdata)--; break;
         case GKE: GMKEY_KE(sdata)--; break;
         case GGI: GMKEY_GI(sdata)--; break;

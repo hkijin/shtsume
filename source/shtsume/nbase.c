@@ -335,6 +335,7 @@ int proof_number_comp     (const mvlist_t *a,
     //動かす手優先
     if(MV_MOVE(a->mlist->move) && MV_DROP(b->mlist->move)) return -1;
     if(MV_MOVE(b->mlist->move) && MV_DROP(a->mlist->move)) return  1;
+    
     //取って成る手優先
     /*
     if(MV_MOVE(a->mlist->move)       &&
