@@ -80,10 +80,8 @@ void init_distance (void){
                ||DIR_SE(src,dest)||DIR_SW(src,dest))
                 g_distance[src][dest] =
                 MAX(abs(src%9-dest%9), abs(src/9-dest/9));
-            else if(MAX(abs(src%9-dest%9), abs(src/9-dest/9))<3)
-                g_distance[src][dest] = 1;
             else
-                g_distance[src][dest] = 2;
+                g_distance[src][dest] = 1;
         }
     }
 }
