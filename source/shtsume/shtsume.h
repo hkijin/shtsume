@@ -20,7 +20,7 @@
  * プログラムID
  */
 #define PROGRAM_NAME       "shtsume"
-#define VERSION_INFO       "v0.6.9"
+#define VERSION_INFO       "v0.6.15"
 #define AUTHOR_NAME        "hkijin"
 
 /*
@@ -60,7 +60,7 @@ extern bool                 g_commandline;
 #define INFINATE            SHRT_MAX
 #define PROOF_MAX           2048
 #define DISPROOF_MAX        2048
-#define ADD_SEARCH_SH       20
+#define ADD_SEARCH_SH       30
 
 /*
  * 探索パラメータ制限値
@@ -405,6 +405,7 @@ mcard_t* make_tree_set_item (const sdata_t *sdata,
 void tbase_clear_protect   (tbase_t       *tbase);
 
 extern bool g_gc_stat;
+extern bool g_tsumi;
 extern short g_gc_max_level;
 extern short g_gc_num;
 extern tbase_t *g_tbase;

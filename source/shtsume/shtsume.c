@@ -358,9 +358,7 @@ void bn_search_or               (const sdata_t   *sdata,
                                  mvlist_t       *mvlist,
                                  tbase_t         *tbase )
 {
-//#ifndef DEBUG
     tsearchinf_update(sdata, tbase, st_start, g_str);
-//#endif  /* DEBUG */
     turn_t tn = S_TURN(sdata);
     /* --------
      * 着手生成
@@ -403,17 +401,23 @@ void bn_search_or               (const sdata_t   *sdata,
      --------------- */
     mvlist_t *tmp = list;
     sdata_t sbuf;
-    while(tmp){
-        memcpy(&sbuf, sdata, sizeof(sdata_t));
+    memcpy(&sbuf, sdata, sizeof(sdata_t));
+    while(1){
         sdata_key_forward(&sbuf, tmp->mlist->move);
         tbase_lookup(&sbuf, tmp, tn, tbase);
         tmp->length =
         g_distance[ENEMY_OU(sdata)][NEW_POS(tmp->mlist->move)];
         if(!tmp->search &&
-           S_BOARD(&sbuf,S_ATTACK(&sbuf)[0])!=SUM &&
-           S_BOARD(&sbuf,S_ATTACK(&sbuf)[0])!=GUM)
+           S_BOARD(sdata,S_ATTACK(sdata)[0])!=SUM &&
+           S_BOARD(sdata,S_ATTACK(sdata)[0])!=GUM)
             tmp->tdata.pn = MAX(tmp->tdata.pn,tmp->length);
         tmp = tmp->next;
+        if(!tmp) break;
+        //sbufのリセット
+        S_COUNT(&sbuf)--;
+        S_ZKEY(&sbuf)=S_ZKEY(sdata);
+        S_TURN(&sbuf)=S_TURN(sdata);
+        memcpy(&(sbuf.core.mkey),&(sdata->core.mkey),sizeof(mkey_t)*2);
     }
     
     /* --------
@@ -534,16 +538,7 @@ void bn_search_and              (const sdata_t   *sdata,
     //中合が発生する可能性を示すフラグ
     bool ryuma_flag = false;
     if(mvlist->length>2) ryuma_flag = true;
-    /*
-    if(S_BOARD(sdata, S_ATTACK(sdata)[0])==(S_TURN(sdata)?SUM:GUM)||
-       S_BOARD(sdata, S_ATTACK(sdata)[0])==(S_TURN(sdata)?SRY:GRY)||
-       S_BOARD(sdata, S_ATTACK(sdata)[0])==(S_TURN(sdata)?SKA:GKA)||
-       S_BOARD(sdata, S_ATTACK(sdata)[0])==(S_TURN(sdata)?SHI:GHI)||
-       S_BOARD(sdata, S_ATTACK(sdata)[0])==(S_TURN(sdata)?SKY:GKY))
-    {
-        if(mvlist->length>2) ryuma_flag = true;
-    }
-     */
+
     turn_t tn = TURN_FLIP(S_TURN(sdata));
     //着手生成
     mvlist_t *list = generate_evasion(sdata, tbase);
@@ -556,11 +551,13 @@ void bn_search_and              (const sdata_t   *sdata,
         return;
     }
     
-    //局面表を参照する
+    /* ---------------
+     * 局面表を参照する。
+     --------------- */
     mvlist_t *tmp = list, *tmp1;
     sdata_t sbuf;
-    while(tmp){
-        memcpy(&sbuf, sdata, sizeof(sdata_t));
+    memcpy(&sbuf, sdata, sizeof(sdata_t));
+    while(1){
         sdata_key_forward(&sbuf, tmp->mlist->move);
         tbase_lookup(&sbuf, tmp, tn, tbase);
         //これまでの探索で詰みがわかっている合駒がある場合、ここで展開しておく
@@ -572,8 +569,14 @@ void bn_search_and              (const sdata_t   *sdata,
             tmp->next = tmp1;
         }
         tmp = tmp->next;
+        if(!tmp) break;
+        //sbufのリセット
+        S_COUNT(&sbuf)--;
+        S_ZKEY(&sbuf)=S_ZKEY(sdata);
+        S_TURN(&sbuf)=S_TURN(sdata);
+        memcpy(&(sbuf.core.mkey),&(sdata->core.mkey),sizeof(mkey_t)*2);
     }
-
+    
     //反復深化
     tdata_t c_threshold;
     mcard_t *current;

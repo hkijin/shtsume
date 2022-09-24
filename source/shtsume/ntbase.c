@@ -1035,6 +1035,21 @@ void _tbase_lookup        (const sdata_t   *sdata,
             }
             //その他
             else                            {
+                tlist_t *tlist = mcard->tlist;
+                while(tlist){
+                    if(tmp_pn>tlist->tdata.pn)
+                    tmp_pn = MIN(tmp_pn, tlist->tdata.pn);
+                    tlist = tlist->next;
+                }
+                /*
+                tlist_t *tlist = mcard->tlist;
+                while(tlist){
+                    if(tlist->dp>S_COUNT(sdata)){
+                        tmp_dn = MAX(tmp_dn, tlist->tdata.dn);
+                    }
+                    tlist = tlist->next;
+                }
+                 */
             }
         }
         else if(cmp_res == MKEY_INFER){
@@ -1752,6 +1767,27 @@ void fumei_update         (const sdata_t   *sdata,
             }
             //その他
             else                            {
+                tlist_t *tlist = mcard->tlist;
+                if(!mcard->current)
+                while(tlist){
+                    //証明数は全てupdate対象以上とみなす。
+                    if(mvlist->tdata.pn>tlist->tdata.pn)
+                        tlist->tdata.pn =
+                        MAX(mvlist->tdata.pn, tlist->tdata.pn);
+                    //反証数は全てupdate対象以下とみなす。
+                    /*
+                    if(mvlist->tdata.dn<tlist->tdata.dn)
+                        tlist->tdata.dn =
+                        MIN(mvlist->tdata.dn, tlist->tdata.dn);
+                     */
+                    tlist = tlist->next;
+                     
+                }
+                /*
+                if(mcard->current){
+                    tlist->tdata.pn = MAX(mvlist->tdata.pn, mcard->cpn);
+                }
+                 */
 
             }
         }
@@ -1771,7 +1807,22 @@ void fumei_update         (const sdata_t   *sdata,
             }
             //その他
             else                            {
-
+                tlist_t *tlist = mcard->tlist;
+                if(!mcard->current)
+                while(tlist){
+                    //証明数は全てupdate対象以下とみなす。
+                    if(mvlist->tdata.pn<tlist->tdata.pn)
+                        tlist->tdata.pn =
+                        MIN(mvlist->tdata.pn, tlist->tdata.pn);
+                    //反証数は全てupdate対象以上とみなす。
+                    /*
+                    if(mvlist->tdata.dn>tlist->tdata.dn &&
+                       tlist->dp<S_COUNT(sdata))
+                        tlist->tdata.dn =
+                        MAX(mvlist->tdata.dn, tlist->tdata.dn);
+                     */
+                    tlist = tlist->next;
+                }
             }
         }
         else if(cmp_res == MKEY_EQUAL){
