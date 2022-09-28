@@ -489,7 +489,7 @@ int create_search_report(void)
     //初期局面
     num += sdata_fprintf(fp, &g_sdata, PR_BOARD);
     //詰め手順表示
-    num += tsume_fprint(fp, &g_sdata, g_tbase, TP_NONE);
+    num += tsume_fprint(fp, &g_sdata, g_tbase, TP_ALLMOVE|TP_ZKEY);
     
     fclose(fp);
     return num;

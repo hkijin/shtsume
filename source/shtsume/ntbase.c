@@ -271,9 +271,8 @@ static bool delete_func     (tlist_t      *tl,
     //不明データ
     else{
         st_n_fumei++;
-        if(   tl->tdata.sh<gc_level
-           || tl->tdata.pn<gc_level
-           || tl->tdata.dn<gc_level )
+        if(   (tl->tdata.pn<gc_level && !(tl->dp%2))   //詰方手番
+           || (tl->dp)%2                            )  //玉方手番
         {
             st_del_fumei++;
             return true;

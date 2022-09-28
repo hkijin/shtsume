@@ -132,21 +132,21 @@ int  tsearchpn_sprintf          (char *str)
         num += sprintf(str+num, "\n");
     }
     else{
-        num += sprintf(str+num, " %lu(sec) ",
+        num += sprintf(str+num, "%lu(sec) ",
                        g_tsearchinf.elapsed/CLOCKS_PER_SEC);
         num += sprintf(str+num, "depth(%u/%u) ",
                        g_tsearchinf.depth, g_tsearchinf.sel_depth);
         num += sprintf(str+num, "nodes %llu ", g_tsearchinf.nodes);
         if(g_tsearchinf.score_cp){
-            num += sprintf(str+num, "pn= %d\n ", g_tsearchinf.score_cp);
+            num += sprintf(str+num, "pn= %d\n", g_tsearchinf.score_cp);
         }
         else{
             if(g_tsearchinf.score_mate){
-                num += sprintf(str+num, "%u詰め\n ",
+                num += sprintf(str+num, "%u詰め\n",
                                g_tsearchinf.score_mate);
             }
             else{
-                num += sprintf(str+num, "詰み(手順確認中)\n ");
+                num += sprintf(str+num, "詰み(手順確認中)\n");
             }
         }
         char mvstr[8];
