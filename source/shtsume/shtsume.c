@@ -613,7 +613,8 @@ void bn_search_and              (const sdata_t   *sdata,
                 while(tmp){
                     if(!tmp->tdata.pn) break;
                     if(MV_DROP(tmp->mlist->move)
-                       && !BPOS_TEST(SELF_EFFECT(sdata),NEW_POS(tmp->mlist->move)))
+                       && !BPOS_TEST(SELF_EFFECT(sdata),
+                                     NEW_POS(tmp->mlist->move)))
                     {
                         //tmpを切り離す
                         tmp1 = tmp;
@@ -740,21 +741,6 @@ void bn_search_and              (const sdata_t   *sdata,
     }
 }
 
-/*
- 戻り値: 詰んでいないデータ
- */
-/*
-static mvlist_t *unknown_mvlist(mvlist_t *list)
-{
-    mvlist_t *tmp = list;
-    while(tmp){
-        if(!tmp->tdata.dn) return NULL;
-        if(tmp->tdata.pn) break;     //不明データ
-        tmp = tmp->next;
-    }
-    return tmp;
-}
-*/
 void make_tree_or               (const sdata_t   *sdata,
                                  mvlist_t       *mvlist,
                                  tbase_t         *tbase )
@@ -863,7 +849,7 @@ void make_tree_or               (const sdata_t   *sdata,
             exit(EXIT_FAILURE);
         }
     }
-    if(list->cu) return;
+    if(list->cu) return;              //通常バグがなければここに来ることはあり得ない
     
     nsearchlog_t *log = &(g_tsearchinf.mvinf[S_COUNT(sdata)]);
     turn_t tn = S_TURN(sdata);

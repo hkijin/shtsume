@@ -334,10 +334,11 @@ void disproof_koma_and(const sdata_t *sdata, mvlist_t *mvlist, mvlist_t *list);
 /*
  * 局面表
  */
-#define MCARDS_PER_MBYTE    16384
-#define GC_DELETE_RATE      20
-#define GC_TSUMI_RATE       50
-#define GC_DELETE_OFFSET    5
+#define MCARDS_PER_MBYTE    16384    /* 局面表1Mbyteあたりの要素数          */
+#define GC_DELETE_RATE      20       /* 局面表削除の最小目標値(%)            */
+#define GC_TSUMI_RATE       50       /* 局面表中の詰みデータ占有率の最大値(%)  */
+#define GC_DELETE_OFFSET    5        /* 局面表から不詰データを消す際の基準値   */
+
 #define HASH_FUNC(zkey, tbase)    ((zkey)&((tbase)->mask))
 
 typedef struct _tbase_t tbase_t;
@@ -416,10 +417,7 @@ extern mcard_t *g_mcard[N_MCARD_TYPE];
 /*
  * 無駄合い判定
  */
-/*
-bool invalid_drops         (const sdata_t *sdata,
-                            unsigned int   dest  );
- */
+
 bool invalid_drops         (const sdata_t *sdata,
                             unsigned int   dest ,
                             tbase_t       *tbase );

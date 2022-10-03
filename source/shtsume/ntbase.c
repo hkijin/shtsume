@@ -91,26 +91,7 @@ tbase_t*   create_tbase     (uint64_t base_size)
      */
     tbase_t *tbase = (tbase_t *)calloc(1, sizeof(tbase_t));
     if(!tbase) return NULL;
-    /* INDEX生成
-       サイズはbase_sizeより大きな２のベキ乗とする。            //INDEX (メモリ）設定値
-    if     (base_size<(1<<14)) tbase->sz_tbl = (1<<14);  //16384  16K    1
-    else if(base_size<(1<<15)) tbase->sz_tbl = (1<<15);                  2
-    else if(base_size<(1<<16)) tbase->sz_tbl = (1<<16);                  4
-    else if(base_size<(1<<17)) tbase->sz_tbl = (1<<17);
-    else if(base_size<(1<<18)) tbase->sz_tbl = (1<<18);
-    else if(base_size<(1<<19)) tbase->sz_tbl = (1<<19);
-    else if(base_size<(1<<20)) tbase->sz_tbl = (1<<20);  //1M     8M     64
-    else if(base_size<(1<<21)) tbase->sz_tbl = (1<<21);
-    else if(base_size<(1<<22)) tbase->sz_tbl = (1<<22);
-    else if(base_size<(1<<23)) tbase->sz_tbl = (1<<23);
-    else if(base_size<(1<<24)) tbase->sz_tbl = (1<<24);                  1024
-    else if(base_size<(1<<25)) tbase->sz_tbl = (1<<25);                  2048
-    else if(base_size<(1<<26)) tbase->sz_tbl = (1<<26);                  4096
-    else if(base_size<(1<<27)) tbase->sz_tbl = (1<<27);                  8192
-    else if(base_size<(1<<28)) tbase->sz_tbl = (1<<28);                  16384
-    else if(base_size<(1<<29)) tbase->sz_tbl = (1<<29);                  32768
-    else                       tbase->sz_tbl = (1<<30);  //1G     8G     65536
-    */
+    
     int i=14;
     while(true){
         if(i==30 || (1<<i)>base_size) {tbase->sz_tbl = (1<<i); break;}
@@ -214,23 +195,15 @@ void destroy_tbase          (tbase_t  *tbase)
  局面表内には詰みデータ、不詰みデータ、および不明データが存在する。それぞれについて
  再探索コストを考慮し、以下の方針で削除していく。
  [詰み発見前] g_gc_stat = false
- 1, 不明データ pn, dn, shのどれかがgc_level以下のデータを消していく
- 2, 詰みデータ sh値が偶数のデータを消していく
- 3, 不詰データ sh値が偶数のデータを消していく
+ 1, 不明データ 詰方: pn,dnの小さいデータから順番に消していく
+             玉方: 全て削除。
+ 2, 詰みデータ 玉方: 全て削除
+ 3, 不詰データ 詰方: 全て削除
  
- [詰み発見後] g_gc_stat = true
- ルート局面から探索を以下の方針で再度行う。
- 詰方探索　局面表で詰みのデータは展開し、展開後データ保護をする。
- 玉方探索　全ての合法手を展開し、展開後引用データを保護する（駒余り詰めに使用した局面を含む）
- 1, 不明データ 全て消していく
- 2, 詰みデータ sh値が偶数のデータを消していく
- 3, 不詰データ sh値が偶数のデータを消していく
+ 以下は関連パラメータ
+ st_tsumi_delete_flag : 一手詰みデータ削除フラグ
  
- もし、保護データと詰みデータと不詰データの合計の割合が100-gc_targetを超える場合、
- 1, 不明データ 全て消していく
- 2, 詰みデータ sh値が４で割れないデータを消していく
- 3, 不詰データ 全て消していく
- 
+ GC_DELETE_OFFSET     : 不詰データ追加削除用
  ----------------------------------------------------------------------- */
 //データの削除条件(true: 削除　false:　保存)
 static bool delete_func     (tlist_t      *tl,
@@ -873,113 +846,12 @@ bool invalid_drops           (const sdata_t  *sdata,
     }
     return false;
 }
-/*
-bool hs_invalid_drops      (const sdata_t *sdata,
-                            unsigned int   src,
-                            unsigned int   dest,
-                            tbase_t       *tbase )
-{return false;}
-{
-    komainf_t koma = S_BOARD(sdata, src);
-    //龍の王手のみ
-    //if(koma == SKA||koma==GKA) return false;
-    //if(koma == SUM||koma==GUM) return false;
-    //if(koma != SRY && koma!=GRY) return false;
-    sdata_t sbuf, sbuf1;
-    bool flag = false; //true 駒がdestの位置で成れる。
-    memcpy(&sbuf, sdata, sizeof(sdata_t));
-    //srcの位置の飛び駒を削除
-    S_BOARD(&sbuf, src) = SPC;
-    S_ZKEY(&sbuf) ^= g_zkey_seed[koma*N_SQUARE+src];  //zkey
-    
-    //komaがsrcからdestに移動した場合、成れるか？
-    switch(koma){
-        case GKY: if(GKY_PROMOTE(dest)     ) flag = true; break;
-        case GKA: if(GKA_PROMOTE(src, dest)) flag = true; break;
-        case GHI: if(GHI_PROMOTE(src, dest)) flag = true; break;
-        case SKY: if(SKY_PROMOTE(dest)     ) flag = true; break;
-        case SKA: if(SKA_PROMOTE(src, dest)) flag = true; break;
-        case SHI: if(SHI_PROMOTE(src, dest)) flag = true; break;
-        default: break;
-    }
-    if(flag) memcpy(&sbuf1, &sbuf, sizeof(sdata_t));
-    
-    turn_t tn = TURN_FLIP(S_TURN(&sbuf));
-    //destの位置に移動(不成）
-    S_BOARD(&sbuf, dest) = koma;
-    S_ZKEY(&sbuf) ^= g_zkey_seed[koma*N_SQUARE+dest];  //zkey
-    if(hs_tbase_lookup(&sbuf, tn, tbase)) {
-        return true;
-    }
-    //destの位置に移動(成）
-    if(flag)
-    {
-        koma += PROMOTED;
-        S_BOARD(&sbuf1, dest) = koma;
-        S_ZKEY(&sbuf1) ^= g_zkey_seed[koma*N_SQUARE+dest];  //zkey
-        if(hs_tbase_lookup(&sbuf1, tn, tbase)){
-            return true;
-        }
-    }
-    return false;
-}
-*/
 
 bool hs_invalid_drops      (const sdata_t *sdata,
                             unsigned int   src,
                             unsigned int   dest,
                             tbase_t       *tbase)
 {return false;}
-/*
-{
-    komainf_t koma = S_BOARD(sdata, src);
-    bool flag = false; //true 駒がdestの位置で成れる。
-    turn_t tn = TURN_FLIP(S_TURN(sdata));
-    //komaがsrcからdestに移動した場合、成れるか？
-    switch(koma){
-        case GKY: if(GKY_PROMOTE(dest)     ) flag = true; break;
-        case GKA: if(GKA_PROMOTE(src, dest)) flag = true; break;
-        case GHI: if(GHI_PROMOTE(src, dest)) flag = true; break;
-        case SKY: if(SKY_PROMOTE(dest)     ) flag = true; break;
-        case SKA: if(SKA_PROMOTE(src, dest)) flag = true; break;
-        case SHI: if(SHI_PROMOTE(src, dest)) flag = true; break;
-        default: break;
-    }
-    sdata_t sbuf;
-    //不成でdestへ移動
-    memcpy(&sbuf, sdata, sizeof(sdata_t));
-    if(g_gc_num) sdata_tentative_move(&sbuf, src, dest, false);
-    else {
-        //srcを削除
-        S_BOARD(&sbuf, src) = SPC;
-        S_ZKEY(&sbuf) ^= g_zkey_seed[koma*N_SQUARE+src];
-        //destを追加
-        S_BOARD(&sbuf, dest) = SPC;
-        S_ZKEY(&sbuf) ^= g_zkey_seed[koma*N_SQUARE+dest];
-    }
-    if(hs_tbase_lookup(&sbuf, tn, tbase)) {
-        return true;
-    }
-    //成でdestへ移動
-    if(flag){
-        memcpy(&sbuf, sdata, sizeof(sdata_t));
-        if(g_gc_num)sdata_tentative_move(&sbuf, src, dest, true);
-        else{
-            //srcを削除
-            S_BOARD(&sbuf, src) = SPC;
-            S_ZKEY(&sbuf) ^= g_zkey_seed[koma*N_SQUARE+src];
-            koma += PROMOTED;
-            //destを追加
-            S_BOARD(&sbuf, dest) = SPC;
-            S_ZKEY(&sbuf) ^= g_zkey_seed[koma*N_SQUARE+dest];
-        }
-        if(hs_tbase_lookup(&sbuf, tn, tbase)) {
-            return true;
-        }
-    }
-    return false;
-}
- */
 
 /* -----------------------------------------------------
  _tbase_lookup
