@@ -30,7 +30,7 @@ usioption_t g_usioption =
     {"out_lvkif"   , false             },
     {"user_path"   , "<empty>"         },
     {"summary"     , false             },
-    {"s_mode"      , false             }
+    {"s_allmove"   , false             }
 };
 
 bool          g_usi_ponder      = false;
