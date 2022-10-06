@@ -14,7 +14,6 @@
  グローバル変数
  ----------- */
 
-bool g_gc_stat;                   /*  詰み発見後, true  */
 short g_gc_max_level;             /*  gcの強度         */
 short g_gc_num;                   /*  gcの実施回数      */
 mcard_t *g_mcard[N_MCARD_TYPE];   /*  mcardの一致タイプ */
@@ -194,7 +193,6 @@ void destroy_tbase          (tbase_t  *tbase)
  局面表のガベージコレクション
  局面表内には詰みデータ、不詰みデータ、および不明データが存在する。それぞれについて
  再探索コストを考慮し、以下の方針で削除していく。
- [詰み発見前] g_gc_stat = false
  1, 不明データ 詰方: pn,dnの小さいデータから順番に消していく
              玉方: 全て削除。
  2, 詰みデータ 玉方: 全て削除
@@ -736,7 +734,6 @@ void tbase_clear_protect   (tbase_t       *tbase)
  詰んでいるかどうかを判定する。飛駒が成れる場合、成りも含めて判定する。
  また玉の隣接枡では王手している駒以外も動かしてみて詰み判定を行う。
  玉の近接位置での無駄合い判定 　　　　　　　　　　　invalid_drops
- 玉から離れた位置での無駄合い判定（局面表を使用）   hs_invalid_drops
  詰みの場合(無駄合い)　true
  ------------------------------------------------------------ */
 bool invalid_drops           (const sdata_t  *sdata,
@@ -847,12 +844,6 @@ bool invalid_drops           (const sdata_t  *sdata,
     return false;
 }
 
-bool hs_invalid_drops      (const sdata_t *sdata,
-                            unsigned int   src,
-                            unsigned int   dest,
-                            tbase_t       *tbase)
-{return false;}
-
 /* -----------------------------------------------------
  _tbase_lookup
  [flag] false: 詰み発見前
@@ -892,15 +883,6 @@ void _tbase_lookup        (const sdata_t   *sdata,
             if     (!mcard->tlist->tdata.pn){
                 g_mcard[SUPER_TSUMI] = mcard;
                 break;
-                /*
-                if(!g_mcard[SUPER_TSUMI]) g_mcard[SUPER_TSUMI] = mcard;
-                else{
-                    unsigned int res =
-                    MKEY_COMPARE(g_mcard[SUPER_TSUMI]->mkey, mcard->mkey);
-                    if(res == MKEY_SUPER)
-                        g_mcard[SUPER_TSUMI] = mcard;
-                }
-                */
             }
             //不詰み
             else if(!mcard->tlist->tdata.dn){
@@ -913,15 +895,6 @@ void _tbase_lookup        (const sdata_t   *sdata,
                     tmp_pn = MIN(tmp_pn, tlist->tdata.pn);
                     tlist = tlist->next;
                 }
-                /*
-                tlist_t *tlist = mcard->tlist;
-                while(tlist){
-                    if(tlist->dp>S_COUNT(sdata)){
-                        tmp_dn = MAX(tmp_dn, tlist->tdata.dn);
-                    }
-                    tlist = tlist->next;
-                }
-                 */
             }
         }
         else if(cmp_res == MKEY_INFER){
@@ -1122,16 +1095,9 @@ bool _invalid_drops       (const sdata_t   *sdata,
     {
         memcpy(&sbuf, sdata, sizeof(sdata_t));
         sdata_tentative_move(&sbuf, src, dest, false);
-        //turn_t tn = TURN_FLIP(S_TURN(&sbuf));
         //局面が詰みであればtrueを返す。
         if(S_NOUTE(&sbuf)){
             if(tsumi_check(&sbuf)) return true;
-            /*
-            else if(hs_tbase_lookup(&sbuf, tn, tbase)){
-                g_invalid_drops = true;
-                return true;
-            }
-             */
         }
     }
 
@@ -1310,10 +1276,8 @@ void tsumi_update         (const sdata_t   *sdata,
         new_tlist->dp = ALL_DEPTH;
         memcpy(&(new_tlist->tdata), &(mvlist->tdata), sizeof(tdata_t));
         //新規mcard作成(mkeyは証明駒)
-        //new_mcard->mkey = mvlist->mkey;
         new_mcard->tlist = new_tlist;
         memcpy(&(new_mcard->mkey),&(mvlist->mkey),sizeof(mkey_t));
-        //memcpy(&(new_mcard->tlist),&new_tlist,sizeof(tlist_t));
         new_mcard->hinc = mvlist->hinc;
         new_mcard->nouse = mvlist->nouse;
         if(flag){
@@ -1482,7 +1446,6 @@ void fudumi_update        (const sdata_t   *sdata,
         new_tlist->dp = ALL_DEPTH;
         memcpy(&(new_tlist->tdata), &(mvlist->tdata), sizeof(tdata_t));
         //新規mcard作成(mkeyは反証駒)
-        //new_mcard->mkey = mvlist->mkey;
         memcpy(&(new_mcard->mkey),&(mvlist->mkey),sizeof(mkey_t));
         new_mcard->tlist = new_tlist;
         //新規zfolder作成
@@ -1495,7 +1458,6 @@ void fudumi_update        (const sdata_t   *sdata,
     
     //zfolderがある場合
     mcard_t *mcard = zfolder->mcard, *prev = NULL;
-    //mkey_t mkey = tn?S_GMKEY(sdata):S_SMKEY(sdata);
     mkey_t mkey;
     tn ? MKEY_COPY(mkey, S_GMKEY(sdata)):MKEY_COPY(mkey, S_SMKEY(sdata));
     while(mcard){
@@ -1646,21 +1608,8 @@ void fumei_update         (const sdata_t   *sdata,
                     if(mvlist->tdata.pn>tlist->tdata.pn)
                         tlist->tdata.pn =
                         MAX(mvlist->tdata.pn, tlist->tdata.pn);
-                    //反証数は全てupdate対象以下とみなす。
-                    /*
-                    if(mvlist->tdata.dn<tlist->tdata.dn)
-                        tlist->tdata.dn =
-                        MIN(mvlist->tdata.dn, tlist->tdata.dn);
-                     */
                     tlist = tlist->next;
-                     
                 }
-                /*
-                if(mcard->current){
-                    tlist->tdata.pn = MAX(mvlist->tdata.pn, mcard->cpn);
-                }
-                 */
-
             }
         }
         else if(cmp_res == MKEY_INFER){
@@ -1686,13 +1635,6 @@ void fumei_update         (const sdata_t   *sdata,
                     if(mvlist->tdata.pn<tlist->tdata.pn)
                         tlist->tdata.pn =
                         MIN(mvlist->tdata.pn, tlist->tdata.pn);
-                    //反証数は全てupdate対象以上とみなす。
-                    /*
-                    if(mvlist->tdata.dn>tlist->tdata.dn &&
-                       tlist->dp<S_COUNT(sdata))
-                        tlist->tdata.dn =
-                        MAX(mvlist->tdata.dn, tlist->tdata.dn);
-                     */
                     tlist = tlist->next;
                 }
             }
@@ -1802,9 +1744,7 @@ void fumei_update         (const sdata_t   *sdata,
     return;
 }
 
-/*
- bmake_treeおよびtsearchpv専用の千日手検出用table
- */
+ //tsearchpv専用の千日手検出用table
 
 mtt_t *create_mtt   (uint32_t  base_size)
 {

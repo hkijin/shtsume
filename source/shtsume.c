@@ -102,6 +102,7 @@ void print_help                (void)
      " g,log    : 探索LOGを出力します。     (出力先：ホームディレクトリ)\n"
      " d,display: 探索後、手順確認モードに移行します。\n"
      " y,yomi   : 探索中、読み筋表示。\n"
+     " a,all    : 探索LOGで詰方全ての候補手の探索結果を出力します。\n"
      " [値指定]\n"
      " n,minpn  : 末端探索証明数を指定します。デフォルト値 4 (min 3 max 6)\n"
      " m,memory : 局面表で使用するメモリーサイズを指定します。デフォルト値 256(MByte)。\n"
@@ -192,7 +193,6 @@ void bn_search                  (const sdata_t   *sdata,
     /* 初期化処理 */
     memset(&g_tsearchinf, 0, sizeof(tsearchinf_t));        //探索情報
     //局面表
-    g_gc_stat      = false;           /* 詰み発見後はtrue              */
     g_gc_max_level = 0;               /* メモリ確保のためのGC強度の最大値  */
     g_gc_num = 0;                     /* gcの実施回数                  */
     //中断フラグ
@@ -228,7 +228,6 @@ void bn_search                  (const sdata_t   *sdata,
     
     if(!mvlist.tdata.pn)
     {
-        g_gc_stat = true;
         make_tree(sdata, &mvlist, tbase);
         g_tsearchinf.score_mate = mvlist.tdata.sh;
         st_add_thpn = st_max_thpn;
@@ -256,10 +255,8 @@ void bn_search                  (const sdata_t   *sdata,
                         g_user_path,g_search_level-lv);
                 generate_kif_file(filename, sdata, tbase);
             }
-            g_gc_stat = false;
             tbase_clear_protect(tbase);
             bns_plus(sdata, &mvlist, tbase);
-            g_gc_stat = true;
             make_tree(sdata, &mvlist, tbase);
             g_tsearchinf.score_mate = mvlist.tdata.sh;
             lv--;
@@ -347,7 +344,6 @@ void tsumi_proof                (const sdata_t   *sdata,
     else                         mvlist->hinc = 0;
     return;
 }
-
 /*
  　デバッグオプション　USE_REORDER
  */

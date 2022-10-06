@@ -277,7 +277,6 @@ void init_distance(void);
                             _mm_andnot_si128(g_lpos[p].qpos,(lbb).qpos)
 
 #define BB_INI(bb)          (bb).qpos = _mm_setzero_si128()
-//#define BB_CPY(dst,src)     memcpy(&(dst),&(src),sizeof(bitboard_t))
 #define BB_CPY(dst,src)     (dst).qpos = _mm_load_si128(&((src).qpos))
 
 typedef union _bitboard_t bitboard_t;

@@ -67,7 +67,7 @@ void tsearchinf_update          (const sdata_t *sdata,
     hashfull *= 1000;
     g_tsearchinf.hashfull = (int)hashfull;
 
-    if(!g_commandline ||g_disp_search)
+    if(!g_commandline)
     {
         tsearchinf_sprintf(str);
         record_log(str);
@@ -93,7 +93,7 @@ void tsearchinf_update          (const sdata_t *sdata,
 int  tsearchinf_sprintf         (char *str)
 {
     int num = 0;
-    if(!g_commandline) num+=sprintf(str+num,"info ");
+    num+=sprintf(str+num,"info ");
     num+=sprintf(str+num,"nodes %lld ", g_tsearchinf.nodes);
     num+=sprintf(str+num,"nps %d ", g_tsearchinf.nps);
     num+=sprintf(str+num,"hashfull %d" ,g_tsearchinf.hashfull);
@@ -137,6 +137,8 @@ int  tsearchpn_sprintf          (char *str)
         num += sprintf(str+num, "depth(%u/%u) ",
                        g_tsearchinf.depth, g_tsearchinf.sel_depth);
         num += sprintf(str+num, "nodes %llu ", g_tsearchinf.nodes);
+        num+=sprintf(str+num,"nps %d ", g_tsearchinf.nps);
+        num+=sprintf(str+num,"hashfull %d " ,g_tsearchinf.hashfull);
         if(g_tsearchinf.score_cp){
             num += sprintf(str+num, "pn= %d\n", g_tsearchinf.score_cp);
         }

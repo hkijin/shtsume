@@ -36,6 +36,7 @@ static const struct option longopts[] =
      {"log",     no_argument,        NULL,   'g'},  //g_summary
      {"display", no_argument,        NULL,   'd'},  //st_display
      {"yomi",    no_argument,        NULL,   'y'},  //g_disp_search
+     {"all",     no_argument,        NULL,   'a'},  //g_smode
  //値指定
      {"minpn",   required_argument,  NULL,   'n'},  //g_mt_min_pn
      {"memory",  required_argument,  NULL,   'm'},  //g_usi_hash
@@ -56,7 +57,7 @@ int main(int argc, char * const argv[]) {
     int optc;
     g_info_interval = 5;
     g_pv_length     = 5;
-    while((optc = getopt_long(argc, argv, "hvkgdyn:m:l:i:j:t:",
+    while((optc = getopt_long(argc, argv, "hvkgdyan:m:l:i:j:t:",
                               longopts, NULL))!= -1)
         switch(optc){
             case 'h':
@@ -72,6 +73,7 @@ int main(int argc, char * const argv[]) {
             case 'g': g_summary = true;     break;
             case 'd': st_display = true;    break;
             case 'y': g_disp_search = true; break;
+            case 'a': g_smode = (TP_NONE|TP_ALLMOVE); break;
                 
             case 'n':
                 g_mt_min_pn = atoi(optarg);

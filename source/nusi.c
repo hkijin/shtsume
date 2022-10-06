@@ -29,7 +29,8 @@ usioption_t g_usioption =
     {"search_level", SEARCH_LV_DEFAULT  , SEARCH_LV_MIN  , SEARCH_LV_MAX  },
     {"out_lvkif"   , false             },
     {"user_path"   , "<empty>"         },
-    {"summary"     , false             }
+    {"summary"     , false             },
+    {"s_mode"      , false             }
 };
 
 bool          g_usi_ponder      = false;
@@ -41,6 +42,7 @@ bool          g_out_lvkif       = false;
 short         g_pv_length       = PV_USI_DEFAULT;
 bool          g_summary         = false; //サマリーレポートの出力有無(true:有り)
 bool          g_disp_search     = false;  //読み筋情報の表示(true:表示あり)
+uint32_t      g_smode           = TP_NONE;  //詰方候補手　詰着手のみ
 
 tbase_t *g_tbase;
 mtt_t   *g_mtt;
@@ -101,6 +103,13 @@ void res_usi_cmd          (void)
     sprintf(str, "option name %s type check default %s",
             g_usioption.summary.op_name,
             g_usioption.summary.default_value?"true":"false");
+    puts(str);
+    record_log(str);
+    
+    //探索レポートオプション
+    sprintf(str, "option name %s type check default %s",
+            g_usioption.s_allmove.op_name,
+            g_usioption.s_allmove.default_value?"true":"false");
     puts(str);
     record_log(str);
     
@@ -228,6 +237,24 @@ void res_setoption_cmd    (const char *buf)
         {
             g_summary = false;
             sprintf(str, "setoption summary false\n");
+            record_log(str);
+        }
+    }
+    
+    else if(!strncmp(buf,         "setoption name s_allmove value ",
+                     len = strlen("setoption name s_allmove value ")))
+    {
+        if     (!strncmp(buf+len, "true",  strlen("true")))
+        {
+            g_smode = (TP_NONE|TP_ALLMOVE);
+            sprintf(str, "setoption s_allmove true\n");
+            record_log(str);
+        }
+            
+        else if(!strncmp(buf+len, "false", strlen("false")))
+        {
+            g_smode = TP_NONE;
+            sprintf(str, "setoption s_allmove false\n");
             record_log(str);
         }
     }
@@ -489,208 +516,11 @@ int create_search_report(void)
     //初期局面
     num += sdata_fprintf(fp, &g_sdata, PR_BOARD);
     //詰め手順表示
-    num += tsume_fprint(fp, &g_sdata, g_tbase, TP_ALLMOVE|TP_ZKEY);
+    num += tsume_fprint(fp, &g_sdata, g_tbase, g_smode);
     
     fclose(fp);
     return num;
 }
-
-
-/*
- * 探索中、ループに陥った場合（pn>0, dn==INFINATE-1)に手順を辿る
- */
-
-static void print_error_move_or  (FILE *restrict stream,
-                                  const sdata_t  *sdata,
-                                  tbase_t        *tbase);
-static void print_error_move_and (FILE *restrict stream,
-                                  const sdata_t  *sdata,
-                                  tbase_t        *tbase);
-
-void search_error_log          (const sdata_t  *sdata,
-                                tbase_t        *tbase)
-{
-    //filename
-    char s[16];
-    time_t now;
-    time(&now);
-    struct tm t = *localtime(&now);
-    strftime(s, 16, "%Y%m%d%H%M%S", &t);
-    sprintf(g_errorlog_name, "%s/errlog%s.txt",g_user_path,s);
-    FILE *fp = fopen(g_errorlog_name, "w");
-    if(!fp){
-        sprintf(g_str, "info string logfile could not be opened.");
-        puts(g_str);
-        record_log(g_str);
-        //perror("logfile could not be opened.");
-        //exit (EXIT_FAILURE);
-        return;
-    }
-    
-    //エラー情報記入
-    //日時,環境、プログラムバージョン
-    //発生状況
-    fprintf(fp, "発生場所　　　 : %s ", g_error_location);
-    fprintf(fp, "コンパイル日時 : %s %s\n", __DATE__, __TIME__);
-    //局面情報
-    fprintf(fp, "局面情報(sfen): %s\n", g_sfen_pos_str);
-    fprintf(fp, "初期局面　　　 :\n");
-    sdata_fprintf(fp, &g_sdata, PR_BOARD|PR_ZKEY);
-    
-    //エラー局面
-    fprintf(fp, "エラー局面    :\n");
-    sdata_fprintf(fp, sdata, PR_BOARD|PR_ZKEY);
-    //探索情報
-    fprintf(fp, "探索局面数　　: %llu\n", g_tsearchinf.nodes);
-    fprintf(fp, "登録局面数　　: %llu\n", tbase->num);
-    fprintf(fp, "エラー手順\n");
-    //エラー手順の出力
-    print_error_move_or(fp, &g_sdata, tbase);
-    fclose(fp);
-    return;
-}
-
-void print_error_move_or         (FILE *restrict stream,
-                                  const sdata_t  *sdata,
-                                  tbase_t        *tbase)
-{
-    //着手生成
-    mvlist_t *list = generate_check(sdata, tbase);
-    g_tsearchinf.nodes++;
-    if(!list){
-        fprintf(stream,"にて不詰\n");
-        return;
-    }
-    
-    //局面表を参照
-    sdata_t sbuf;
-    mvlist_t *tmp = list;
-    while (tmp) {
-        memcpy(&sbuf, sdata, sizeof(sdata_t));
-        sdata_key_forward(&sbuf, tmp->mlist->move);
-        make_tree_lookup(&sbuf, tmp, S_TURN(sdata), tbase);
-        tmp->length =
-        g_distance[ENEMY_OU(sdata)][NEW_POS(tmp->mlist->move)];
-        
-        if(tmp->length > 1    &&
-           tmp->tdata.pn == 1 &&
-           tmp->tdata.dn == 1 &&
-           tmp->tdata.sh == 0 &&
-           MV_DROP(tmp->mlist->move)) tmp->tdata.pn = tmp->length;
-        
-        tmp = tmp->next;
-    }
-    
-    //並べ替え
-    list = sdata_mvlist_sort(list, sdata, proof_number_comp);
-    //着手を表示
-    fprintf(stream, "%u:", S_COUNT(sdata)+1);
-    fprintf(stream, "0X%llX ", S_ZKEY(sdata));
-    //mkey_t mkey = S_TURN(sdata)?S_GMKEY(sdata):S_SMKEY(sdata);
-    mkey_t mkey;
-    S_TURN(sdata) ?
-    MKEY_COPY(mkey, S_GMKEY(sdata)):MKEY_COPY(mkey, S_SMKEY(sdata));
-    FPRINTF_MKEY(stream, mkey);
-    tmp = list;
-    while(tmp){
-        move_fprintf(stream, tmp->mlist->move, sdata);
-        fprintf(stream, "(%u, %u, %u) ",
-                tmp->tdata.pn,
-                tmp->tdata.dn,
-                tmp->tdata.sh);
-        tmp = tmp->next;
-    }
-    fprintf(stream,"\n");
-    
-    //終了条件
-    if(   list
-       && list->tdata.pn == 1
-       && list->tdata.pn == 1
-       && list->tdata.sh == 0)
-        return;
-    //着手を進める
-    if(!list) return;
-    memcpy(&sbuf, sdata, sizeof(sdata_t));
-    sdata_move_forward(&sbuf, list->mlist->move);
-    print_error_move_and(stream, &sbuf, tbase);
-    
-    mvlist_free(list);
-    return;
-}
-void print_error_move_and         (FILE *restrict stream,
-                                   const sdata_t  *sdata,
-                                   tbase_t        *tbase)
-{
-    if(S_COUNT(sdata)>=TSUME_MAX_DEPTH) return;
-    turn_t tn = TURN_FLIP(S_TURN(sdata));
-    
-    //着手生成
-    mvlist_t *list = generate_evasion(sdata, tbase);
-    g_tsearchinf.nodes++;
-    if(!list){
-        unsigned int cnt = S_COUNT(sdata);
-        fprintf(stream, "まで%u手詰め\n", cnt);
-        return;
-    }
-    
-    //局面表を参照
-    mvlist_t *tmp = list, *tmp1;
-    sdata_t sbuf;
-
-    while (tmp) {
-        memcpy(&sbuf, sdata, sizeof(sdata_t));
-        sdata_key_forward(&sbuf, tmp->mlist->move);
-        make_tree_lookup(&sbuf, tmp, tn, tbase);
-        //合駒は全て展開しておく。
-        if (tmp->mlist->next) {
-            tmp1 = mvlist_alloc();
-            tmp1->mlist = tmp->mlist->next;
-            tmp->mlist->next = NULL;
-            tmp1->next = tmp->next;
-            tmp->next = tmp1;
-        }
-        tmp = tmp->next;
-    }
-    
-    //並べ替え
-    list = sdata_mvlist_sort(list, sdata, disproof_number_comp);
-    if(!list) return;
-    
-    //着手を表示
-    fprintf(stream, "%u:", S_COUNT(sdata)+1);
-    fprintf(stream, "0X%llX ", S_ZKEY(sdata));
-    //mkey_t mkey = tn?S_GMKEY(sdata):S_SMKEY(sdata);
-    mkey_t mkey;
-    tn ? MKEY_COPY(mkey, S_GMKEY(sdata)):MKEY_COPY(mkey, S_SMKEY(sdata));
-    FPRINTF_MKEY(stream, mkey);
-    
-    tmp = list;
-    while(tmp){
-        move_fprintf(stream, tmp->mlist->move, sdata);
-        fprintf(stream, "(%u, %u, %u) ",
-                tmp->tdata.pn,
-                tmp->tdata.dn,
-                tmp->tdata.sh);
-        tmp = tmp->next;
-    }
-    fprintf(stream,"\n");
-    
-    //終了条件
-    if(   list
-       && list->tdata.pn == 1
-       && list->tdata.pn == 1
-       && list->tdata.sh == 0)
-        return;
-    //着手を進める
-    memcpy(&sbuf, sdata, sizeof(sdata_t));
-    sdata_move_forward(&sbuf, list->mlist->move);
-    print_error_move_or(stream, &sbuf, tbase);
-    
-    mvlist_free(list);
-    return;
-}
-
-
 
 void shtsume_error_log          (const sdata_t *sdata,
                                  mvlist_t      *mvlist,
