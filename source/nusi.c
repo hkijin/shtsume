@@ -40,9 +40,9 @@ uint8_t       g_n_make_tree     = MAKE_REPEAT_DEFAULT;
 uint8_t       g_search_level    = SEARCH_LV_DEFAULT;
 bool          g_out_lvkif       = false;
 short         g_pv_length       = PV_USI_DEFAULT;
-bool          g_summary         = false; //サマリーレポートの出力有無(true:有り)
-bool          g_disp_search     = false;  //読み筋情報の表示(true:表示あり)
-uint32_t      g_smode           = TP_NONE;  //詰方候補手　詰着手のみ
+bool          g_disp_search     = false;    //読み筋情報の表示(true:表示あり)
+bool          g_summary         = false;    //サマリーレポートの出力有無(true:有り)
+uint32_t      g_smode           = TP_NONE;  //サマリーレポート詰方候補手　詰着手のみ
 
 tbase_t *g_tbase;
 mtt_t   *g_mtt;

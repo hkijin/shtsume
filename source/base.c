@@ -111,6 +111,7 @@ void initialize_sdata(sdata_t *sdata,
             (BBA_XOR(BB_GOC(sdata), g_bpos[pos]));
             //ou koma_bb eff_bb
             sdata_bb_xor(sdata, koma, pos);
+#ifdef SDATA_EXTENTION
             //kscore
             S_KSCORE(sdata) += g_koma_val[koma];
             //np
@@ -118,8 +119,10 @@ void initialize_sdata(sdata_t *sdata,
                 S_SNP(sdata) += g_nkoma_val[koma];
             else
                 S_GNP(sdata) += g_nkoma_val[koma];
+#endif //SDATA_EXTENTION
         }
     }
+#ifdef SDATA_EXTENTION
     //score, NPに持ち駒をを加える
     S_KSCORE(sdata) += SMKEY_FU(sdata)*g_koma_val[SFU];
     S_KSCORE(sdata) += SMKEY_KY(sdata)*g_koma_val[SKY];
@@ -149,6 +152,7 @@ void initialize_sdata(sdata_t *sdata,
     S_GNP(sdata) += GMKEY_KI(sdata)*g_nkoma_val[GKI];
     S_GNP(sdata) += GMKEY_KA(sdata)*g_nkoma_val[GKA];
     S_GNP(sdata) += GMKEY_HI(sdata)*g_nkoma_val[GHI];
+#endif //SDATA_EXTENTION
     
     S_NOUTE(sdata) = oute_check(sdata);
     if(S_TURN(sdata))S_ZKEY(sdata) ^= g_zkey_seed[TURN_ADDRESS];
@@ -386,7 +390,9 @@ int sdata_move_forward(sdata_t *sdata, move_t move){
     else if(koma == GFU)
         S_FFLAG(sdata) =
         FLAG_UNSET(S_FFLAG(sdata), g_file[PREV_POS(move)]+9);
+#ifdef SDATA_EXTENTION
     S_KSCORE(sdata) -= g_koma_val[koma];
+#endif //SDATA_EXTENTION
     
     /* ビットボード処理 */
     SDATA_OCC_XOR(sdata, PREV_POS(move));
@@ -400,7 +406,9 @@ int sdata_move_forward(sdata_t *sdata, move_t move){
     captured = S_BOARD(sdata,NEW_POS(move));
     if(captured){
         S_ZKEY(sdata) ^= g_zkey_seed[captured*N_SQUARE+NEW_POS(move)];
+#ifdef SDATA_EXTENTION
         S_KSCORE(sdata) -= g_koma_val[captured];
+#endif //SDATA_EXTENTION
         
         SDATA_OCC_XOR(sdata, NEW_POS(move));
         sdata_bb_xor(sdata, captured, NEW_POS(move));
@@ -417,8 +425,9 @@ int sdata_move_forward(sdata_t *sdata, move_t move){
         S_FFLAG(sdata) = FLAG_SET(S_FFLAG(sdata), g_file[NEW_POS(move)]);
     else if(koma == GFU)
         S_FFLAG(sdata) = FLAG_SET(S_FFLAG(sdata), g_file[NEW_POS(move)]+9);
+#ifdef SDATA_EXTENTION
     S_KSCORE(sdata) += g_koma_val[koma];
-    
+#endif //SDATA_EXTENTION
     /* ビットボード処理 */
     SDATA_OCC_XOR(sdata, NEW_POS(move));
     sdata_bb_xor(sdata, koma, NEW_POS(move));
@@ -569,163 +578,215 @@ void sdata_captured(komainf_t captured, move_t move, sdata_t *sdata){
 switch(captured){
     case SFU:
         GMKEY_FU(sdata)++;
-        S_GNP(sdata)+=g_nkoma_val[GFU];
-        S_SNP(sdata)-=g_nkoma_val[SFU];
         S_FFLAG(sdata) =
         FLAG_UNSET(S_FFLAG(sdata), g_file[NEW_POS(move)]);
+#ifdef SDATA_EXTENTION
+        S_GNP(sdata)+=g_nkoma_val[GFU];
+        S_SNP(sdata)-=g_nkoma_val[SFU];
         S_KSCORE(sdata) += g_koma_val[GFU];
+#endif //SDATA_EXTENTION
         break;
     case STO:
         GMKEY_FU(sdata)++;
+#ifdef SDATA_EXTENTION
         S_GNP(sdata)+=g_nkoma_val[GFU];
         S_SNP(sdata)-=g_nkoma_val[STO];
         S_KSCORE(sdata) += g_koma_val[GFU];
+#endif //SDATA_EXTENTION
         break;
     case SKY:
         GMKEY_KY(sdata)++;
+#ifdef SDATA_EXTENTION
         S_GNP(sdata)+=g_nkoma_val[GKY];
         S_SNP(sdata)-=g_nkoma_val[SKY];
         S_KSCORE(sdata) += g_koma_val[GKY];
+#endif //SDATA_EXTENTION
         break;
     case SNY:
         GMKEY_KY(sdata)++;
+#ifdef SDATA_EXTENTION
         S_GNP(sdata)+=g_nkoma_val[GKY];
         S_SNP(sdata)-=g_nkoma_val[SNY];
         S_KSCORE(sdata) += g_koma_val[GKY];
+#endif //SDATA_EXTENTION
         break;
     case SKE:
         GMKEY_KE(sdata)++;
+#ifdef SDATA_EXTENTION
         S_GNP(sdata)+=g_nkoma_val[GKE];
         S_SNP(sdata)-=g_nkoma_val[SKE];
         S_KSCORE(sdata) += g_koma_val[GKE];
+#endif //SDATA_EXTENTION
         break;
     case SNK:
         GMKEY_KE(sdata)++;
+#ifdef SDATA_EXTENTION
         S_GNP(sdata)+=g_nkoma_val[GKE];
         S_SNP(sdata)-=g_nkoma_val[SNK];
         S_KSCORE(sdata) += g_koma_val[GKE];
+#endif //SDATA_EXTENTION
         break;
     case SGI:
         GMKEY_GI(sdata)++;
+#ifdef SDATA_EXTENTION
         S_GNP(sdata)+=g_nkoma_val[GGI];
         S_SNP(sdata)-=g_nkoma_val[SGI];
         S_KSCORE(sdata) += g_koma_val[GGI];
+#endif //SDATA_EXTENTION
         break;
     case SNG:
         GMKEY_GI(sdata)++;
+#ifdef SDATA_EXTENTION
         S_GNP(sdata)+=g_nkoma_val[GGI];
         S_SNP(sdata)-=g_nkoma_val[SNG];
         S_KSCORE(sdata) += g_koma_val[GGI];
+#endif //SDATA_EXTENTION
         break;
     case SKI:
         GMKEY_KI(sdata)++;
+#ifdef SDATA_EXTENTION
         S_GNP(sdata)+=g_nkoma_val[GKI];
         S_SNP(sdata)-=g_nkoma_val[SKI];
         S_KSCORE(sdata) += g_koma_val[GKI];
+#endif //SDATA_EXTENTION
         break;
     case SKA:
         GMKEY_KA(sdata)++;
+#ifdef SDATA_EXTENTION
         S_GNP(sdata)+=g_nkoma_val[GKA];
         S_SNP(sdata)-=g_nkoma_val[SKA];
         S_KSCORE(sdata) += g_koma_val[GKA];
+#endif //SDATA_EXTENTION
         break;
     case SUM:
         GMKEY_KA(sdata)++;
+#ifdef SDATA_EXTENTION
         S_GNP(sdata)+=g_nkoma_val[GKA];
         S_SNP(sdata)-=g_nkoma_val[SUM];
         S_KSCORE(sdata) += g_koma_val[GKA];
+#endif //SDATA_EXTENTION
         break;
     case SHI:
         GMKEY_HI(sdata)++;
+#ifdef SDATA_EXTENTION
         S_GNP(sdata)+=g_nkoma_val[GHI];
         S_SNP(sdata)-=g_nkoma_val[SHI];
         S_KSCORE(sdata) += g_koma_val[GHI];
+#endif //SDATA_EXTENTION
         break;
     case SRY:
         GMKEY_HI(sdata)++;
+#ifdef SDATA_EXTENTION
         S_GNP(sdata)+=g_nkoma_val[GHI];
         S_SNP(sdata)-=g_nkoma_val[SRY];
         S_KSCORE(sdata) += g_koma_val[GHI];
+#endif //SDATA_EXTENTION
         break;
     case GFU:
         SMKEY_FU(sdata)++;
-        S_GNP(sdata)-=g_nkoma_val[GFU];
-        S_SNP(sdata)+=g_nkoma_val[SFU];
         S_FFLAG(sdata) =
         FLAG_UNSET(S_FFLAG(sdata), g_file[NEW_POS(move)]+9);
+#ifdef SDATA_EXTENTION
+        S_GNP(sdata)-=g_nkoma_val[GFU];
+        S_SNP(sdata)+=g_nkoma_val[SFU];
         S_KSCORE(sdata) += g_koma_val[SFU];
+#endif //SDATA_EXTENTION
         break;
     case GTO:
         SMKEY_FU(sdata)++;
+#ifdef SDATA_EXTENTION
         S_GNP(sdata)-=g_nkoma_val[GTO];
         S_SNP(sdata)+=g_nkoma_val[SFU];
         S_KSCORE(sdata) += g_koma_val[SFU];
+#endif //SDATA_EXTENTION
         break;
     case GKY:
         SMKEY_KY(sdata)++;
+#ifdef SDATA_EXTENTION
         S_GNP(sdata)-=g_nkoma_val[GKY];
         S_SNP(sdata)+=g_nkoma_val[SKY];
         S_KSCORE(sdata) += g_koma_val[SKY];
+#endif //SDATA_EXTENTION
         break;
     case GNY:
+        SMKEY_KY(sdata)++;
+#ifdef SDATA_EXTENTION
         S_GNP(sdata)-=g_nkoma_val[GNY];
         S_SNP(sdata)+=g_nkoma_val[SKY];
-        SMKEY_KY(sdata)++;
         S_KSCORE(sdata) += g_koma_val[SKY];
+#endif //SDATA_EXTENTION
         break;
     case GKE:
         SMKEY_KE(sdata)++;
+#ifdef SDATA_EXTENTION
         S_GNP(sdata)-=g_nkoma_val[GKE];
         S_SNP(sdata)+=g_nkoma_val[SKE];
         S_KSCORE(sdata) += g_koma_val[SKE];
+#endif //SDATA_EXTENTION
         break;
     case GNK:
         SMKEY_KE(sdata)++;
+#ifdef SDATA_EXTENTION
         S_GNP(sdata)-=g_nkoma_val[GNK];
         S_SNP(sdata)+=g_nkoma_val[SKE];
         S_KSCORE(sdata) += g_koma_val[SKE];
+#endif //SDATA_EXTENTION
         break;
     case GGI:
         SMKEY_GI(sdata)++;
+#ifdef SDATA_EXTENTION
         S_GNP(sdata)-=g_nkoma_val[GGI];
         S_SNP(sdata)+=g_nkoma_val[SGI];
         S_KSCORE(sdata) += g_koma_val[SGI];
+#endif //SDATA_EXTENTION
         break;
     case GNG:
         SMKEY_GI(sdata)++;
+#ifdef SDATA_EXTENTION
         S_GNP(sdata)-=g_nkoma_val[GNG];
         S_SNP(sdata)+=g_nkoma_val[SGI];
         S_KSCORE(sdata) += g_koma_val[SGI];
+#endif //SDATA_EXTENTION
         break;
     case GKI:
         SMKEY_KI(sdata)++;
+#ifdef SDATA_EXTENTION
         S_GNP(sdata)-=g_nkoma_val[GKI];
         S_SNP(sdata)+=g_nkoma_val[SKI];
         S_KSCORE(sdata) += g_koma_val[SKI];
+#endif //SDATA_EXTENTION
         break;
     case GKA:
         SMKEY_KA(sdata)++;
+#ifdef SDATA_EXTENTION
         S_GNP(sdata)-=g_nkoma_val[GKA];
         S_SNP(sdata)+=g_nkoma_val[SKA];
         S_KSCORE(sdata) += g_koma_val[SKA];
+#endif //SDATA_EXTENTION
         break;
     case GUM:
         SMKEY_KA(sdata)++;
+#ifdef SDATA_EXTENTION
         S_GNP(sdata)-=g_nkoma_val[GUM];
         S_SNP(sdata)+=g_nkoma_val[SKA];
         S_KSCORE(sdata) += g_koma_val[SKA];
+#endif //SDATA_EXTENTION
         break;
     case GHI:
         SMKEY_HI(sdata)++;
+#ifdef SDATA_EXTENTION
         S_GNP(sdata)-=g_nkoma_val[GHI];
         S_SNP(sdata)+=g_nkoma_val[SHI];
         S_KSCORE(sdata) += g_koma_val[SHI];
+#endif //SDATA_EXTENTION
         break;
     case GRY:
         SMKEY_HI(sdata)++;
+#ifdef SDATA_EXTENTION
         S_GNP(sdata)-=g_nkoma_val[GHI];
         S_SNP(sdata)+=g_nkoma_val[SHI];
         S_KSCORE(sdata) += g_koma_val[SHI];
+#endif //SDATA_EXTENTION
         break;
     default:
         assert(false);

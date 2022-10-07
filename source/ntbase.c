@@ -1978,7 +1978,9 @@ void        sdata_tentative_move (sdata_t *sdata,
     else if(koma == GFU)
         S_FFLAG(sdata) =
         FLAG_UNSET(S_FFLAG(sdata), g_file[src]+9);
+#ifdef SDATA_EXTENTION
     S_KSCORE(sdata) -= g_koma_val[koma];
+#endif //SDATA_EXTENTION
     
     //ビットボード処理
     SDATA_OCC_XOR(sdata, src);
@@ -1996,7 +1998,9 @@ void        sdata_tentative_move (sdata_t *sdata,
         S_FFLAG(sdata) = FLAG_SET(S_FFLAG(sdata), g_file[dest]);
     else if(koma == GFU)
         S_FFLAG(sdata) = FLAG_SET(S_FFLAG(sdata), g_file[dest]+9);
+#ifdef SDATA_EXTENTION
     S_KSCORE(sdata) += g_koma_val[koma];
+#endif //SDATA_EXTENTION
     
     //ビットボード処理
     SDATA_OCC_XOR(sdata, dest);

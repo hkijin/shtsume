@@ -86,7 +86,9 @@ int sdata_fprintf      (FILE *restrict stream,
 #define PR_FFLAG    (1<<2)
 #define PR_OU       (1<<3)
 #define PR_OUTE     (1<<4)
+#ifdef SDATA_EXTENTION
 #define PR_SCORE    (1<<5)
+#endif //SDATA_EXTENTION
 //PR_BITBOARD
 #define PR_BBFU     (1<<6)
 #define PR_BBKY     (1<<7)
