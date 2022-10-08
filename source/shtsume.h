@@ -20,7 +20,7 @@
  * プログラムID
  */
 #define PROGRAM_NAME       "shtsume"
-#define VERSION_INFO       "v0.6.17"
+#define VERSION_INFO       "v0.7.1"
 #define AUTHOR_NAME        "hkijin"
 
 /*
@@ -38,6 +38,7 @@ struct _usioption_t
     checkop_t    out_lvkif;         /* 追加探索での棋譜出力有無 */
     stringop_t   user_path;         /* shtsumeで使用するフォルダ名 */
     checkop_t    summary;           /* 探索レポート出力有無 */
+    checkop_t    s_allmove;         /* 探索レポートの詰方全出力 */
 };
 
 extern usioption_t          g_usioption;
@@ -51,6 +52,7 @@ extern short                g_pv_length;
 extern char                 g_user_path[256];
 extern bool                 g_summary;
 extern bool                 g_disp_search;
+extern uint32_t             g_smode;
 extern bool                 g_commandline;
 
 #define TSUME_MAX_DEPTH     2000
@@ -405,7 +407,6 @@ mcard_t* make_tree_set_item (const sdata_t *sdata,
 
 void tbase_clear_protect   (tbase_t       *tbase);
 
-extern bool g_gc_stat;
 extern bool g_tsumi;
 extern short g_gc_max_level;
 extern short g_gc_num;
@@ -420,10 +421,6 @@ extern mcard_t *g_mcard[N_MCARD_TYPE];
 
 bool invalid_drops         (const sdata_t *sdata,
                             unsigned int   dest ,
-                            tbase_t       *tbase );
-bool hs_invalid_drops      (const sdata_t *sdata,
-                            unsigned int   src,
-                            unsigned int   dest,
                             tbase_t       *tbase );
 
 /*
@@ -443,7 +440,7 @@ uint16_t disproof_number  (mvlist_t  *mvlist);
 uint16_t proof_count      (mvlist_t  *mvlist);
 uint16_t disproof_count   (mvlist_t  *mvlist);
 
-uint16_t sub_proof_number (mvlist_t  *mvlist);
+//uint16_t sub_proof_number (mvlist_t  *mvlist);
 
 void bn_search                  (const sdata_t   *sdata,
                                  tdata_t         *tdata,

@@ -277,7 +277,6 @@ void init_distance(void);
                             _mm_andnot_si128(g_lpos[p].qpos,(lbb).qpos)
 
 #define BB_INI(bb)          (bb).qpos = _mm_setzero_si128()
-//#define BB_CPY(dst,src)     memcpy(&(dst),&(src),sizeof(bitboard_t))
 #define BB_CPY(dst,src)     (dst).qpos = _mm_load_si128(&((src).qpos))
 
 typedef union _bitboard_t bitboard_t;
@@ -475,6 +474,7 @@ typedef unsigned int flag_t;
  処理のコンパクト化を図る。
  ----------------------------------------------------------------------------
 */
+//#define SDATA_EXTENTION
 //minimum set
 typedef struct _ssdata_t ssdata_t;
 struct _ssdata_t{
@@ -528,10 +528,12 @@ struct _sdata_t {
     char attack[2];             //王手している駒の位置
     //着手生成
     char pinned[N_SQUARE];      //pinに使用するマスクIDを格納
+#ifdef SDATA_EXTENTION
     //簡易評価値
     short kscore;               //駒保有ベース
     char  np[2];                //入玉駒カウント
     void *user_data;
+#endif //SDATA_EXTENTION
 };
 
 
@@ -544,12 +546,15 @@ struct _sdata_t {
 #define GOTEBAN(sdata)        (sdata)->core.turn == GOTE
 #define S_ZKEY(sdata)         (sdata)->zkey
 #define S_FFLAG(sdata)        (sdata)->fflag
-#define S_KSCORE(sdata)       (sdata)->kscore
 #define S_NOUTE(sdata)        (sdata)->n_oute
 #define S_PINNED(sdata)       (sdata)->pinned
 #define S_ATTACK(sdata)       (sdata)->attack
+
+#ifdef SDATA_EXTENTION
+#define S_KSCORE(sdata)       (sdata)->kscore
 #define S_SNP(sdata)          (sdata)->np[SENTE]
 #define S_GNP(sdata)          (sdata)->np[GOTE]
+#endif //SDATA_EXTENTION
 
 
 #define SMKEY_FU(sdata)       (sdata)->core.mkey[SENTE].fu
@@ -735,70 +740,6 @@ int sdata_move_forward(sdata_t *sdata, move_t move);
 int sdata_key_forward (sdata_t *sdata, move_t move);
 bitboard_t sdata_create_effect(sdata_t *sdata);
 bool fu_tsume_check   (move_t move,   const sdata_t *sdata);
-
-//対局情報
-#define GAMEINF_ITEM_NUM 16
-typedef enum _game_item_t game_item_t;
-enum _game_item_t
-{
-    GM_S_PLAYER,          //対局者名
-    GM_G_PLAYER,
-    GM_HANDYCAP,          //手合い割
-    GM_START_TIME,        //開始日時
-    GM_END_TIME,          //終了日時
-    GM_EVENT,             //棋戦
-    GM_OPENING,           //戦型
-    GM_TITLE,             //表題
-    GM_TIME_LIMIT,        //持ち時間
-    GM_S_ELAPSED,         //消費時間
-    GM_G_ELAPSED,
-    GM_SITE,              //場所
-    GM_MEDIA,             //掲載
-    GM_NOTE,              //備考
-    GM_S_NAME,            //先手省略名
-    GM_G_NAME             //後手省略名
-};
-typedef struct _gameinf_t gameinf_t;
-struct _gameinf_t
-{
-    char *gm_item[GAMEINF_ITEM_NUM];
-};
-
-//詰将棋情報
-#define TSUMEINF_ITEM_NUM  10
-typedef enum _tsume_item_t tsume_item_t;
-enum _tsume_item_t
-{
-    TU_WORK_ID,               //作品番号
-    TU_WORK_NAME,             //作品名
-    TU_AUTHOR,                //作者
-    TU_MEDIA,                 //発表誌
-    TU_DATE,                  //発表年月
-    TU_SOURCE,                //出典
-    TU_INTEGRITY,             //完全性
-    TU_CLASS,                 //分類
-    TU_PRIZE,                 //受賞
-    TU_NOTE                   //備考
-};
-typedef struct _tsumeinf_t tsumeinf_t;
-struct _tsumeinf_t
-{
-    char tm_item[TSUMEINF_ITEM_NUM];
-};
-//棋譜情報
-typedef struct _kifuinf_t kifuinf_t;
-struct _kifuinf_t
-{
-    gameinf_t      ginf;              //対局情報
-    tsumeinf_t     tinf;              //詰将棋情報
-    sdata_t        start_pos;         //初期局面
-    uint16_t       n_moves;           //手数
-    move_t         *moves;            //着手配列
-};
-
-//棋譜情報の読み込み、書き出し、再生
-//bod, kif, ki2
-//csa
 
 
 #endif /* shogi_h */

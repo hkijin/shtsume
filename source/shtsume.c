@@ -67,6 +67,7 @@ static void bns_plus_and        (const sdata_t   *sdata,
                                  mvlist_t        *mvlist,
                                  unsigned int     ptsh,
                                  tbase_t          *tbase);
+/*
 static void make_plus_or        (const sdata_t   *sdata,
                                  mvlist_t        *mvlist,
                                  unsigned int     ptpn,
@@ -77,6 +78,7 @@ static void make_plus_and       (const sdata_t   *sdata,
                                  unsigned int     ptpn,
                                  unsigned int     ptsh,
                                  tbase_t          *tbase);
+ */
 /* ----------------
  関数実装部
  ---------------- */
@@ -102,6 +104,7 @@ void print_help                (void)
      " g,log    : 探索LOGを出力します。     (出力先：ホームディレクトリ)\n"
      " d,display: 探索後、手順確認モードに移行します。\n"
      " y,yomi   : 探索中、読み筋表示。\n"
+     " a,all    : 探索LOGで詰方全ての候補手の探索結果を出力します。\n"
      " [値指定]\n"
      " n,minpn  : 末端探索証明数を指定します。デフォルト値 4 (min 3 max 6)\n"
      " m,memory : 局面表で使用するメモリーサイズを指定します。デフォルト値 256(MByte)。\n"
@@ -119,7 +122,6 @@ void print_help                (void)
     return;
 }
 
-
 uint16_t proof_number     (mvlist_t  *mvlist)
 {
     mvlist_t *list = mvlist;
@@ -134,7 +136,7 @@ uint16_t proof_number     (mvlist_t  *mvlist)
     }
     return MIN(INFINATE-1, wpn+pn);
 }
-
+/*
 uint16_t sub_proof_number (mvlist_t  *mvlist)
 {
     mvlist_t *list = mvlist;
@@ -147,7 +149,7 @@ uint16_t sub_proof_number (mvlist_t  *mvlist)
     }
     return pn;
 }
-
+*/
 uint16_t disproof_number  (mvlist_t  *mvlist)
 {
     mvlist_t *list = mvlist;
@@ -192,7 +194,6 @@ void bn_search                  (const sdata_t   *sdata,
     /* 初期化処理 */
     memset(&g_tsearchinf, 0, sizeof(tsearchinf_t));        //探索情報
     //局面表
-    g_gc_stat      = false;           /* 詰み発見後はtrue              */
     g_gc_max_level = 0;               /* メモリ確保のためのGC強度の最大値  */
     g_gc_num = 0;                     /* gcの実施回数                  */
     //中断フラグ
@@ -228,7 +229,6 @@ void bn_search                  (const sdata_t   *sdata,
     
     if(!mvlist.tdata.pn)
     {
-        g_gc_stat = true;
         make_tree(sdata, &mvlist, tbase);
         g_tsearchinf.score_mate = mvlist.tdata.sh;
         st_add_thpn = st_max_thpn;
@@ -256,10 +256,8 @@ void bn_search                  (const sdata_t   *sdata,
                         g_user_path,g_search_level-lv);
                 generate_kif_file(filename, sdata, tbase);
             }
-            g_gc_stat = false;
             tbase_clear_protect(tbase);
             bns_plus(sdata, &mvlist, tbase);
-            g_gc_stat = true;
             make_tree(sdata, &mvlist, tbase);
             g_tsearchinf.score_mate = mvlist.tdata.sh;
             lv--;
@@ -347,7 +345,6 @@ void tsumi_proof                (const sdata_t   *sdata,
     else                         mvlist->hinc = 0;
     return;
 }
-
 /*
  　デバッグオプション　USE_REORDER
  */
@@ -1253,6 +1250,7 @@ void bns_plus_and               (const sdata_t   *sdata,
     return;
 }
 
+/*
 void make_plus_or               (const sdata_t   *sdata,
                                  mvlist_t        *mvlist,
                                  unsigned int     ptpn,
@@ -1261,7 +1259,7 @@ void make_plus_or               (const sdata_t   *sdata,
 {
 #ifndef DEBUG
     tsearchinf_update(sdata, tbase, st_start, g_str);
-#endif /* DEBUG */
+#endif // DEBUG
     if(g_suspend) return;
     //初期化
     tdata_t thdata = {ptpn, INFINATE-1, TSUME_MAX_DEPTH};
@@ -1282,10 +1280,10 @@ void make_plus_or               (const sdata_t   *sdata,
         memcpy(&sbuf, sdata, sizeof(sdata_t));
         sdata_move_forward(&sbuf, tmp->mlist->move);
         make_tree_lookup(&sbuf, tmp, S_TURN(sdata), tbase);
-        /* -----------------------------------------------
-          GCを実施している場合、末端データの喪失が想定される。
-          それらのデータは復元しておく
-         ------------------------------------------------*/
+        // -----------------------------------------------
+        //  GCを実施している場合、末端データの喪失が想定される。
+        //  それらのデータは復元しておく
+        //------------------------------------------------
         //データ消失時の処理
         if(!tmp->search)
         {
@@ -1510,3 +1508,4 @@ void make_plus_and              (const sdata_t   *sdata,
     mvlist_free(list);
     return;
 }
+*/

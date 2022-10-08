@@ -103,7 +103,7 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
-		689734C028605E5800665FC6 /* shshogi */ = {
+		689734F32860869C00665FC6 /* source */ = {
 			isa = PBXGroup;
 			children = (
 				689734C228605E5800665FC6 /* shogi.h */,
@@ -114,13 +114,6 @@
 				689734CC28605E5800665FC6 /* usi.c */,
 				689734C928605E5800665FC6 /* dtools.h */,
 				689734C128605E5800665FC6 /* dtools.c */,
-			);
-			path = shshogi;
-			sourceTree = "<group>";
-		};
-		689734D428605E9500665FC6 /* shtsume */ = {
-			isa = PBXGroup;
-			children = (
 				689734E028605E9500665FC6 /* shtsume.h */,
 				689734D528605E9500665FC6 /* shtsume.c */,
 				689734D628605E9500665FC6 /* nsearchinf.c */,
@@ -132,24 +125,6 @@
 				689734E228605E9500665FC6 /* nusi.c */,
 				689734E128605E9500665FC6 /* ndtools.h */,
 				68138C58289F692D007BA6EB /* ndtools.c */,
-			);
-			path = shtsume;
-			sourceTree = "<group>";
-		};
-		689734F128606F1F00665FC6 /* test */ = {
-			isa = PBXGroup;
-			children = (
-			);
-			name = test;
-			path = ../test;
-			sourceTree = "<group>";
-		};
-		689734F32860869C00665FC6 /* source */ = {
-			isa = PBXGroup;
-			children = (
-				689734C028605E5800665FC6 /* shshogi */,
-				689734D428605E9500665FC6 /* shtsume */,
-				689734F128606F1F00665FC6 /* test */,
 			);
 			path = source;
 			sourceTree = "<group>";

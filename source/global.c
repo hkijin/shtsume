@@ -217,7 +217,7 @@ ssdata_t g_hirate = {
     {{0,0,0,0,0,0,0,0},{0,0,0,0,0,0,0,0},{0,0,0,0,0,0,0,0}}
 };
 
-
+#ifdef SDATA_EXTENTION
 short g_koma_val[N_KOMAS]  = {
     0,         //SPC
     87,        //SFU
@@ -257,6 +257,7 @@ char  g_nkoma_val[N_KOMAS] = {
     0, 1, 1, 1, 1, 1, 5, 5, 0, 1, 1, 1, 1, 0, 5, 5,
     0, 1, 1, 1, 1, 1, 5, 5, 0, 1, 1, 1, 1, 0, 5, 5
 };
+#endif //SDATA_EXTENTION
 
 move_t g_mv_toryo = {TORYO, 0};
 

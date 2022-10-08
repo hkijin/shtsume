@@ -6,5 +6,6 @@ mt_min_pn       末端探索レベル
 search_level    余詰探索レベル
 out_lvkif       余詰探索時の棋譜出力
 summary         探索ログの出力
-user_path       棋譜、探索ログ用フォルダ
+s_allmove       探索ログ詰方全候補手
+user_path       出力用フォルダ
 

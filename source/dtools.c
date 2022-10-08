@@ -148,10 +148,12 @@ int sdata_sprintf(char *restrict str,
             num += sprintf(str+num,"%d ", S_ATTACK(sdata)[i]);
         num += sprintf(str+num, "\n");
     }
+#ifdef SDATA_EXTENTION
     if(flag & PR_SCORE ) {
         num += sprintf(str+num, "k_score = %d    np  %d:%d\n ",
                        S_KSCORE(sdata),S_SNP(sdata),S_GNP(sdata));
     }
+#endif //SDATA_EXTENTION
     if(flag & PR_BBFU  ) {
         num += sprintf(str+num, "bb_fu[SENTE]:\n");
         num += bitboard_sprintf(str+num, &BB_SFU(sdata));
@@ -347,10 +349,12 @@ int sdata_fprintf(FILE *restrict stream,
             num += fprintf(stream,"%d ", S_ATTACK(sdata)[i]);
         num += fprintf(stream, "\n");
     }
+#ifdef SDATA_EXTENTION
     if(flag & PR_SCORE ) {
         num += fprintf(stream, "k_score = %d    np  %d:%d\n ",
                        S_KSCORE(sdata),S_SNP(sdata),S_GNP(sdata));
     }
+#endif //SDATA_EXTENTION
     if(flag & PR_BBFU  ) {
         num += fprintf(stream, "bb_fu[SENTE]:\n");
         num += bitboard_fprintf(stream, &BB_SFU(sdata));
