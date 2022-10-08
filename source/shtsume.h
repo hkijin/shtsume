@@ -440,7 +440,7 @@ uint16_t disproof_number  (mvlist_t  *mvlist);
 uint16_t proof_count      (mvlist_t  *mvlist);
 uint16_t disproof_count   (mvlist_t  *mvlist);
 
-uint16_t sub_proof_number (mvlist_t  *mvlist);
+//uint16_t sub_proof_number (mvlist_t  *mvlist);
 
 void bn_search                  (const sdata_t   *sdata,
                                  tdata_t         *tdata,

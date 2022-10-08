@@ -67,6 +67,7 @@ static void bns_plus_and        (const sdata_t   *sdata,
                                  mvlist_t        *mvlist,
                                  unsigned int     ptsh,
                                  tbase_t          *tbase);
+/*
 static void make_plus_or        (const sdata_t   *sdata,
                                  mvlist_t        *mvlist,
                                  unsigned int     ptpn,
@@ -77,6 +78,7 @@ static void make_plus_and       (const sdata_t   *sdata,
                                  unsigned int     ptpn,
                                  unsigned int     ptsh,
                                  tbase_t          *tbase);
+ */
 /* ----------------
  関数実装部
  ---------------- */
@@ -120,7 +122,6 @@ void print_help                (void)
     return;
 }
 
-
 uint16_t proof_number     (mvlist_t  *mvlist)
 {
     mvlist_t *list = mvlist;
@@ -135,7 +136,7 @@ uint16_t proof_number     (mvlist_t  *mvlist)
     }
     return MIN(INFINATE-1, wpn+pn);
 }
-
+/*
 uint16_t sub_proof_number (mvlist_t  *mvlist)
 {
     mvlist_t *list = mvlist;
@@ -148,7 +149,7 @@ uint16_t sub_proof_number (mvlist_t  *mvlist)
     }
     return pn;
 }
-
+*/
 uint16_t disproof_number  (mvlist_t  *mvlist)
 {
     mvlist_t *list = mvlist;
@@ -1249,6 +1250,7 @@ void bns_plus_and               (const sdata_t   *sdata,
     return;
 }
 
+/*
 void make_plus_or               (const sdata_t   *sdata,
                                  mvlist_t        *mvlist,
                                  unsigned int     ptpn,
@@ -1257,7 +1259,7 @@ void make_plus_or               (const sdata_t   *sdata,
 {
 #ifndef DEBUG
     tsearchinf_update(sdata, tbase, st_start, g_str);
-#endif /* DEBUG */
+#endif // DEBUG
     if(g_suspend) return;
     //初期化
     tdata_t thdata = {ptpn, INFINATE-1, TSUME_MAX_DEPTH};
@@ -1278,10 +1280,10 @@ void make_plus_or               (const sdata_t   *sdata,
         memcpy(&sbuf, sdata, sizeof(sdata_t));
         sdata_move_forward(&sbuf, tmp->mlist->move);
         make_tree_lookup(&sbuf, tmp, S_TURN(sdata), tbase);
-        /* -----------------------------------------------
-          GCを実施している場合、末端データの喪失が想定される。
-          それらのデータは復元しておく
-         ------------------------------------------------*/
+        // -----------------------------------------------
+        //  GCを実施している場合、末端データの喪失が想定される。
+        //  それらのデータは復元しておく
+        //------------------------------------------------
         //データ消失時の処理
         if(!tmp->search)
         {
@@ -1506,3 +1508,4 @@ void make_plus_and              (const sdata_t   *sdata,
     mvlist_free(list);
     return;
 }
+*/

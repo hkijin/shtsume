@@ -42,7 +42,6 @@ static void _tbase_lookup (const sdata_t   *sdata,
                            turn_t              tn,
                            bool              flag,
                            tbase_t         *tbase );
-
 static void tsumi_update  (const sdata_t   *sdata,
                            mvlist_t       *mvlist,
                            turn_t              tn,
@@ -58,7 +57,6 @@ static void fumei_update  (const sdata_t   *sdata,
                            turn_t              tn,
                            bool              flag,
                            tbase_t         *tbase );
-
 static void _tbase_update (const sdata_t   *sdata,
                            mvlist_t       *mvlist,
                            turn_t              tn,
@@ -86,8 +84,7 @@ static bool is_move_possible(komainf_t koma, char dest);
 
 tbase_t*   create_tbase     (uint64_t base_size)
 {
-    /* 構造体生成
-     */
+    //構造体生成
     tbase_t *tbase = (tbase_t *)calloc(1, sizeof(tbase_t));
     if(!tbase) return NULL;
     
@@ -200,7 +197,6 @@ void destroy_tbase          (tbase_t  *tbase)
  
  以下は関連パラメータ
  st_tsumi_delete_flag : 一手詰みデータ削除フラグ
- 
  GC_DELETE_OFFSET     : 不詰データ追加削除用
  ----------------------------------------------------------------------- */
 //データの削除条件(true: 削除　false:　保存)
@@ -461,11 +457,12 @@ void make_tree_lookup    (const sdata_t   *sdata,
     return;
 }
 
-/* 無駄合い判定用関数
-   詰みデータあり         1
+/* ---------------------------
+   無駄合い判定用関数
+   詰みデータあり        1
  　不詰、不明データあり    0
  　データ無し           -1
- */
+ ---------------------------- */
 static int _hs_tbase_lookup     (const sdata_t *sdata,
                                  turn_t         tn,
                                  tbase_t       *tbase)

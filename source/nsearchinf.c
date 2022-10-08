@@ -99,6 +99,7 @@ int  tsearchinf_sprintf         (char *str)
     num+=sprintf(str+num,"hashfull %d" ,g_tsearchinf.hashfull);
     return num;
 }
+
 int  tsearchpn_sprintf          (char *str)
 {
     int num = 0;

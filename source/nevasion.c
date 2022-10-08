@@ -466,7 +466,8 @@ mvlist_t *move_to_dest        (mvlist_t *list,
 
 mlist_t *evasion_drop         (mlist_t *list,
                                int dest,
-                               const sdata_t *sdata){
+                               const sdata_t *sdata)
+{
     mlist_t *mlist = list;
     mlist_t *new_mlist;
     //持ち駒による合い駒
