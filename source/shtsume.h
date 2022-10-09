@@ -20,7 +20,7 @@
  * プログラムID
  */
 #define PROGRAM_NAME       "shtsume"
-#define VERSION_INFO       "v0.7.3"
+#define VERSION_INFO       "v0.7.4"
 #define AUTHOR_NAME        "hkijin"
 
 /*
@@ -70,11 +70,14 @@ extern bool                 g_commandline;
 
 #define TBASE_SIZE_DEFAULT  256
 #define TBASE_SIZE_MIN      1
-#ifdef __x86_64__
+
+#if    defined __MACH__    //macOS 64bit
 #define TBASE_SIZE_MAX      65535
-#else
+#elif  defined __WIN64__   //Windows 64bit
+#define TBASE_SIZE_MAX      65535
+#else                      //Windows 32bit
 #define TBASE_SIZE_MAX      2047
-#endif /* __x86_64__ */
+#endif /* __MACH__ */
 
 #define LEAF_PN_DEFAULT     4
 #define LEAF_PN_MIN         3
