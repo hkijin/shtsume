@@ -10,6 +10,7 @@
 #include <stdlib.h>
 #include <time.h>
 #include <getopt.h>
+#include <unistd.h>
 #include "shogi.h"
 #include "usi.h"
 #include "shtsume.h"
@@ -128,7 +129,8 @@ int main(int argc, char * const argv[]) {
         //char p_string[128];
         strncpy(g_sfen_pos_str, argv[optind], strlen(argv[optind]));
         char *home = getenv("HOME");
-        strncpy(g_user_path, home, strlen(home));
+        if(home) strncpy(g_user_path, home, strlen(home));
+        else     home = getwd(g_user_path);
         
         //基本ライブラリの初期化処理
         create_seed();                        //zkey
@@ -214,49 +216,5 @@ int main(int argc, char * const argv[]) {
 void print_version (void)
 {
     printf("%s %s\n",PROGRAM_NAME,VERSION_INFO);
-    return;
-}
-
-void solve(const char *optarg)
-{
-    char p_string[128];
-    strncpy(p_string, "position sfen ", strlen("position sfen "));
-    strncat(p_string, optarg, 112);
-
-    //基本ライブラリの初期化
-    create_seed();                        //zkey
-    init_distance();                      //g_distance
-    init_bpos();                          //bitboard
-    init_effect();                        //effect
-    srand((unsigned)time(NULL));
-    
-    //logfile作成
-    char *path = getenv("HOME");
-    strncpy(g_logfile_path,path, strlen(path));
-    strncat(g_logfile_path, "/Documents/", sizeof("/Documents/"));
-    create_log_filename();
-    strncpy(g_user_path,g_logfile_path, sizeof(g_logfile_path));
-    
-    //usiコマンド受信のシミュレーション
-    res_usi_cmd();
-    res_setoption_cmd("setoption name USI_Ponder value true");
-    res_setoption_cmd("setoption name USI_Hash value 6144" );
-    res_setoption_cmd("setoption name search_level value 0");
-    res_setoption_cmd("setoption name out_lvkif value true");
-    res_setoption_cmd("setoption name summary value true");
-    char commandstr[256];
-    sprintf(commandstr, "setoption name user_path value %s", g_user_path);
-    res_setoption_cmd(commandstr);
-    printf("g_usi_ponder   = %d\n", g_usi_ponder);
-    printf("g_usi_hash     = %llu\n", g_usi_hash  );
-    printf("g_search_level = %u\n", g_search_level );
-    printf("g_out_lvkif    = %s\n", g_out_lvkif?"true":"false");
-    printf("g_summary      = %s\n", g_summary?"true":"false");
-    res_isready_cmd();
-    res_position_cmd(p_string);
-    
-    //読み込み局面の確認
-    SDATA_PRINTF(&g_sdata, PR_BOARD);
-    res_gomate_cmd("go mate infinite");
     return;
 }

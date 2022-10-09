@@ -116,7 +116,7 @@ void res_usi_cmd          (void)
     //棋譜＆レポート保存フォルダ
     sprintf(str, "option name %s type string default %s",
             g_usioption.user_path.op_name,
-            getenv("HOME"));
+            g_logfile_path);
     puts(str);
     record_log(str);
     

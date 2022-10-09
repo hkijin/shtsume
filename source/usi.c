@@ -10,6 +10,7 @@
 #include <time.h>
 #include <assert.h>
 #include <stdbool.h>
+#include <unistd.h>
 
 #ifndef HAVE_STRUCT_TIMESPEC
 #define HAVE_STRUCT_TIMESPEC 1
@@ -377,7 +378,8 @@ int usi_main (void){
     setvbuf(stdout, NULL, _IONBF, 0);     //将棋所から利用する場合、この設定が必要。
     setvbuf(stdin , NULL, _IONBF, 0);
     char *path = getenv("HOME");
-    strncpy(g_logfile_path,path, strlen(path));
+    if(path) strncpy(g_logfile_path,path, strlen(path));
+    else     path = getwd(g_logfile_path);
     create_log_filename();
     
     pthread_mutex_init(&st_lock, NULL);

@@ -5,8 +5,9 @@
 ########################################################################
 # このMakefileは以下の環境でのコンパイル用のMakefileです。
 # 動作確認環境
-# OS: Windows10
+# OS: Windows10 home edition
 # minGW(32bit:gcc)+pthread extention
+# またはminGW(64bit:gcc)
 ########################################################################
 
 # Compiler settings - Can be customized.
