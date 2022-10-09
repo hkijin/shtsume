@@ -9,6 +9,7 @@
 #define dtools_h
 
 #include <stdio.h>
+#include <time.h>
 #include "shogi.h"
 
 /*

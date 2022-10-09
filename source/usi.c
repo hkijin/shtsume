@@ -10,6 +10,11 @@
 #include <time.h>
 #include <assert.h>
 #include <stdbool.h>
+
+#ifndef HAVE_STRUCT_TIMESPEC
+#define HAVE_STRUCT_TIMESPEC 1
+#endif /* HAVE_STRUCT_TIMESPEC */
+
 #include <pthread.h>
 #include "shogi.h"
 #include "usi.h"
