@@ -246,7 +246,7 @@ void init_distance(void);
 ------------------------------
 --------------------------------------------------------------------------- */
 
-#ifdef __SSE2__
+#if defined __SSE2__
 #include <x86intrin.h>
 
 #define BB_OR(bb,b1,b2)     (bb).qpos = _mm_or_si128((b1).qpos,(b2).qpos)
@@ -281,8 +281,63 @@ void init_distance(void);
 
 typedef union _bitboard_t bitboard_t;
 union _bitboard_t{
-    unsigned int pos[3];
+    uint32_t pos[3];
     __m128i qpos;
+};
+
+#elif defined __ARM_NEON__
+
+#include <arm_neon.h>
+
+#define BB_OR(bb,b1,b2)     (bb).qpos = vorrq_u32((b1).qpos,(b2).qpos)
+#define BB_AND(bb,b1,b2)    (bb).qpos = vandq_u32((b1).qpos,(b2).qpos)
+#define BB_ANDNOT(bb,b1,b2) (bb).pos[0]=(b1).pos[0]&(~((b2).pos[0])),\
+                            (bb).pos[1]=(b1).pos[1]&(~((b2).pos[1])),\
+                            (bb).pos[2]=(b1).pos[2]&(~((b2).pos[2]))
+
+#define BBA_OR(bb,b1)       (bb).qpos = vorrq_u32((bb).qpos,(b1).qpos)
+#define BBA_AND(bb,b1)      (bb).qpos = vandq_u32((bb).qpos,(b1).qpos)
+#define BBA_ANDNOT(bb,b1)   (bb).pos[0]&=~((b1).pos[0]),\
+                            (bb).pos[1]&=~((b1).pos[1]),\
+                            (bb).pos[2]&=~((b1).pos[2])
+#define BBA_XOR(bb,b1)      (bb).qpos = veorq_u32((bb).qpos,(b1).qpos)
+
+//bitboard上の特定bitへの駒配置
+#define BB_SET(bb,p)        (bb).qpos = \
+                            vorrq_u32((bb).qpos,g_bpos[p].qpos)
+
+#define BB_UNSET(bb,p)      (bb).pos[0]&=~(g_bpos[p].pos[0]),\
+                            (bb).pos[1]&=~(g_bpos[p].pos[1]),\
+                            (bb).pos[2]&=~(g_bpos[p].pos[2])
+
+#define VBB_SET(vbb,p)      (vbb).qpos = \
+                            vorrq_u32((vbb).qpos,g_vpos[p].qpos)
+
+#define VBB_UNSET(vbb,p)    (vbb).pos[0]&=~(g_vpos[p].pos[0]),\
+                            (vbb).pos[1]&=~(g_vpos[p].pos[1]),\
+                            (vbb).pos[2]&=~(g_vpos[p].pos[2])
+
+#define RBB_SET(rbb,p)      (rbb).qpos = \
+                            vorrq_u32((rbb).qpos,g_rpos[p].qpos)
+
+#define RBB_UNSET(rbb,p)    (rbb).pos[0]&=~(g_rpos[p].pos[0]),\
+                            (rbb).pos[1]&=~(g_rpos[p].pos[1]),\
+                            (rbb).pos[2]&=~(g_rpos[p].pos[2])
+
+#define LBB_SET(lbb,p)      (lbb).qpos = \
+                            vorrq_u32((lbb).qpos,g_lpos[p].qpos)
+
+#define LBB_UNSET(lbb,p)    (lbb).pos[0]&=~(g_lpos[p].pos[0]),\
+                            (lbb).pos[1]&=~(g_lpos[p].pos[1]),\
+                            (lbb).pos[2]&=~(g_lpos[p].pos[2])
+
+#define BB_INI(bb)          memset(&(bb), 0, sizeof(bitboard_t))
+#define BB_CPY(dst,src)     memcpy(&(dst),&(src),sizeof(bitboard_t))
+
+typedef union _bitboard_t bitboard_t;
+union _bitboard_t{
+    uint32_t pos[3];
+    uint32x4_t qpos;
 };
 
 #else
@@ -353,7 +408,7 @@ union _bitboard_t{
 
 typedef union _bitboard_t bitboard_t;
 union _bitboard_t{
-    unsigned int pos[3];
+    uint32_t pos[3];
 };
 
 #endif //__SSE2__
