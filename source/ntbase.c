@@ -268,10 +268,9 @@ void tbase_gc              (tbase_t  *tbase)
     uint64_t n_tsumi_max = tbase->sz_elm*GC_TSUMI_RATE/100;
     //st_gc_flag = false;
     char prefix[16];
+    memset(prefix, 0 , sizeof(prefix));
     if(!g_commandline)
         strncpy(prefix, "info string ", strlen("info string "));
-    else
-        memset(prefix, 0 , sizeof(prefix));
     //ガベージコレクション実施宣言
     sprintf(g_str, "%sGarbage collection start. "
                    "size:%llu del_target:%llu protected:%llu gc_num:%d ",

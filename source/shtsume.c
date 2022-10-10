@@ -234,10 +234,9 @@ void bn_search                  (const sdata_t   *sdata,
         st_add_thpn = st_max_thpn;
         char lv = g_search_level;
         char prefix[16];
+        memset(prefix, 0, sizeof(prefix));
         if(!g_commandline)
             strncpy(prefix,"info string ", strlen("info string "));
-        else
-            memset(prefix, 0, sizeof(prefix));
         while(lv){
             if(g_redundant) break;
             st_add_thpn++;
