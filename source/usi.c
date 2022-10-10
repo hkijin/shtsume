@@ -379,7 +379,7 @@ int usi_main (void){
     setvbuf(stdin , NULL, _IONBF, 0);
     char *path = getenv("HOME");
     if(path) strncpy(g_logfile_path,path, strlen(path));
-    else     path = getwd(g_logfile_path);
+    else     path = getcwd(g_logfile_path,sizeof(g_logfile_path));
     create_log_filename();
     
     pthread_mutex_init(&st_lock, NULL);
