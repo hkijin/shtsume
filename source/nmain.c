@@ -130,7 +130,7 @@ int main(int argc, char * const argv[]) {
         strncpy(g_sfen_pos_str, argv[optind], strlen(argv[optind]));
         char *home = getenv("HOME");
         if(home) strncpy(g_user_path, home, strlen(home));
-        else     home = getwd(g_user_path);
+        else     home = getcwd(g_user_path, sizeof(g_user_path));
         
         //基本ライブラリの初期化処理
         create_seed();                        //zkey
