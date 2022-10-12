@@ -67,18 +67,6 @@ static void bns_plus_and        (const sdata_t   *sdata,
                                  mvlist_t        *mvlist,
                                  unsigned int     ptsh,
                                  tbase_t          *tbase);
-/*
-static void make_plus_or        (const sdata_t   *sdata,
-                                 mvlist_t        *mvlist,
-                                 unsigned int     ptpn,
-                                 unsigned int     ptsh,
-                                 tbase_t          *tbase);
-static void make_plus_and       (const sdata_t   *sdata,
-                                 mvlist_t        *mvlist,
-                                 unsigned int     ptpn,
-                                 unsigned int     ptsh,
-                                 tbase_t          *tbase);
- */
 /* ----------------
  関数実装部
  ---------------- */
@@ -100,8 +88,9 @@ void print_help                (void)
      " v,version: プログラムのバージョンを表示して終了します。\n"
      " [詰探索オプション]\n"
      " [スイッチ]\n"
-     " k,kifu   : レベル毎の棋譜を出力します。(出力先：ホームディレクトリ)\n"
-     " g,log    : 探索LOGを出力します。     (出力先：ホームディレクトリ)\n"
+     " k,kifu   : レベル毎の棋譜(.kif)を出力します。\n"
+     " g,log    : 探索LOGを出力します。           \n"
+     " 注）k,gオプションでの出力先はホームディレクトリ（Mac）またはインストール先(Win)\n"
      " d,display: 探索後、手順確認モードに移行します。\n"
      " y,yomi   : 探索中、読み筋表示。\n"
      " a,all    : 探索LOGで詰方全ての候補手の探索結果を出力します。\n"
@@ -1159,6 +1148,7 @@ void bns_plus_and               (const sdata_t   *sdata,
     //深さしきい値が0で詰んでいない場合、この変化は目的外なので探索を中断する。
     if(!ptsh){
         make_tree_update(sdata, mvlist, tn, tbase);
+        mvlist_free(list);
         return;
     }
     

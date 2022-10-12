@@ -8,15 +8,21 @@ v1.0.0は以下の特徴があります。
     ・npsで約10%の向上  
     
 [動作確認環境]  
-ハード:  
-Mac mini 　　 (M1 2020) メモリ16GB  
-OS:  
-macOS Monterey    
-将棋GUI:  
-将棋所Mac  
+ハード, メモリ, OS, USIGUI環境:  
+1, Mac mini 　　 (M1 2020) メモリ16GB  OS:  macOS Monterey   将棋GUI:  将棋所Mac
+2, MacBook Pro (INTEL 2015) メモリ8GB  
+　　　OS: macOS Monterey   将棋USIGUI:  将棋所Mac
+　　　OS: Windows10        将棋USIGUI:  将棋所 
+
+[バイナリ]  
+WIN32           Windows(32bit)用　メモリ設定値　最大2GB
+WIN64           Windows(64bit)用  メモリ設定値　最大64GB
+MacOS_UNIV      INTEL,apple-silicon両用のユニバーサルバイナリ。
+MacOS_ARM       apple-silicon専用バイナリ。高速です。
 
 [インストール]
-- プログラムの実行が可能なフォルダ（Applications等)にバイナリをコピーします。  
+- プログラムの実行が可能なフォルダ（Applications等)にバイナリをコピーします。 
+- shtsume_ja.txtをバイナリと同じフォルダにコピーしておきます。 
 - ダウンロードによるOSのセキュリティ警告が出る場合は一度手動で開き、解除しておきます。  
 
 [使用方法]
@@ -40,8 +46,10 @@ macOS Monterey
     -h --help     : プログラムの使用法を表示して終了します。  
     -v --version  : プログラムのバージョンを表示して終了します。  
     
-    -k --kifu     : レベル毎の棋譜を出力します。(出力先：ホームディレクトリ)  
-    -g --log      : 探索LOGを出力します。     (出力先：ホームディレクトリ)  
+    -k --kifu     : レベル毎の棋譜(.kif)を出力します。(出力先：ホームディレクトリ)  
+    -g --log      : 探索LOGを出力します。     (出力先：ホームディレクトリ)
+    　　注）k,gオプションでの出力先はホームディレクトリ（Mac）またはインストール先(Win)
+    -d --display  : 探索後、手順確認モードに移行します。 
     -y --yomi     : 探索中、読み筋表示。  
     -n --minpn    : 末端探索証明数を指定します。デフォルト値 4 (min 3 max 6)  
     -m --memory   : 局面表で使用するメモリーサイズを指定します。デフォルト値 256(MByte)  

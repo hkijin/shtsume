@@ -1602,8 +1602,7 @@ void fumei_update         (const sdata_t   *sdata,
                 while(tlist){
                     //証明数は全てupdate対象以上とみなす。
                     if(mvlist->tdata.pn>tlist->tdata.pn)
-                        tlist->tdata.pn =
-                        MAX(mvlist->tdata.pn, tlist->tdata.pn);
+                        tlist->tdata.pn = mvlist->tdata.pn;
                     tlist = tlist->next;
                 }
             }
@@ -1629,8 +1628,7 @@ void fumei_update         (const sdata_t   *sdata,
                 while(tlist){
                     //証明数は全てupdate対象以下とみなす。
                     if(mvlist->tdata.pn<tlist->tdata.pn)
-                        tlist->tdata.pn =
-                        MIN(mvlist->tdata.pn, tlist->tdata.pn);
+                        tlist->tdata.pn = mvlist->tdata.pn;
                     tlist = tlist->next;
                 }
             }
