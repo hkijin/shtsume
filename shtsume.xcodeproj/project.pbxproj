@@ -36,6 +36,8 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		68103F6928F6BABC00050DB6 /* sample.bat */ = {isa = PBXFileReference; lastKnownFileType = text; path = sample.bat; sourceTree = "<group>"; };
+		68103F6A28F6BAD800050DB6 /* sample.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = sample.sh; sourceTree = "<group>"; };
 		68138C58289F692D007BA6EB /* ndtools.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = ndtools.c; sourceTree = "<group>"; };
 		6844E8B328F2A3B6000839ED /* Makefile */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.make; path = Makefile; sourceTree = "<group>"; };
 		687F4BDD287193DE008FBBB7 /* shtsume_ja.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = shtsume_ja.txt; sourceTree = "<group>"; };
@@ -85,6 +87,8 @@
 		6896341728629EF7007EA17E /* Docs */ = {
 			isa = PBXGroup;
 			children = (
+				68103F6A28F6BAD800050DB6 /* sample.sh */,
+				68103F6928F6BABC00050DB6 /* sample.bat */,
 				687F4BDD287193DE008FBBB7 /* shtsume_ja.txt */,
 				6896341828629F60007EA17E /* release_note.md */,
 			);
