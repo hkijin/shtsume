@@ -237,7 +237,9 @@ void tsume_debug                (const sdata_t   *sdata,
                                  tbase_t         *tbase)
 {
     st_disp_flag = true;
+    printf("=================詰手順確認モード開始=================\n");
     tsume_debug_or(sdata, tbase);
+    printf("-----------------詰手順確認モード終了-----------------\n");
     return;
 }
 
@@ -676,7 +678,30 @@ void tsume_debug_or              (const sdata_t   *sdata,
     mvlist_t *list = generate_check(sdata, tbase);
     g_tsearchinf.nodes++;
     if(!list){
-        printf("にて不詰\n");
+        printf("--------------------------------------------------\n");
+        SDATA_PRINTF(sdata, PR_BOARD);
+        printf("%u手目\n", S_COUNT(sdata)+1);
+        printf("ID:合法手(pn,dn,詰手数,駒余り,枚数)\n"
+               "-------------------------------\n");
+        printf("にて不詰 (b(back)/q(quit)\n");
+        //戻りor終了選択
+        char str[16];
+        memset(str, 0, sizeof(str));
+        while(true){
+            fgets(str, sizeof(str)-1, stdin);
+            if(mblen(str, 16)!=1){
+                printf("文字コードが間違っています。再度入力してください\n");
+                memset(str, 0, sizeof(str));
+            }
+            else if(!memcmp(str, "b", sizeof(char)*1)) break;
+            else if(!memcmp(str, "q", sizeof(char)*1)){
+                st_disp_flag = false;
+                break;
+            }
+            else{
+                printf("入力が間違っています。再度入力してください\n");
+            }
+        }
         return;
     }
     //局面表を参照
@@ -700,11 +725,12 @@ void tsume_debug_or              (const sdata_t   *sdata,
     //並べ替え
     list = sdata_mvlist_sort(list, sdata, proof_number_comp);
     int num;
-    char str[8];
+    char str[16];
     unsigned int select;
     while(true){
+        printf("--------------------------------------------------\n");
         //局面表示
-        SDATA_PRINTF(sdata, PR_BOARD|PR_ZKEY);
+        SDATA_PRINTF(sdata, PR_BOARD);
         //着手表示
         printf("%u手目\n", S_COUNT(sdata)+1);
         printf("ID:合法手(pn,dn,詰手数,駒余り,枚数)\n"
@@ -724,13 +750,17 @@ void tsume_debug_or              (const sdata_t   *sdata,
         }
         //着手＆終了選択
         printf("着手を選択してください（数字/b(back)/q(quit))\n");
-        fgets(str, 7, stdin);
-        if(!memcmp(str, "b", sizeof(char)*1)) break;
+        fgets(str, sizeof(str)-1, stdin);
+        if(mblen(str, 16)!=1){
+            printf("文字コードが間違っています。再度入力してください\n");
+            memset(str, 0, sizeof(str));
+        }
+        else if(!memcmp(str, "b", sizeof(char)*1)) break;
         else if(!memcmp(str, "q", sizeof(char)*1)){
             st_disp_flag = false;
             break;
         }
-        else if(str[0]<48 || str[0]>57){
+        else if(str[0]<'0' || str[0]>'9'){
             printf("入力が間違っています。再度入力してください\n");
         }
         else{
@@ -758,11 +788,30 @@ void tsume_debug_and             (const sdata_t   *sdata,
     g_tsearchinf.nodes++;
     if(!list){
         unsigned int cnt = S_COUNT(sdata);
-        SDATA_PRINTF(sdata, PR_BOARD|PR_ZKEY);
-        printf("まで%u手詰め\n", cnt);
-        //リターンが押されたら戻る
-        int c;
-        while((c=getchar())!=EOF)
+        printf("--------------------------------------------------\n");
+        SDATA_PRINTF(sdata, PR_BOARD);
+        printf("%u手目\n", S_COUNT(sdata)+1);
+        printf("ID:合法手(pn,dn,詰手数,駒余り,枚数)\n"
+               "-------------------------------\n");
+        printf("まで%u手詰め (b(back)/q(quit))\n", cnt);
+        //戻りor終了選択
+        char str[16];
+        memset(str, 0, sizeof(str));
+        while(true){
+            fgets(str, sizeof(str)-1, stdin);
+            if(mblen(str, 16)!=1){
+                printf("文字コードが間違っています。再度入力してください\n");
+                memset(str, 0, sizeof(str));
+            }
+            else if(!memcmp(str, "b", sizeof(char)*1)) break;
+            else if(!memcmp(str, "q", sizeof(char)*1)){
+                st_disp_flag = false;
+                break;
+            }
+            else{
+                printf("入力が間違っています。再度入力してください\n");
+            }
+        }
         return;
     }
     //局面表を参照
@@ -785,30 +834,17 @@ void tsume_debug_and             (const sdata_t   *sdata,
     //並べ替え
     list = sdata_mvlist_sort(list, sdata, disproof_number_comp);
     //着手の表示
-    printf("%u手目\n", S_COUNT(sdata)+1);
-    printf("ID:合法手(pn,dn,詰手数,駒余り,枚数)\n"
-           "-------------------------------\n");
-    tmp = list;
-    int num = 0;
-    while (tmp) {
-        printf("%2d: ", num); num++;
-        MOVE_PRINTF(tmp->mlist->move, sdata);
-        printf("(%u %u %u %u %u) \n",
-               tmp->tdata.pn,
-               tmp->tdata.dn,
-               tmp->tdata.sh,
-               tmp->inc,
-               tmp->nouse2);
-        tmp = tmp->next;
-    }
-    
-    char str[8];
+    int num;
+    char str[16];
     unsigned int select;
     while(true){
+        printf("--------------------------------------------------\n");
         //局面の表示
-        SDATA_PRINTF(sdata, PR_BOARD|PR_ZKEY);
+        SDATA_PRINTF(sdata, PR_BOARD);
         //着手表示
         printf("%u手目\n", S_COUNT(sdata)+1);
+        printf("ID:合法手(pn,dn,詰手数,駒余り,枚数)\n"
+               "-------------------------------\n");
         tmp = list;
         num = 0;
         while (tmp) {
@@ -824,13 +860,17 @@ void tsume_debug_and             (const sdata_t   *sdata,
         }
         //着手&終了選択
         printf("着手を選択してください（数字/b(back)/q(quit))\n");
-        fgets(str, 7, stdin);
-        if(!memcmp(str, "b", sizeof(char)*1)) break;
+        fgets(str, sizeof(str)-1, stdin);
+        if(mblen(str, 16)!=1){
+            printf("文字コードが間違っています。再度入力してください\n");
+            memset(str, 0, sizeof(str));
+        }
+        else if(!memcmp(str, "b", sizeof(char)*1)) break;
         else if(!memcmp(str, "q", sizeof(char)*1)){
             st_disp_flag = false;
             break;
         }
-        else if(str[0]<48 || str[0]>57){
+        else if(str[0]<'0' || str[0]>'9'){
             printf("入力が間違っています。再度入力してください\n");
         }
         else{
