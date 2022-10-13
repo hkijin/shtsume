@@ -749,13 +749,16 @@ void tsume_debug_or              (const sdata_t   *sdata,
             tmp = tmp->next;
         }
         //着手＆終了選択
-        printf("着手を選択してください（数字/b(back)/q(quit))\n");
+        if(S_COUNT(sdata))
+            printf("着手を選択してください（数字/b(back)/q(quit))\n");
+        else
+            printf("着手を選択してください（数字/q(quit))\n");
         fgets(str, sizeof(str)-1, stdin);
         if(mblen(str, 16)!=1){
             printf("文字コードが間違っています。再度入力してください\n");
             memset(str, 0, sizeof(str));
         }
-        else if(!memcmp(str, "b", sizeof(char)*1)) break;
+        else if(S_COUNT(sdata) && !memcmp(str, "b", sizeof(char)*1)) break;
         else if(!memcmp(str, "q", sizeof(char)*1)){
             st_disp_flag = false;
             break;
