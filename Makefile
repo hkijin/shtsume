@@ -3,20 +3,19 @@
 # このMakefileは以下の環境でのコンパイル用のMakefileです。
 # 動作確認環境
 # OS: Windows10 home edition
-# minGW(32bit:gcc)+pthread extention
-# またはminGW(64bit:gcc)
+# mingw w64(64bit:gcc)
 ########################################################################
 
 # Compiler settings - Can be customized.
 CC = gcc
-CXXFLAGS = -std=c11 -Wall -O2
+CXXFLAGS = -std=c11 -Wall -O3
 LDFLAGS = -lpthread
 
 # Makefile settings - Can be customized.
 APPNAME = shtsume
 EXT = .c
 SRCDIR = ./source
-OBJDIR = ./objects
+OBJDIR = .
 
 ############## Do not change anything from here downwards! #############
 SRC = $(wildcard $(SRCDIR)/*$(EXT))

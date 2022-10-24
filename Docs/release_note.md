@@ -9,16 +9,16 @@ v1.0.0は以下の特徴があります。
     
 [動作確認環境]  
 ハード, メモリ, OS, USIGUI環境:  
-1, Mac mini 　　 (M1 2020) メモリ16GB  OS:  macOS Monterey   将棋GUI:  将棋所Mac
+1, Mac mini 　　 (M1 2020) メモリ16GB  
+     OS:  macOS Monterey   将棋GUI:  将棋所Mac  
 2, MacBook Pro (INTEL 2015) メモリ8GB  
-　　　OS: macOS Monterey   将棋USIGUI:  将棋所Mac
-　　　OS: Windows10        将棋USIGUI:  将棋所 
+     OS: macOS Monterey   将棋USIGUI:  将棋所Mac  
+     OS: Windows10        将棋USIGUI:  将棋所  
 
 [バイナリ]  
-WIN32           Windows(32bit)用　メモリ設定値　最大2GB
-WIN64           Windows(64bit)用  メモリ設定値　最大64GB
-MacOS_UNIV      INTEL,apple-silicon両用のユニバーサルバイナリ。
-MacOS_ARM       apple-silicon専用バイナリ。高速です。
+MacOS_UNIV      INTEL,apple-silicon両用のユニバーサルバイナリ。  
+MacOS_ARM       apple-silicon専用バイナリ。高速です。  
+WIN64           Windows(64bit)用  メモリ設定値　最大64GB  
 
 [インストール]
 - プログラムの実行が可能なフォルダ（Applications等)にバイナリをコピーします。 
