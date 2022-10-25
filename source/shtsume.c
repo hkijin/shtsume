@@ -225,7 +225,7 @@ void bn_search                  (const sdata_t   *sdata,
         char prefix[16];
         memset(prefix, 0, sizeof(prefix));
         if(!g_commandline)
-            strncpy(prefix,"info string ", strlen("info string "));
+            strncpy(prefix,"info string", strlen("info string"));
         while(lv){
             if(g_redundant) break;
             st_add_thpn++;
