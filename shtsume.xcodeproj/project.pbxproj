@@ -77,13 +77,6 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		6844E8B428F2A4D5000839ED /* objects */ = {
-			isa = PBXGroup;
-			children = (
-			);
-			path = objects;
-			sourceTree = "<group>";
-		};
 		6896341728629EF7007EA17E /* Docs */ = {
 			isa = PBXGroup;
 			children = (
@@ -100,7 +93,6 @@
 			children = (
 				6844E8B328F2A3B6000839ED /* Makefile */,
 				689734F32860869C00665FC6 /* source */,
-				6844E8B428F2A4D5000839ED /* objects */,
 				6896341728629EF7007EA17E /* Docs */,
 				689734F2286077DF00665FC6 /* .gitignore */,
 				689734EE28605F7300665FC6 /* LICENCE */,
