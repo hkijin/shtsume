@@ -12,7 +12,7 @@ shtsume(**sh**ell **tsume**shogi solver)は以下の特徴を持つ詰将棋解�
 ##  Requirement  
 対応OS  
 ・macOS (INTEL, M1)  
-
+・Windows
 ##  Goal
 shtsumeの開発は以下を目標としています。  
 ・高効率　　少ない探索量で解を導きます。    
