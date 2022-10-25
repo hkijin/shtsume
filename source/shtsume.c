@@ -229,9 +229,9 @@ void bn_search                  (const sdata_t   *sdata,
         while(lv){
             if(g_redundant) break;
             st_add_thpn++;
-            sprintf(g_str, "%sLV%d %u手詰 "
-                           "探索局面数 %llu "
-                           "余詰探索 root_pn = %d",
+            sprintf(g_str, "%sLV%d %usteps "
+                           "nodes %llu "
+                           "root_pn = %d",
                     prefix,
                     g_search_level-lv,
                     g_tsearchinf.score_mate,
