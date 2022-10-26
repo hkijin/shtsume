@@ -62,7 +62,7 @@
 		689734E128605E9500665FC6 /* ndtools.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ndtools.h; sourceTree = "<group>"; };
 		689734E228605E9500665FC6 /* nusi.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = nusi.c; sourceTree = "<group>"; };
 		689734ED28605F2400665FC6 /* README.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
-		689734EE28605F7300665FC6 /* LICENCE */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = LICENCE; sourceTree = "<group>"; };
+		689734EE28605F7300665FC6 /* LICENSE */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = LICENSE; sourceTree = "<group>"; };
 		689734F2286077DF00665FC6 /* .gitignore */ = {isa = PBXFileReference; lastKnownFileType = text; path = .gitignore; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -95,7 +95,7 @@
 				689734F32860869C00665FC6 /* source */,
 				6896341728629EF7007EA17E /* Docs */,
 				689734F2286077DF00665FC6 /* .gitignore */,
-				689734EE28605F7300665FC6 /* LICENCE */,
+				689734EE28605F7300665FC6 /* LICENSE */,
 				689734ED28605F2400665FC6 /* README.md */,
 				689734B728605D6800665FC6 /* Products */,
 			);
