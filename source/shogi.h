@@ -486,7 +486,7 @@ extern zkey_t g_zkey_seed[N_ZOBRIST_SEED];
 void create_seed(void);
 
 //手番情報
-typedef uint8_t    turn_t;
+typedef uint8_t  turn_t;
 #define TURN_FLIP(tn)      ((tn)?(SENTE):(GOTE))
 #define SELF_KOMA(tn,k)    ((tn) ? GOTE_KOMA(k):SENTE_KOMA(k))
 #define ENEMY_KOMA(tn,k)   ((tn) ? SENTE_KOMA(k):GOTE_KOMA(k))
