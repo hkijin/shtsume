@@ -16,9 +16,10 @@ shtsume v1.0.0は以下の特徴があります。
 * macOS_x86_64 　　INTELチップ用 
 * Win64　　　　　　　Windows+minGW w64用
 
-**[インストール]**  
-  
-
+**[インストールおよび使用法]**  
+shtsumeのインストールおよび使用法については
+[shtsume_wiki](https://github.com/hkijin/shtsume/wiki)
+を参照してください。
     
 #  **shtsume  v0.2.0-beta**
 
