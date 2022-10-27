@@ -2,6 +2,7 @@
 # Makefile for shtsume
 # このMakefileは以下の環境でのコンパイル用のMakefileです。
 # 動作確認環境
+# OS: macOS
 # OS: Windows10 home edition
 # mingw w64(64bit:gcc)
 ########################################################################

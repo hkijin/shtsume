@@ -513,10 +513,7 @@ bool hs_tbase_lookup            (const sdata_t *sdata,
     if(!g_gc_num && res>=0) return res;
     else if(!g_gc_num)      return false;
     else if(res>=0)         return res;
-    /*
-       gcがなされている場合、無駄合判定に使用された詰みデータが消去されている場合があるので
-       確認しておく。
-     */
+    //gcがなされている場合、詰みデータが消去されている場合があるので確認しておく。
     //着手生成
     mvlist_t *list = generate_evasion(sdata, tbase);
     if(!list) return true;
