@@ -7,13 +7,12 @@ shtsume(**sh**ell **tsume**shogi solver)は以下の特徴を持つ詰将棋解�
 ・探索LOGにより詰め手順中の玉方変化時の詰手数、駒余りの有無を確認することができます。
 
 詰将棋作品の鑑賞や新作の検証に利用できるToolになれば幸いです。   
-インストールおよび使用法は[wiki](https://github.com/hkijin/shtsume/)を参照してください。  
+インストールおよび使用法は[wiki](https://github.com/hkijin/shtsume/wiki)を参照してください。  
 
 ##  Requirement  
-対応OS  
+動作確認OS  
 * macOS (INTEL, M1) 
 * Windows(+minGW w64 環境）  
-
 
 ##  Goal
 shtsumeの開発は以下を目標としています。  
@@ -23,8 +22,6 @@ shtsumeの開発は以下を目標としています。
 ・高速　　　プログラムの高速化を図っていく。 
 
 ##  Achievement 
-v0.2.0-beta  
-メモリ６GBで超難解作を含む多くの作品で作意解導出を確認。
-
-
+v1.0.0  
+ファーストリリース　　
 
