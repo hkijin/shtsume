@@ -259,7 +259,8 @@ void bn_search                  (const sdata_t   *sdata,
      */
     if(!tdata->pn){
         if(g_redundant){
-            sprintf(g_str,"info string 駒余り詰め検出。(出力は参考手順）\n");
+            sprintf(g_str,"info string Checkmate with hand! "
+                    "(Output is only a sample!)\n");
             record_log(g_str); puts(g_str);
         }
         tsearchpv_update(sdata, tbase);

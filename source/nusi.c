@@ -383,7 +383,7 @@ void res_gomate_cmd       (const char *buf)
         puts(g_str);
     }
     else                {
-        sprintf(g_str,"info string 王手千日手.");
+        sprintf(g_str,"info string Perpetual check!.\n");
         puts(g_str);
         record_log(g_str);
 #if DEBUG
