@@ -215,8 +215,13 @@ void tsume_print                (const sdata_t   *sdata,
                                  tbase_t         *tbase,
                                  unsigned int      flag)
 {
-    printf("詰手順　\n"
-           "手数:　着手（ PN値 残り手数 駒余り 余り駒数 )\n");
+    if(g_redundant){
+        printf("参考詰手順　\n"
+               "手数:　着手(先頭が選択着手） \n");
+    } else{
+        printf("詰手順　\n"
+               "手数:　着手（ PN値 残り手数 駒余り 余り駒数 )\n");
+    }
     _tsume_print_or(sdata, tbase, flag);
     return;
 }
@@ -227,8 +232,15 @@ int tsume_fprint                (FILE            *stream,
                                  unsigned int     flag )
 {
     int num = 0;
-    num += fprintf(stream, "詰手順　\n"
-                           "手数:　着手（ PN値 残り手数 駒余り 余り駒数 )\n");
+    
+    if(g_redundant){
+        num += fprintf(stream, "参考詰手順　\n"
+                               "手数:　着手(先頭が選択着手） \n");
+    } else{
+        num += fprintf(stream, "詰手順　\n"
+                               "手数:　着手（ PN値 残り手数 駒余り 余り駒数 )\n");
+    }
+    
     num += _tsume_fprint_or(stream, sdata, tbase, flag);
     return num;
 }
@@ -417,17 +429,20 @@ void _tsume_print_or             (const sdata_t  *sdata,
         memcpy(&sbuf, sdata, sizeof(sdata_t));
         sdata_key_forward(&sbuf, tmp->mlist->move);
         make_tree_lookup(&sbuf, tmp, S_TURN(sdata), tbase);
+        if(g_redundant){
+            if(mtt_lookup(&sbuf, S_TURN(sdata), g_mtt))
+                tmp->cu = 1;
+        }
         tmp->length =
         g_distance[ENEMY_OU(sdata)][NEW_POS(tmp->mlist->move)];
-        
         if(tmp->length > 1    &&
            tmp->tdata.pn == 1 &&
            tmp->tdata.dn == 1 &&
            tmp->tdata.sh == 0 &&
            MV_DROP(tmp->mlist->move)) tmp->tdata.pn = tmp->length;
-        
         tmp = tmp->next;
     }
+    
     //並べ替え
     list = sdata_mvlist_sort(list, sdata, proof_number_comp);
     //着手を表示
@@ -440,14 +455,23 @@ void _tsume_print_or             (const sdata_t  *sdata,
             if(tmp->tdata.pn) break;
         }
         MOVE_PRINTF(tmp->mlist->move, sdata);
-        printf("(%u %u %u %u) ",
-               tmp->tdata.pn,
-               tmp->tdata.sh,
-               tmp->inc,
-               tmp->nouse2);
+        if(!g_redundant){
+            printf("(%u %u %u %u) ",
+                   tmp->tdata.pn,
+                   tmp->tdata.sh,
+                   tmp->inc,
+                   tmp->nouse2);
+        }
         tmp = tmp->next;
     }
     printf("\n");
+    
+    //エラーチェック
+    if(list->cu){
+        g_error = true;
+        sprintf(g_error_location, "%s line %d", __FILE__, __LINE__);
+        return;
+    }
     //着手を進める（再帰呼び出し)
     if(list && list->mlist){
         memcpy(&sbuf, sdata, sizeof(sdata_t));
@@ -493,6 +517,7 @@ void _tsume_print_and           (const sdata_t  *sdata,
     }
     //並べ替え
     list = sdata_mvlist_sort(list, sdata, disproof_number_comp);
+    
     //GCによるデータ消失対策
     tdata_t thdata = {INFINATE-1, INFINATE-1, TSUME_MAX_DEPTH};
     while (list->tdata.pn) {
@@ -501,26 +526,35 @@ void _tsume_print_and           (const sdata_t  *sdata,
         bns_or(&sbuf, &thdata, list, tbase);
         list = sdata_mvlist_sort(list, sdata, disproof_number_comp);
     }
+    mcard_t *current = MAKE_TREE_SET_CURRENT(sdata, tn, tbase);
+    if(g_redundant)mtt_setup(sdata, tn, g_mtt);
+    
     //着手を表示
     if(flag & TP_ZKEY) printf("%u:0X%llX :", S_COUNT(sdata)+1, S_ZKEY(sdata));
     else               printf("%u:", S_COUNT(sdata)+1);
     tmp = list;
     while (tmp) {
         MOVE_PRINTF(tmp->mlist->move, sdata);
-        printf("(%u %u %u %u) ",
-               tmp->tdata.pn,
-               tmp->tdata.sh,
-               tmp->inc,
-               tmp->nouse2);
+        
+        if(!g_redundant){
+            printf("(%u %u %u %u) ",
+                   tmp->tdata.pn,
+                   tmp->tdata.sh,
+                   tmp->inc,
+                   tmp->nouse2);
+        }
         tmp = tmp->next;
     }
     printf("\n");
+    
     //着手を進める。（再帰呼び出し）
     if(list && list->mlist){
         memcpy(&sbuf, sdata, sizeof(sdata_t));
         sdata_move_forward(&sbuf, list->mlist->move);
         _tsume_print_or(&sbuf, tbase, flag);
     }
+    if(current) current->current = 0;
+    if(g_redundant)mtt_reset(sdata, tn, g_mtt);
     mvlist_free(list);
     return;
 }
@@ -548,15 +582,17 @@ int _tsume_fprint_or            (FILE           *stream,
         memcpy(&sbuf, sdata, sizeof(sdata_t));
         sdata_key_forward(&sbuf, tmp->mlist->move);
         make_tree_lookup(&sbuf, tmp, S_TURN(sdata), tbase);
+        if(g_redundant){
+            if(mtt_lookup(&sbuf, S_TURN(sdata), g_mtt))
+                tmp->cu = 1;
+        }
         tmp->length =
         g_distance[ENEMY_OU(sdata)][NEW_POS(tmp->mlist->move)];
-        
         if(tmp->length > 1    &&
            tmp->tdata.pn == 1 &&
            tmp->tdata.dn == 1 &&
            tmp->tdata.sh == 0 &&
            MV_DROP(tmp->mlist->move)) tmp->tdata.pn = tmp->length;
-        
         tmp = tmp->next;
     }
     
@@ -577,14 +613,24 @@ int _tsume_fprint_or            (FILE           *stream,
             if(tmp->tdata.pn) break;
         }
         num += move_fprintf(stream,tmp->mlist->move,sdata);
-        num += fprintf(stream, "(%u %u %u %u) ",
-                       tmp->tdata.pn,
-                       tmp->tdata.sh,
-                       tmp->inc,
-                       tmp->nouse2);
+        
+        if(!g_redundant){
+            num += fprintf(stream, "(%u %u %u %u) ",
+                           tmp->tdata.pn,
+                           tmp->tdata.sh,
+                           tmp->inc,
+                           tmp->nouse2);
+        }
         tmp = tmp->next;
     }
     num += fprintf(stream, "\n");
+    
+    //エラーチェック
+    if(list->cu){
+        g_error = true;
+        sprintf(g_error_location, "%s line %d", __FILE__, __LINE__);
+        return num;
+    }
     
     //着手を進める（再帰呼び出し)
     if(list && list->mlist){
@@ -643,6 +689,9 @@ int _tsume_fprint_and           (FILE           *stream,
         bns_or(&sbuf, &thdata, list, tbase);
         list = sdata_mvlist_sort(list, sdata, disproof_number_comp);
     }
+    mcard_t *current = MAKE_TREE_SET_CURRENT(sdata, tn, tbase);
+    if(g_redundant)mtt_setup(sdata, tn, g_mtt);
+    
     //着手を表示
     if(flag & TP_ZKEY)
         num +=
@@ -653,20 +702,25 @@ int _tsume_fprint_and           (FILE           *stream,
     tmp = list;
     while (tmp) {
         num += move_fprintf(stream,tmp->mlist->move,sdata);
-        num += fprintf(stream, "(%u %u %u %u) ",
-                       tmp->tdata.pn,
-                       tmp->tdata.sh,
-                       tmp->inc,
-                       tmp->nouse2);
+        if(!g_redundant){
+            num += fprintf(stream, "(%u %u %u %u) ",
+                           tmp->tdata.pn,
+                           tmp->tdata.sh,
+                           tmp->inc,
+                           tmp->nouse2);
+        }
         tmp = tmp->next;
     }
     num += fprintf(stream, "\n");
+    
     //着手を進める。（再帰呼び出し）
     if(list && list->mlist){
         memcpy(&sbuf, sdata, sizeof(sdata_t));
         sdata_move_forward(&sbuf, list->mlist->move);
         num += _tsume_fprint_or(stream, &sbuf, tbase, flag);
     }
+    if(current) current->current = 0;
+    if(g_redundant)mtt_reset(sdata, tn, g_mtt);
     mvlist_free(list);
     return num;
 }
@@ -677,6 +731,7 @@ void tsume_debug_or              (const sdata_t   *sdata,
     //着手生成
     mvlist_t *list = generate_check(sdata, tbase);
     g_tsearchinf.nodes++;
+    
     if(!list){
         printf("--------------------------------------------------\n");
         SDATA_PRINTF(sdata, PR_BOARD);
@@ -711,6 +766,11 @@ void tsume_debug_or              (const sdata_t   *sdata,
         memcpy(&sbuf, sdata, sizeof(sdata_t));
         sdata_key_forward(&sbuf, tmp->mlist->move);
         make_tree_lookup(&sbuf, tmp, S_TURN(sdata), tbase);
+        //千日手判定
+        if(g_redundant){
+            if(mtt_lookup(&sbuf, S_TURN(sdata), g_mtt))
+                tmp->cu = 1;
+        }
         tmp->length =
         g_distance[ENEMY_OU(sdata)][NEW_POS(tmp->mlist->move)];
         
@@ -733,19 +793,30 @@ void tsume_debug_or              (const sdata_t   *sdata,
         SDATA_PRINTF(sdata, PR_BOARD);
         //着手表示
         printf("%u手目\n", S_COUNT(sdata)+1);
-        printf("ID:合法手(pn,dn,詰手数,駒余り,枚数)\n"
-               "-------------------------------\n");
+        if(g_redundant){
+            printf("ID:合法手(pn,dn)\n"
+                   "-------------------------------\n");
+        }else{
+            printf("ID:合法手(pn,dn,詰手数,駒余り,枚数)\n"
+                   "-------------------------------\n");
+        }
         tmp = list;
         num = 0;
         while (tmp) {
             printf("%2d: ", num); num++;
             MOVE_PRINTF(tmp->mlist->move, sdata);
-            printf("(%u %u %u %u %u) \n",
-                   tmp->tdata.pn,
-                   tmp->tdata.dn,
-                   tmp->tdata.sh,
-                   tmp->inc,
-                   tmp->nouse2);
+            if(!g_redundant){
+                printf("(%u %u %u %u %u) \n",
+                       tmp->tdata.pn,
+                       tmp->tdata.dn,
+                       tmp->tdata.sh,
+                       tmp->inc,
+                       tmp->nouse2);
+            } else{
+                printf("(%u %u) \n",
+                       tmp->tdata.pn,
+                       tmp->tdata.dn);
+            }
             tmp = tmp->next;
         }
         //着手＆終了選択
@@ -767,6 +838,12 @@ void tsume_debug_or              (const sdata_t   *sdata,
             printf("入力が間違っています。再度入力してください\n");
         }
         else{
+            //エラーチェック
+            if(list->cu){
+                g_error = true;
+                sprintf(g_error_location, "%s line %d", __FILE__, __LINE__);
+                return;
+            }
             select = atoi(str);
             tmp = mvlist_nth(list, select);
             //着手を進める（再帰呼び出し)
@@ -785,7 +862,6 @@ void tsume_debug_or              (const sdata_t   *sdata,
 void tsume_debug_and             (const sdata_t   *sdata,
                                   tbase_t         *tbase)
 {
-    turn_t tn = TURN_FLIP(S_TURN(sdata));
     //着手生成
     mvlist_t *list = generate_evasion(sdata, tbase);
     g_tsearchinf.nodes++;
@@ -820,6 +896,8 @@ void tsume_debug_and             (const sdata_t   *sdata,
     //局面表を参照
     mvlist_t *tmp = list, *tmp1;
     sdata_t sbuf;
+    turn_t tn = TURN_FLIP(S_TURN(sdata));
+    
     while (tmp) {
         memcpy(&sbuf, sdata, sizeof(sdata_t));
         sdata_key_forward(&sbuf, tmp->mlist->move);
@@ -836,6 +914,18 @@ void tsume_debug_and             (const sdata_t   *sdata,
     }
     //並べ替え
     list = sdata_mvlist_sort(list, sdata, disproof_number_comp);
+    
+    //GCによるデータ消失対策
+    tdata_t thdata = {INFINATE-1, INFINATE-1, TSUME_MAX_DEPTH};
+    while (list->tdata.pn) {
+        memcpy(&sbuf, sdata, sizeof(sdata_t));
+        sdata_move_forward(&sbuf, list->mlist->move);
+        bns_or(&sbuf, &thdata, list, tbase);
+        list = sdata_mvlist_sort(list, sdata, disproof_number_comp);
+    }
+    
+    mcard_t *current = MAKE_TREE_SET_CURRENT(sdata, tn, tbase);
+    if(g_redundant)mtt_setup(sdata, tn, g_mtt);
     //着手の表示
     int num;
     char str[16];
@@ -846,19 +936,30 @@ void tsume_debug_and             (const sdata_t   *sdata,
         SDATA_PRINTF(sdata, PR_BOARD);
         //着手表示
         printf("%u手目\n", S_COUNT(sdata)+1);
-        printf("ID:合法手(pn,dn,詰手数,駒余り,枚数)\n"
-               "-------------------------------\n");
+        if(g_redundant){
+            printf("ID:合法手(pn,dn)\n"
+                   "-------------------------------\n");
+        } else{
+            printf("ID:合法手(pn,dn,詰手数,駒余り,枚数)\n"
+                   "-------------------------------\n");
+        }
         tmp = list;
         num = 0;
         while (tmp) {
             printf("%2d: ", num); num++;
             MOVE_PRINTF(tmp->mlist->move, sdata);
-            printf("(%u %u %u %u %u) \n",
-                   tmp->tdata.pn,
-                   tmp->tdata.dn,
-                   tmp->tdata.sh,
-                   tmp->inc,
-                   tmp->nouse2);
+            if(!g_redundant){
+                printf("(%u %u %u %u %u) \n",
+                       tmp->tdata.pn,
+                       tmp->tdata.dn,
+                       tmp->tdata.sh,
+                       tmp->inc,
+                       tmp->nouse2);
+            } else{
+                printf("(%u %u) \n",
+                       tmp->tdata.pn,
+                       tmp->tdata.dn);
+            }
             tmp = tmp->next;
         }
         //着手&終了選択
@@ -888,6 +989,8 @@ void tsume_debug_and             (const sdata_t   *sdata,
             }
         }
     }
+    if(current) current->current = 0;
+    if(g_redundant)mtt_reset(sdata, tn, g_mtt);
     mvlist_free(list);
     return;
 }

@@ -20,7 +20,7 @@
  * プログラムID
  */
 #define PROGRAM_NAME       "shtsume"
-#define VERSION_INFO       "v1.0.2"
+#define VERSION_INFO       "v1.0.3"
 #define AUTHOR_NAME        "hkijin"
 
 /*
@@ -132,7 +132,7 @@ struct _nsearchlog_t
     tdata_t     tdata;
 };
 
-void print_nsearch_log(nsearchlog_t *log);
+void print_nsearch_log(nsearchlog_t *log, int depth);
 
 /*
  * 詰探索情報構造体

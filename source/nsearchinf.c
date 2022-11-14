@@ -228,7 +228,7 @@ void tsearchpv_update_or        (const sdata_t *sdata,
 void tsearchpv_update_and       (const sdata_t *sdata,
                                  tbase_t       *tbase)
 {
-    turn_t tn = TURN_FLIP(S_TURN(sdata));
+    
     
     //着手生成
     mvlist_t *list = generate_evasion(sdata, tbase);
@@ -242,6 +242,8 @@ void tsearchpv_update_and       (const sdata_t *sdata,
     //局面表を参照
     mvlist_t *tmp = list, *tmp1;
     sdata_t sbuf;
+    turn_t tn = TURN_FLIP(S_TURN(sdata));
+    
     while (tmp) {
         memcpy(&sbuf, sdata, sizeof(sdata_t));
         sdata_key_forward(&sbuf, tmp->mlist->move);
@@ -259,7 +261,7 @@ void tsearchpv_update_and       (const sdata_t *sdata,
     
     //着手の並べ替え
     list = sdata_mvlist_sort(list, sdata, disproof_number_comp);
-    //GCによるデータ消失対策
+
     //GCによるデータ消失対策
     tdata_t thdata = {INFINATE-1, INFINATE-1, TSUME_MAX_DEPTH};
     while (list->tdata.pn) {
@@ -270,11 +272,14 @@ void tsearchpv_update_and       (const sdata_t *sdata,
     }
     mcard_t *current = MAKE_TREE_SET_CURRENT(sdata, tn, tbase);
     if(g_redundant)mtt_setup(sdata, tn, g_mtt);
+    
+    //着手を記録
     nsearchlog_t *log = &(g_tsearchinf.mvinf[S_COUNT(sdata)]);
     log->move = list->mlist->move;
 #if DEBUG
     move_sprintf(log->move_str,log->move,sdata);
 #endif //DEBUG
+    
     //局面を進める
     if(list && list->mlist){
         memcpy(&sbuf, sdata, sizeof(sdata_t));

@@ -188,11 +188,16 @@ int main(int argc, char * const argv[]) {
         
         if(!tdata.pn){
             //詰手順、探索情報表示
-            printf("詰みました。%u手詰め\n",tdata.sh);
+            if(g_redundant){
+                printf("詰みました。駒余りのため詰手数不定。\n");
+            }
+            else{
+                printf("詰みました。%u手詰め\n",tdata.sh);
+            }
             printf("消費時間 %lu(sec)\n", (finish-start)/CLOCKS_PER_SEC);
             printf("探索局面数 %llu\n", g_tsearchinf.nodes);
             printf("詰探索木ノード数　%llu\n", g_tbase->pr_num);
-            printf("局面表登録数　%llu\n", g_tbase->num);
+            printf("局面表登録数　%llu\n\n", g_tbase->num);
             tsume_print(&g_sdata, g_tbase, TP_NONE);
             if(g_summary) create_search_report();
             if(st_display) tsume_debug(&g_sdata, g_tbase);

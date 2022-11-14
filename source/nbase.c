@@ -22,8 +22,15 @@ void print_tdata(tdata_t *tdata)
     return;
 }
 
-void print_nsearch_log(nsearchlog_t *log)
+void print_nsearch_log(nsearchlog_t *log, int depth)
 {
+    int i;
+    nsearchlog_t *tmp;
+    for(i=0; i<depth; i++){
+        tmp = log+i;
+        //idと着手を表示する。
+        printf("%d :%s\n", i, tmp->move_str);
+    }
     return;
 }
 
