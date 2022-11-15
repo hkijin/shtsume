@@ -20,7 +20,7 @@
  * プログラムID
  */
 #define PROGRAM_NAME       "shtsume"
-#define VERSION_INFO       "v1.0.0"
+#define VERSION_INFO       "v1.0.3"
 #define AUTHOR_NAME        "hkijin"
 
 /*
@@ -60,7 +60,7 @@ extern bool                 g_commandline;
 #define MAKE_TREE_PN_PLUS   1
 #define MAKE_TREE_MIN_PN    4
 #define INFINATE            SHRT_MAX
-#define PROOF_MAX           2048
+#define PROOF_MAX           256
 #define DISPROOF_MAX        2048
 #define ADD_SEARCH_SH       30
 
@@ -132,7 +132,7 @@ struct _nsearchlog_t
     tdata_t     tdata;
 };
 
-void print_nsearch_log(nsearchlog_t *log);
+void print_nsearch_log(nsearchlog_t *log, int depth);
 
 /*
  * 詰探索情報構造体

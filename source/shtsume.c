@@ -259,7 +259,14 @@ void bn_search                  (const sdata_t   *sdata,
      */
     if(!tdata->pn){
         if(g_redundant){
-            sprintf(g_str,"info string 駒余り詰め検出。(出力は参考手順）\n");
+            if(g_commandline){
+                sprintf(g_str,"Checkmate with hand!"
+                              "(Output is only a sample.)\n");
+            }
+            else{
+                sprintf(g_str,"info string Checkmate with hand! "
+                              "(Output is only a sample.)\n");
+            }
             record_log(g_str); puts(g_str);
         }
         tsearchpv_update(sdata, tbase);
@@ -623,7 +630,6 @@ void bn_search_and              (const sdata_t   *sdata,
         //証明数、反証数等の更新
         mvlist->tdata.dn = list->tdata.dn;
         mvlist->tdata.pn = proof_number(list);
-        //mvlist->spn = sub_proof_number(list);
         mvlist->tdata.sh = list->tdata.sh+1;
         
         //判定
@@ -884,9 +890,7 @@ void make_tree_and              (const sdata_t   *sdata,
     bool proof_flag = g_invalid_drops;
     g_tsearchinf.nodes++;
     
-    // 無駄合い判定の有無に関わらず証明駒
     if(!list){
-        //無駄合い判定ありの場合の証明駒　false: あり proof_flag: なし
         tsumi_proof(sdata, mvlist, proof_flag);
         make_tree_update(sdata, mvlist, tn, tbase);
         return;
