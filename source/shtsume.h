@@ -1,6 +1,6 @@
 //
 //  shtsume.h
-//  shshogi
+//  shtsume
 //
 //  Created by Hkijin on 2022/02/09.
 //

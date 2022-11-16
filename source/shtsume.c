@@ -1,6 +1,6 @@
 //
 //  shtsume.c
-//  shtsume2
+//  shtsume
 //
 //  Created by Hkijin on 2022/02/10.
 //
