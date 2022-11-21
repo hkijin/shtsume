@@ -204,6 +204,9 @@ void bn_search                  (const sdata_t   *sdata,
     g_error        = false;
     g_loop         = -1;
     
+    //その他
+    g_root_max     = 1;
+    
     char filename[256];           //棋譜ファイル名
     mvlist_t mvlist;
     memset(&mvlist, 0, sizeof(mvlist_t));
