@@ -22,7 +22,6 @@
 #define PROGRAM_NAME       "shtsume"
 #define VERSION_INFO       "v1.0.5"
 #define AUTHOR_NAME        "hkijin"
-
 /*
  * USIオプション情報
  */
