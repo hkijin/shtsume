@@ -421,6 +421,14 @@ void create_base_table   (void){
            sizeof(bitboard_t)*N_SQUARE);
     memcpy(&g_base_effect[SNG][0], &g_base_effect[SKI][0],
            sizeof(bitboard_t)*N_SQUARE);
+    //SUM
+    for(pos=0; pos<N_SQUARE; pos++){
+        effect_um_emu(&g_base_effect[SUM][pos], pos, &bb_zero);
+    }
+    //SRY
+    for(pos=0; pos<N_SQUARE; pos++){
+        effect_ry_emu(&g_base_effect[SRY][pos], pos, &bb_zero);
+    }
     //GFU
     for(pos=0; pos<N_SQUARE-9; pos++)
         if(HAS_DR_S__(pos)) BB_SET(g_base_effect[GFU][pos], pos+DR_S);
