@@ -77,7 +77,7 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		6896341728629EF7007EA17E /* Docs */ = {
+		6896341728629EF7007EA17E /* docs */ = {
 			isa = PBXGroup;
 			children = (
 				68103F6A28F6BAD800050DB6 /* sample.sh */,
@@ -85,7 +85,7 @@
 				687F4BDD287193DE008FBBB7 /* shtsume_ja.txt */,
 				6896341828629F60007EA17E /* release_note.md */,
 			);
-			path = Docs;
+			path = docs;
 			sourceTree = "<group>";
 		};
 		689734AD28605D6800665FC6 = {
@@ -93,7 +93,7 @@
 			children = (
 				6844E8B328F2A3B6000839ED /* Makefile */,
 				689734F32860869C00665FC6 /* source */,
-				6896341728629EF7007EA17E /* Docs */,
+				6896341728629EF7007EA17E /* docs */,
 				689734F2286077DF00665FC6 /* .gitignore */,
 				689734EE28605F7300665FC6 /* LICENSE */,
 				689734ED28605F2400665FC6 /* README.md */,
