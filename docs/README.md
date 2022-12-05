@@ -1,5 +1,4 @@
 # shtsume
-(**sh***ell* **tsume***shogi solver*)  
 
 ##  Featured
 shtsume(**sh**ell **tsume**shogi solver)は以下の特徴を持つ詰将棋解図プログラムです。  
