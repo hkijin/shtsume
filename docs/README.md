@@ -1,1 +1,6 @@
-# shtsume(**sh***ell* **tsume***shogi solver*)
+# shtsume
+(**sh***ell* **tsume***shogi solver*)  
+
+Benchmark
+
+
