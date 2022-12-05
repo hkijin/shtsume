@@ -1,6 +1,8 @@
 # shtsume
 (**sh***ell* **tsume***shogi solver*)  
 
-Benchmark
+Benchmark  
+高効率
+
 
 
