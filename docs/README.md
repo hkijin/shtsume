@@ -1,1 +1,1 @@
-# test site
+# shtsume(shell tsumeshogi solver)
