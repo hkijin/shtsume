@@ -1,7 +1,6 @@
 # shtsume
 ##  Featured
-shtsume(**sh**ell **tsume**shogi solver)は  
-以下の特徴を持つ詰将棋解図プログラムです。  
+shtsume(**sh**ell **tsume**shogi solver)は以下の特徴を持つ詰将棋解図プログラムです。  
 * コマンドライン（shell)上で詰将棋解図ができます。  
 * USIプロトコルに準拠し、詰将棋エンジンとして使用する事ができます。   
 * 探索レベルの設定により、特定局面の詰み/不詰判定から詰将棋作品の作意推定まで可能です。    
