@@ -1,1 +1,1 @@
-# shtsume(shell tsumeshogi solver)
+# shtsume(**sh***ell* **tsume***shogi solver*)
