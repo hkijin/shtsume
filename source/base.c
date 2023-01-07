@@ -76,8 +76,8 @@ void init_distance (void){
         for(int dest=0; dest<N_SQUARE; dest++){
             if(  DIR_N_(src,dest)||DIR_E_(src,dest)
                ||DIR_W_(src,dest)||DIR_S_(src,dest)
-               ||DIR_NE(src,dest)||DIR_NW(src,dest)
-               ||DIR_SE(src,dest)||DIR_SW(src,dest))
+               ||DIR_NEX(src,dest)||DIR_NWX(src,dest)
+               ||DIR_SEX(src,dest)||DIR_SWX(src,dest))
                 g_distance[src][dest] =
                 MAX(abs(src%9-dest%9), abs(src/9-dest/9));
             else

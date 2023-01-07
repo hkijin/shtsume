@@ -148,20 +148,20 @@ typedef enum _Board {
 #define DIR_SW(src,dest)    (g_rank[dest]-g_rank[src]>1 &&\
                              g_file[dest]-g_file[src]>1)
 
-/*
-#define DIR_NE(src,dest)    (g_rank[src]-g_rank[dest]>1 &&\
+
+#define DIR_NEX(src,dest)   (g_rank[src]-g_rank[dest]>1 &&\
                             (g_file[src]-g_file[dest])==\
                             (g_rank[src]-g_rank[dest]))
-#define DIR_NW(src,dest)    (g_rank[src]-g_rank[dest]>1 &&\
+#define DIR_NWX(src,dest)   (g_rank[src]-g_rank[dest]>1 &&\
                             (g_file[dest]-g_file[src])==\
                             (g_rank[src]-g_rank[dest]))
-#define DIR_SE(src,dest)    (g_rank[dest]-g_rank[src]>1 &&\
+#define DIR_SEX(src,dest)   (g_rank[dest]-g_rank[src]>1 &&\
                             (g_file[src]-g_file[dest])==\
                             (g_rank[dest]-g_rank[src]))
-#define DIR_SW(src,dest)    (g_rank[dest]-g_rank[src]>1 &&\
+#define DIR_SWX(src,dest)   (g_rank[dest]-g_rank[src]>1 &&\
                             (g_file[dest]-g_file[src])==\
                             (g_rank[dest]-g_rank[src]))
-*/
+
 enum {FILE1,FILE2,FILE3,FILE4,FILE5,FILE6,FILE7,FILE8,FILE9};   //縦列ID
 enum {RANK1,RANK2,RANK3,RANK4,RANK5,RANK6,RANK7,RANK8,RANK9};   //横列ID
 enum {RSLP0,RSLP1,RSLP2,RSLP3,RSLP4,RSLP5,RSLP6,RSLP7,RSLP8,
