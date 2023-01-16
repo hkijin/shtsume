@@ -929,10 +929,11 @@ int oute_check (sdata_t *sdata){
     }
     return res;
 }
+
 void create_pin(sdata_t *sdata){
-    memset(S_PINNED(sdata), 0, sizeof(char)*N_SQUARE);
     int ou = SELF_OU(sdata);
     if(ou == HAND) return;
+    memset(S_PINNED(sdata), 0, sizeof(char)*N_SQUARE);
     
     int src, pin;
     bitboard_t src_bb, k_eff, o_eff;
@@ -965,7 +966,6 @@ void create_pin(sdata_t *sdata){
                 else if(g_lslp[ou] == g_lslp[src])
                     S_PINNED(sdata)[pin] = g_lslp[ou]+17;
             }
-                //S_PINNED(sdata)[pin] = KA_FUNC(ou, src);
             BBA_XOR(src_bb, g_bpos[src]);
         }
         //SHI, SRY
@@ -983,7 +983,6 @@ void create_pin(sdata_t *sdata){
                 else if(g_file[ou] == g_file[src])
                     S_PINNED(sdata)[pin] = g_file[ou]+10;
             }
-                //S_PINNED(sdata)[pin] = HI_FUNC(ou, src);
             BBA_XOR(src_bb, g_bpos[src]);
         }
     }
@@ -1016,7 +1015,6 @@ void create_pin(sdata_t *sdata){
                 else if(g_lslp[ou] == g_lslp[src])
                     S_PINNED(sdata)[pin] = g_lslp[ou]+17;
             }
-                //S_PINNED(sdata)[pin] = KA_FUNC(ou, src);
             BBA_XOR(src_bb, g_bpos[src]);
         }
         //GHI, GRY
@@ -1034,7 +1032,6 @@ void create_pin(sdata_t *sdata){
                 else if(g_file[ou] == g_file[src])
                     S_PINNED(sdata)[pin] = g_file[ou]+10;
             }
-                //S_PINNED(sdata)[pin] = HI_FUNC(ou, src);
             BBA_XOR(src_bb, g_bpos[src]);
         }
     }
