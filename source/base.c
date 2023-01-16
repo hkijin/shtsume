@@ -17,6 +17,10 @@ static void key_captured    (komainf_t captured, sdata_t *sdata);
 static void key_mkey_sub    (komainf_t koma, sdata_t *sdata);
 static bool is_move_to_dest (int dest, const sdata_t *sdata);
 static bool is_evasion_drop (int dest, const sdata_t *sdata);
+static inline void bb_to_eff(bitboard_t       *eff,
+                             komainf_t         koma,
+                             const bitboard_t *bb_koma,
+                             const sdata_t    *sdata      );
 
 /* ----------------
  実装部
@@ -1037,6 +1041,7 @@ void create_pin(sdata_t *sdata){
     }
     return;
 }
+/*
 void create_effect (sdata_t *sdata){
     bitboard_t effect, eff;
     //先手
@@ -1068,6 +1073,41 @@ void create_effect (sdata_t *sdata){
     eff = bb_to_effect(GHI, &BB_GHI(sdata), sdata); BBA_OR(effect, eff);
     eff = bb_to_effect(GUM, &BB_GUM(sdata), sdata); BBA_OR(effect, eff);
     eff = bb_to_effect(GRY, &BB_GRY(sdata), sdata); BBA_OR(effect, eff);
+    GEFFECT(sdata) = effect;
+    return;
+}
+ */
+void create_effect (sdata_t *sdata){
+    bitboard_t effect, eff;
+    //先手
+    BB_INI(effect);
+    BBA_OR(effect, EF_SFU(sdata));
+    bb_to_eff(&effect, SKY, &BB_SKY(sdata), sdata);
+    bb_to_eff(&effect, SKE, &BB_SKE(sdata), sdata);
+    bb_to_eff(&effect, SGI, &BB_SGI(sdata), sdata);
+    bb_to_eff(&effect, SKI, &BB_STK(sdata), sdata);
+    if(S_SOU(sdata)<N_SQUARE){
+        eff = EFFECT_TBL(S_SOU(sdata), SOU, sdata); BBA_OR(effect, eff);
+    }
+    bb_to_eff(&effect, SKA, &BB_SKA(sdata), sdata);
+    bb_to_eff(&effect, SHI, &BB_SHI(sdata), sdata);
+    bb_to_eff(&effect, SUM, &BB_SUM(sdata), sdata);
+    bb_to_eff(&effect, SRY, &BB_SRY(sdata), sdata);
+    SEFFECT(sdata) = effect;
+    //後手
+    BB_INI(effect);
+    BBA_OR(effect, EF_GFU(sdata));
+    bb_to_eff(&effect, GKY, &BB_GKY(sdata), sdata);
+    bb_to_eff(&effect, GKE, &BB_GKE(sdata), sdata);
+    bb_to_eff(&effect, GGI, &BB_GGI(sdata), sdata);
+    bb_to_eff(&effect, GKI, &BB_GTK(sdata), sdata);
+    if(S_GOU(sdata)<N_SQUARE){
+        eff = EFFECT_TBL(S_GOU(sdata), GOU, sdata); BBA_OR(effect, eff);
+    }
+    bb_to_eff(&effect, GKA, &BB_GKA(sdata), sdata);
+    bb_to_eff(&effect, GHI, &BB_GHI(sdata), sdata);
+    bb_to_eff(&effect, GUM, &BB_GUM(sdata), sdata);
+    bb_to_eff(&effect, GRY, &BB_GRY(sdata), sdata); 
     GEFFECT(sdata) = effect;
     return;
 }
@@ -1258,3 +1298,17 @@ bool is_evasion_drop (int dest, const sdata_t *sdata){
     return true;
 }
 
+void bb_to_eff              (bitboard_t       *eff,
+                             komainf_t         koma,
+                             const bitboard_t *bb_koma,
+                             const sdata_t    *sdata      )
+{
+    int pos;
+    bitboard_t bb = *bb_koma;
+    while(1){
+        pos = min_pos(&bb);
+        if(pos<0) break;
+        BBA_OR(*eff, EFFECT_TBL(pos, koma, sdata));
+        BBA_XOR(bb, g_bpos[pos]);
+    }
+}
