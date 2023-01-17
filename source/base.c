@@ -274,6 +274,7 @@ void set_discpin       (const sdata_t *sdata,
                 pin = min_pos(&k_eff);
                 if(SENTE_KOMA(S_BOARD(sdata, pin))){
                     disc->pin[pin] = g_file[pin] +10;
+                    break;
                 }
             }
             BBA_XOR(src_bb, g_bpos[src]);
@@ -329,8 +330,10 @@ void set_discpin       (const sdata_t *sdata,
             BBA_AND(k_eff, o_eff);
             if(BB_TEST(k_eff)){
                 pin = min_pos(&k_eff);
-                if(SENTE_KOMA(S_BOARD(sdata, pin)))
-                disc->pin[pin] = g_file[pin] +10;
+                if(SENTE_KOMA(S_BOARD(sdata, pin))){
+                    disc->pin[pin] = g_file[pin] +10;
+                    break;
+                }
             }
             BBA_XOR(src_bb, g_bpos[src]);
         }
@@ -951,8 +954,10 @@ void create_pin(sdata_t *sdata){
             k_eff = EFFECT_TBL(src, SKY, sdata);
             BBA_AND(k_eff, o_eff);
             pin = min_pos(&k_eff);
-            if(pin>=0 && GOTE_KOMA(S_BOARD(sdata, pin)))
+            if(pin>=0 && GOTE_KOMA(S_BOARD(sdata, pin))){
                 S_PINNED(sdata)[pin] = g_file[pin]+10;
+                break;
+            }
             BBA_XOR(src_bb, g_bpos[src]);
         }
         //SKA, SUM
@@ -1000,8 +1005,10 @@ void create_pin(sdata_t *sdata){
             k_eff = EFFECT_TBL(src, GKY, sdata);
             BBA_AND(k_eff, o_eff);
             pin = min_pos(&k_eff);
-            if(pin>=0 && SENTE_KOMA(S_BOARD(sdata, pin)))
+            if(pin>=0 && SENTE_KOMA(S_BOARD(sdata, pin))){
                 S_PINNED(sdata)[pin] = g_file[pin]+10;
+                break;
+            }
             BBA_XOR(src_bb, g_bpos[src]);
         }
         //GKA, GUM
