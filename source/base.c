@@ -268,13 +268,15 @@ void set_discpin       (const sdata_t *sdata,
         while(true){
             src = max_pos(&src_bb);
             if(src<0) break;
-            k_eff = EFFECT_TBL(src, SKY, sdata);
-            BBA_AND(k_eff, o_eff);
-            if(BB_TEST(k_eff)){
-                pin = min_pos(&k_eff);
-                if(SENTE_KOMA(S_BOARD(sdata, pin))){
-                    disc->pin[pin] = g_file[pin] +10;
-                    break;
+            if(g_file[ou]==g_file[src]){
+                k_eff = EFFECT_TBL(src, SKY, sdata);
+                BBA_AND(k_eff, o_eff);
+                if(BB_TEST(k_eff)){
+                    pin = min_pos(&k_eff);
+                    if(SENTE_KOMA(S_BOARD(sdata, pin))){
+                        disc->pin[pin] = g_file[pin] +10;
+                        break;
+                    }
                 }
             }
             BBA_XOR(src_bb, g_bpos[src]);
@@ -285,15 +287,17 @@ void set_discpin       (const sdata_t *sdata,
         while(true){
             src = max_pos(&src_bb);
             if(src<0) break;
-            k_eff = EFFECT_TBL(src, SKA, sdata);
-            BBA_AND(k_eff, o_eff);
-            if(BB_TEST(k_eff)){
-                pin = min_pos(&k_eff);
-                if(SENTE_KOMA(S_BOARD(sdata, pin))){
-                    if(g_rslp[ou] == g_rslp[src])
-                        disc->pin[pin] = g_rslp[ou]+30;
-                    else if(g_lslp[ou] == g_lslp[src])
-                        disc->pin[pin] = g_lslp[ou]+17;
+            if(g_rslp[ou]==g_rslp[src]||g_lslp[ou]==g_lslp[src]){
+                k_eff = EFFECT_TBL(src, SKA, sdata);
+                BBA_AND(k_eff, o_eff);
+                if(BB_TEST(k_eff)){
+                    pin = min_pos(&k_eff);
+                    if(SENTE_KOMA(S_BOARD(sdata, pin))){
+                        if(g_rslp[ou] == g_rslp[src])
+                            disc->pin[pin] = g_rslp[ou]+30;
+                        else if(g_lslp[ou] == g_lslp[src])
+                            disc->pin[pin] = g_lslp[ou]+17;
+                    }
                 }
             }
             BBA_XOR(src_bb, g_bpos[src]);
@@ -304,15 +308,17 @@ void set_discpin       (const sdata_t *sdata,
         while(true){
             src = max_pos(&src_bb);
             if(src<0) break;
-            k_eff = EFFECT_TBL(src, SHI, sdata);
-            BBA_AND(k_eff, o_eff);
-            if(BB_TEST(k_eff)){
-                pin = min_pos(&k_eff);
-                if(SENTE_KOMA(S_BOARD(sdata, pin))){
-                    if(g_rank[ou] == g_rank[src])
-                        disc->pin[pin] = g_rank[ou]+1;
-                    else if(g_file[ou] == g_file[src])
-                        disc->pin[pin] = g_file[ou]+10;
+            if(g_rank[ou]==g_rank[src]||g_file[ou]==g_file[src]){
+                k_eff = EFFECT_TBL(src, SHI, sdata);
+                BBA_AND(k_eff, o_eff);
+                if(BB_TEST(k_eff)){
+                    pin = min_pos(&k_eff);
+                    if(SENTE_KOMA(S_BOARD(sdata, pin))){
+                        if(g_rank[ou] == g_rank[src])
+                            disc->pin[pin] = g_rank[ou]+1;
+                        else if(g_file[ou] == g_file[src])
+                            disc->pin[pin] = g_file[ou]+10;
+                    }
                 }
             }
             BBA_XOR(src_bb, g_bpos[src]);
@@ -326,13 +332,15 @@ void set_discpin       (const sdata_t *sdata,
         while(1){
             src = max_pos(&src_bb);
             if(src<0) break;
-            k_eff = EFFECT_TBL(src, SKY, sdata);
-            BBA_AND(k_eff, o_eff);
-            if(BB_TEST(k_eff)){
-                pin = min_pos(&k_eff);
-                if(SENTE_KOMA(S_BOARD(sdata, pin))){
-                    disc->pin[pin] = g_file[pin] +10;
-                    break;
+            if(g_file[ou]==g_file[src]){
+                k_eff = EFFECT_TBL(src, SKY, sdata);
+                BBA_AND(k_eff, o_eff);
+                if(BB_TEST(k_eff)){
+                    pin = min_pos(&k_eff);
+                    if(SENTE_KOMA(S_BOARD(sdata, pin))){
+                        disc->pin[pin] = g_file[pin] +10;
+                        break;
+                    }
                 }
             }
             BBA_XOR(src_bb, g_bpos[src]);
@@ -343,15 +351,17 @@ void set_discpin       (const sdata_t *sdata,
         while(1){
             src = max_pos(&src_bb);
             if(src<0) break;
-            k_eff = EFFECT_TBL(src, SKA, sdata);
-            BBA_AND(k_eff, o_eff);
-            if(BB_TEST(k_eff)){
-                pin = min_pos(&k_eff);
-                if(SENTE_KOMA(S_BOARD(sdata, pin))){
-                    if(g_rslp[ou] == g_rslp[src])
-                        disc->pin[pin] = g_rslp[ou]+30;
-                    else if(g_lslp[ou] == g_lslp[src])
-                        disc->pin[pin] = g_lslp[ou]+17;
+            if(g_rslp[ou]==g_rslp[src]||g_lslp[ou]==g_lslp[src]){
+                k_eff = EFFECT_TBL(src, SKA, sdata);
+                BBA_AND(k_eff, o_eff);
+                if(BB_TEST(k_eff)){
+                    pin = min_pos(&k_eff);
+                    if(SENTE_KOMA(S_BOARD(sdata, pin))){
+                        if(g_rslp[ou] == g_rslp[src])
+                            disc->pin[pin] = g_rslp[ou]+30;
+                        else if(g_lslp[ou] == g_lslp[src])
+                            disc->pin[pin] = g_lslp[ou]+17;
+                    }
                 }
             }
             BBA_XOR(src_bb, g_bpos[src]);
@@ -362,15 +372,17 @@ void set_discpin       (const sdata_t *sdata,
         while(1){
             src = max_pos(&src_bb);
             if(src<0) break;
-            k_eff = EFFECT_TBL(src, SHI, sdata);
-            BBA_AND(k_eff, o_eff);
-            if(BB_TEST(k_eff)){
-                pin = min_pos(&k_eff);
-                if(SENTE_KOMA(S_BOARD(sdata, pin))){
-                    if(g_rank[ou] == g_rank[src])
-                        disc->pin[pin] = g_rank[ou]+1;
-                    else if(g_file[ou] == g_file[src])
-                        disc->pin[pin] = g_file[ou]+10;
+            if(g_rank[ou]==g_rank[src]||g_file[ou]==g_file[src]){
+                k_eff = EFFECT_TBL(src, SHI, sdata);
+                BBA_AND(k_eff, o_eff);
+                if(BB_TEST(k_eff)){
+                    pin = min_pos(&k_eff);
+                    if(SENTE_KOMA(S_BOARD(sdata, pin))){
+                        if(g_rank[ou] == g_rank[src])
+                            disc->pin[pin] = g_rank[ou]+1;
+                        else if(g_file[ou] == g_file[src])
+                            disc->pin[pin] = g_file[ou]+10;
+                    }
                 }
             }
             BBA_XOR(src_bb, g_bpos[src]);
@@ -951,12 +963,15 @@ void create_pin(sdata_t *sdata){
         while(1){
             src = min_pos(&src_bb);
             if(src<0) break;
-            k_eff = EFFECT_TBL(src, SKY, sdata);
-            BBA_AND(k_eff, o_eff);
-            pin = min_pos(&k_eff);
-            if(pin>=0 && GOTE_KOMA(S_BOARD(sdata, pin))){
-                S_PINNED(sdata)[pin] = g_file[pin]+10;
-                break;
+            if(g_file[ou]==g_file[src])
+            {
+                k_eff = EFFECT_TBL(src, SKY, sdata);
+                BBA_AND(k_eff, o_eff);
+                pin = min_pos(&k_eff);
+                if(pin>=0 && GOTE_KOMA(S_BOARD(sdata, pin))){
+                    S_PINNED(sdata)[pin] = g_file[pin]+10;
+                    break;
+                }
             }
             BBA_XOR(src_bb, g_bpos[src]);
         }
@@ -966,14 +981,16 @@ void create_pin(sdata_t *sdata){
         while(1){
             src = min_pos(&src_bb);
             if(src<0) break;
-            k_eff = EFFECT_TBL(src, SKA, sdata);
-            BBA_AND(k_eff, o_eff);
-            pin = min_pos(&k_eff);
-            if(pin>=0 && GOTE_KOMA(S_BOARD(sdata, pin))){
-                if(g_rslp[ou] == g_rslp[src])
-                    S_PINNED(sdata)[pin] = g_rslp[ou]+30;
-                else if(g_lslp[ou] == g_lslp[src])
-                    S_PINNED(sdata)[pin] = g_lslp[ou]+17;
+            if(g_rslp[ou]==g_rslp[src]||g_lslp[ou]==g_lslp[src]){
+                k_eff = EFFECT_TBL(src, SKA, sdata);
+                BBA_AND(k_eff, o_eff);
+                pin = min_pos(&k_eff);
+                if(pin>=0 && GOTE_KOMA(S_BOARD(sdata, pin))){
+                    if(g_rslp[ou] == g_rslp[src])
+                        S_PINNED(sdata)[pin] = g_rslp[ou]+30;
+                    else if(g_lslp[ou] == g_lslp[src])
+                        S_PINNED(sdata)[pin] = g_lslp[ou]+17;
+                }
             }
             BBA_XOR(src_bb, g_bpos[src]);
         }
@@ -983,14 +1000,16 @@ void create_pin(sdata_t *sdata){
         while(1){
             src = min_pos(&src_bb);
             if(src<0) break;
-            k_eff = EFFECT_TBL(src, SHI, sdata);
-            BBA_AND(k_eff, o_eff);
-            pin = min_pos(&k_eff);
-            if(pin>=0 && GOTE_KOMA(S_BOARD(sdata, pin))){
-                if(g_rank[ou] == g_rank[src])
-                    S_PINNED(sdata)[pin] = g_rank[ou]+1;
-                else if(g_file[ou] == g_file[src])
-                    S_PINNED(sdata)[pin] = g_file[ou]+10;
+            if(g_rank[ou]==g_rank[src]||g_file[ou]==g_file[src]){
+                k_eff = EFFECT_TBL(src, SHI, sdata);
+                BBA_AND(k_eff, o_eff);
+                pin = min_pos(&k_eff);
+                if(pin>=0 && GOTE_KOMA(S_BOARD(sdata, pin))){
+                    if(g_rank[ou] == g_rank[src])
+                        S_PINNED(sdata)[pin] = g_rank[ou]+1;
+                    else if(g_file[ou] == g_file[src])
+                        S_PINNED(sdata)[pin] = g_file[ou]+10;
+                }
             }
             BBA_XOR(src_bb, g_bpos[src]);
         }
@@ -1002,12 +1021,14 @@ void create_pin(sdata_t *sdata){
         while(1){
             src = max_pos(&src_bb);
             if(src<0) break;
-            k_eff = EFFECT_TBL(src, GKY, sdata);
-            BBA_AND(k_eff, o_eff);
-            pin = min_pos(&k_eff);
-            if(pin>=0 && SENTE_KOMA(S_BOARD(sdata, pin))){
-                S_PINNED(sdata)[pin] = g_file[pin]+10;
-                break;
+            if(g_file[ou]==g_file[src]){
+                k_eff = EFFECT_TBL(src, GKY, sdata);
+                BBA_AND(k_eff, o_eff);
+                pin = min_pos(&k_eff);
+                if(pin>=0 && SENTE_KOMA(S_BOARD(sdata, pin))){
+                    S_PINNED(sdata)[pin] = g_file[pin]+10;
+                    break;
+                }
             }
             BBA_XOR(src_bb, g_bpos[src]);
         }
@@ -1017,14 +1038,16 @@ void create_pin(sdata_t *sdata){
         while(1){
             src = min_pos(&src_bb);
             if(src<0) break;
-            k_eff = EFFECT_TBL(src, GKA, sdata);
-            BBA_AND(k_eff, o_eff);
-            pin = min_pos(&k_eff);
-            if(pin>=0 && SENTE_KOMA(S_BOARD(sdata, pin))){
-                if(g_rslp[ou] == g_rslp[src])
-                    S_PINNED(sdata)[pin] = g_rslp[ou]+30;
-                else if(g_lslp[ou] == g_lslp[src])
-                    S_PINNED(sdata)[pin] = g_lslp[ou]+17;
+            if(g_rslp[ou]==g_rslp[src]||g_lslp[ou]==g_lslp[src]){
+                k_eff = EFFECT_TBL(src, GKA, sdata);
+                BBA_AND(k_eff, o_eff);
+                pin = min_pos(&k_eff);
+                if(pin>=0 && SENTE_KOMA(S_BOARD(sdata, pin))){
+                    if(g_rslp[ou] == g_rslp[src])
+                        S_PINNED(sdata)[pin] = g_rslp[ou]+30;
+                    else if(g_lslp[ou] == g_lslp[src])
+                        S_PINNED(sdata)[pin] = g_lslp[ou]+17;
+                }
             }
             BBA_XOR(src_bb, g_bpos[src]);
         }
@@ -1034,14 +1057,16 @@ void create_pin(sdata_t *sdata){
         while(1){
             src = min_pos(&src_bb);
             if(src<0) break;
-            k_eff = EFFECT_TBL(src, GHI, sdata);
-            BBA_AND(k_eff, o_eff);
-            pin = min_pos(&k_eff);
-            if(pin>=0 && SENTE_KOMA(S_BOARD(sdata, pin))){
-                if(g_rank[ou] == g_rank[src])
-                    S_PINNED(sdata)[pin] = g_rank[ou]+1;
-                else if(g_file[ou] == g_file[src])
-                    S_PINNED(sdata)[pin] = g_file[ou]+10;
+            if(g_rank[ou]==g_rank[src]||g_file[ou]==g_file[src]){
+                k_eff = EFFECT_TBL(src, GHI, sdata);
+                BBA_AND(k_eff, o_eff);
+                pin = min_pos(&k_eff);
+                if(pin>=0 && SENTE_KOMA(S_BOARD(sdata, pin))){
+                    if(g_rank[ou] == g_rank[src])
+                        S_PINNED(sdata)[pin] = g_rank[ou]+1;
+                    else if(g_file[ou] == g_file[src])
+                        S_PINNED(sdata)[pin] = g_file[ou]+10;
+                }
             }
             BBA_XOR(src_bb, g_bpos[src]);
         }
