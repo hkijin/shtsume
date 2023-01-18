@@ -263,12 +263,13 @@ void set_discpin       (const sdata_t *sdata,
     if(S_TURN(sdata)){
         ou = S_SOU(sdata);
         //SKY
-        o_eff = EFFECT_TBL(ou, GKY, sdata);
+        
         src_bb = BB_SKY(sdata);
         while(true){
             src = max_pos(&src_bb);
             if(src<0) break;
             if(g_file[ou]==g_file[src]){
+                o_eff = EFFECT_TBL(ou, GKY, sdata);
                 k_eff = EFFECT_TBL(src, SKY, sdata);
                 BBA_AND(k_eff, o_eff);
                 if(BB_TEST(k_eff)){
@@ -282,12 +283,12 @@ void set_discpin       (const sdata_t *sdata,
             BBA_XOR(src_bb, g_bpos[src]);
         }
         //SKA, SUM
-        o_eff = EFFECT_TBL(ou, GKA, sdata);
         src_bb = BB_SUK(sdata);
         while(true){
             src = max_pos(&src_bb);
             if(src<0) break;
             if(g_rslp[ou]==g_rslp[src]||g_lslp[ou]==g_lslp[src]){
+                o_eff = EFFECT_TBL(ou, GKA, sdata);
                 k_eff = EFFECT_TBL(src, SKA, sdata);
                 BBA_AND(k_eff, o_eff);
                 if(BB_TEST(k_eff)){
@@ -303,12 +304,12 @@ void set_discpin       (const sdata_t *sdata,
             BBA_XOR(src_bb, g_bpos[src]);
         }
         //SHI, SRY
-        o_eff = EFFECT_TBL(ou, GHI, sdata);
         src_bb = BB_SRH(sdata);
         while(true){
             src = max_pos(&src_bb);
             if(src<0) break;
             if(g_rank[ou]==g_rank[src]||g_file[ou]==g_file[src]){
+                o_eff = EFFECT_TBL(ou, GHI, sdata);
                 k_eff = EFFECT_TBL(src, SHI, sdata);
                 BBA_AND(k_eff, o_eff);
                 if(BB_TEST(k_eff)){
@@ -327,12 +328,12 @@ void set_discpin       (const sdata_t *sdata,
     else             {
         ou = S_GOU(sdata);
         //SKY
-        o_eff = EFFECT_TBL(ou, GKY, sdata);
         src_bb = BB_SKY(sdata);
         while(1){
             src = max_pos(&src_bb);
             if(src<0) break;
             if(g_file[ou]==g_file[src]){
+                o_eff = EFFECT_TBL(ou, GKY, sdata);
                 k_eff = EFFECT_TBL(src, SKY, sdata);
                 BBA_AND(k_eff, o_eff);
                 if(BB_TEST(k_eff)){
@@ -346,12 +347,12 @@ void set_discpin       (const sdata_t *sdata,
             BBA_XOR(src_bb, g_bpos[src]);
         }
         //SKA, SUM
-        o_eff = EFFECT_TBL(ou, GKA, sdata);
         src_bb = BB_SUK(sdata);
         while(1){
             src = max_pos(&src_bb);
             if(src<0) break;
             if(g_rslp[ou]==g_rslp[src]||g_lslp[ou]==g_lslp[src]){
+                o_eff = EFFECT_TBL(ou, GKA, sdata);
                 k_eff = EFFECT_TBL(src, SKA, sdata);
                 BBA_AND(k_eff, o_eff);
                 if(BB_TEST(k_eff)){
@@ -367,12 +368,12 @@ void set_discpin       (const sdata_t *sdata,
             BBA_XOR(src_bb, g_bpos[src]);
         }
         //SHI, SRY
-        o_eff = EFFECT_TBL(ou, GHI, sdata);
         src_bb = BB_SRH(sdata);
         while(1){
             src = max_pos(&src_bb);
             if(src<0) break;
             if(g_rank[ou]==g_rank[src]||g_file[ou]==g_file[src]){
+                o_eff = EFFECT_TBL(ou, GHI, sdata);
                 k_eff = EFFECT_TBL(src, SHI, sdata);
                 BBA_AND(k_eff, o_eff);
                 if(BB_TEST(k_eff)){
@@ -958,13 +959,13 @@ void create_pin(sdata_t *sdata){
     bitboard_t src_bb, k_eff, o_eff;
     if(S_TURN(sdata)){
         //SKY
-        o_eff = EFFECT_TBL(ou, GKY, sdata);
         src_bb = BB_SKY(sdata);
         while(1){
             src = min_pos(&src_bb);
             if(src<0) break;
             if(g_file[ou]==g_file[src])
             {
+                o_eff = EFFECT_TBL(ou, GKY, sdata);
                 k_eff = EFFECT_TBL(src, SKY, sdata);
                 BBA_AND(k_eff, o_eff);
                 pin = min_pos(&k_eff);
@@ -976,12 +977,12 @@ void create_pin(sdata_t *sdata){
             BBA_XOR(src_bb, g_bpos[src]);
         }
         //SKA, SUM
-        o_eff = EFFECT_TBL(ou, GKA, sdata);
         src_bb = BB_SUK(sdata);
         while(1){
             src = min_pos(&src_bb);
             if(src<0) break;
             if(g_rslp[ou]==g_rslp[src]||g_lslp[ou]==g_lslp[src]){
+                o_eff = EFFECT_TBL(ou, GKA, sdata);
                 k_eff = EFFECT_TBL(src, SKA, sdata);
                 BBA_AND(k_eff, o_eff);
                 pin = min_pos(&k_eff);
@@ -995,12 +996,12 @@ void create_pin(sdata_t *sdata){
             BBA_XOR(src_bb, g_bpos[src]);
         }
         //SHI, SRY
-        o_eff = EFFECT_TBL(ou, GHI, sdata);
         src_bb = BB_SRH(sdata);
         while(1){
             src = min_pos(&src_bb);
             if(src<0) break;
             if(g_rank[ou]==g_rank[src]||g_file[ou]==g_file[src]){
+                o_eff = EFFECT_TBL(ou, GHI, sdata);
                 k_eff = EFFECT_TBL(src, SHI, sdata);
                 BBA_AND(k_eff, o_eff);
                 pin = min_pos(&k_eff);
@@ -1016,12 +1017,12 @@ void create_pin(sdata_t *sdata){
     }
     else             {
         //GKY
-        o_eff = EFFECT_TBL(ou, SKY, sdata);
         src_bb = BB_GKY(sdata);
         while(1){
             src = max_pos(&src_bb);
             if(src<0) break;
             if(g_file[ou]==g_file[src]){
+                o_eff = EFFECT_TBL(ou, SKY, sdata);
                 k_eff = EFFECT_TBL(src, GKY, sdata);
                 BBA_AND(k_eff, o_eff);
                 pin = min_pos(&k_eff);
@@ -1033,12 +1034,13 @@ void create_pin(sdata_t *sdata){
             BBA_XOR(src_bb, g_bpos[src]);
         }
         //GKA, GUM
-        o_eff = EFFECT_TBL(ou, SKA, sdata);
+       
         src_bb = BB_GUK(sdata);
         while(1){
             src = min_pos(&src_bb);
             if(src<0) break;
             if(g_rslp[ou]==g_rslp[src]||g_lslp[ou]==g_lslp[src]){
+                o_eff = EFFECT_TBL(ou, SKA, sdata);
                 k_eff = EFFECT_TBL(src, GKA, sdata);
                 BBA_AND(k_eff, o_eff);
                 pin = min_pos(&k_eff);
@@ -1052,12 +1054,13 @@ void create_pin(sdata_t *sdata){
             BBA_XOR(src_bb, g_bpos[src]);
         }
         //GHI, GRY
-        o_eff = EFFECT_TBL(ou, SHI, sdata);
+        
         src_bb = BB_GRH(sdata);
         while(1){
             src = min_pos(&src_bb);
             if(src<0) break;
             if(g_rank[ou]==g_rank[src]||g_file[ou]==g_file[src]){
+                o_eff = EFFECT_TBL(ou, SHI, sdata);
                 k_eff = EFFECT_TBL(src, GHI, sdata);
                 BBA_AND(k_eff, o_eff);
                 pin = min_pos(&k_eff);
