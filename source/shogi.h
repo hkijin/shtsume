@@ -714,7 +714,6 @@ int  oute_check        (sdata_t *sdata);
 void create_pin        (sdata_t *sdata);
 void create_effect     (sdata_t *sdata);
 void initialize_sdata  (sdata_t *sdata, const ssdata_t *ssdata);
-void sdata_flip_turn   (sdata_t *sdata);
 bool tsumi_check       (const sdata_t *sdata);
 
 typedef struct _discpin_t discpin_t;

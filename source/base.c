@@ -1156,21 +1156,33 @@ bool is_move_to_dest (int dest, const sdata_t *sdata){
             //GFU
             effect = EFFECT_TBL(dest, SFU, sdata);
             BBA_AND(effect, BB_GFU(sdata));
+            src = min_pos(&effect);
+            if(src>=0){
+                if(!S_PINNED(sdata)[src]) return false;
+            }
+            /*
             while(1){
                 src = min_pos(&effect);
                 if(src<0) break;
                 if(!S_PINNED(sdata)[src]) return false;
                 BBA_XOR(effect, g_bpos[src]);
             }
+             */
             //GKY
             effect = EFFECT_TBL(dest, SKY, sdata);
             BBA_AND(effect, BB_GKY(sdata));
+            src = min_pos(&effect);
+            if(src>=0){
+                if(!S_PINNED(sdata)[src]) return false;
+            }
+            /*
             while(1){
                 src = min_pos(&effect);
                 if(src<0) break;
                 if(!S_PINNED(sdata)[src]) return false;
                 BBA_XOR(effect, g_bpos[src]);
             }
+             */
             //GKE
             effect = EFFECT_TBL(dest, SKE, sdata);
             BBA_AND(effect, BB_GKE(sdata));
@@ -1240,21 +1252,33 @@ bool is_move_to_dest (int dest, const sdata_t *sdata){
             //SFU
             effect = EFFECT_TBL(dest, GFU, sdata);
             BBA_AND(effect, BB_SFU(sdata));
+            src = min_pos(&effect);
+            if(src>=0){
+                if(!S_PINNED(sdata)[src]) return false;
+            }
+            /*
             while(1){
                 src = min_pos(&effect);
                 if(src<0) break;
                 if(!S_PINNED(sdata)[src]) return false;
                 BBA_XOR(effect, g_bpos[src]);
             }
+             */
             //SKY
             effect = EFFECT_TBL(dest, GKY, sdata);
             BBA_AND(effect, BB_SKY(sdata));
+            src = min_pos(&effect);
+            if(src>=0){
+                if(!S_PINNED(sdata)[src]) return false;
+            }
+            /*
             while(1){
                 src = min_pos(&effect);
                 if(src<0) break;
                 if(!S_PINNED(sdata)[src]) return false;
                 BBA_XOR(effect, g_bpos[src]);
             }
+             */
             //SKE
             effect = EFFECT_TBL(dest, GKE, sdata);
             BBA_AND(effect, BB_SKE(sdata));
