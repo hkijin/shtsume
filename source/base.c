@@ -255,8 +255,9 @@ bool fu_tsume_check    (move_t move,
 }
 
 // 空王手生成のためのpin情報セット　*discにpin情報をセット
-void set_discpin       (const sdata_t *sdata,
+int set_discpin       (const sdata_t *sdata,
                         discpin_t *disc)           {
+    int res = 0;
     memset(&(disc->pin), 0, sizeof(int)*N_SQUARE);
     int ou, src, pin;
     bitboard_t src_bb, k_eff, o_eff;
@@ -275,6 +276,7 @@ void set_discpin       (const sdata_t *sdata,
                     pin = min_pos(&k_eff);
                     if(GOTE_KOMA(S_BOARD(sdata, pin))){
                         disc->pin[pin] = g_file[pin] +10;
+                        res++;
                         break;
                     }
                 }
@@ -293,10 +295,15 @@ void set_discpin       (const sdata_t *sdata,
                 if(BB_TEST(k_eff)){
                     pin = min_pos(&k_eff);
                     if(GOTE_KOMA(S_BOARD(sdata, pin))){
-                        if(g_rslp[ou] == g_rslp[src])
+                        if(g_rslp[ou] == g_rslp[src]){
                             disc->pin[pin] = g_rslp[ou]+30;
-                        else if(g_lslp[ou] == g_lslp[src])
+                            res++;
+                        }
+                        else if(g_lslp[ou] == g_lslp[src]){
                             disc->pin[pin] = g_lslp[ou]+17;
+                            res++;
+                        }
+                            
                     }
                 }
             }
@@ -314,10 +321,15 @@ void set_discpin       (const sdata_t *sdata,
                 if(BB_TEST(k_eff)){
                     pin = min_pos(&k_eff);
                     if(GOTE_KOMA(S_BOARD(sdata, pin))){
-                        if(g_rank[ou] == g_rank[src])
+                        if(g_rank[ou] == g_rank[src]){
                             disc->pin[pin] = g_rank[ou]+1;
-                        else if(g_file[ou] == g_file[src])
+                            res++;
+                        }
+                        else if(g_file[ou] == g_file[src]){
                             disc->pin[pin] = g_file[ou]+10;
+                            res++;
+                        }
+                            
                     }
                 }
             }
@@ -339,6 +351,7 @@ void set_discpin       (const sdata_t *sdata,
                     pin = min_pos(&k_eff);
                     if(SENTE_KOMA(S_BOARD(sdata, pin))){
                         disc->pin[pin] = g_file[pin] +10;
+                        res++;
                         break;
                     }
                 }
@@ -357,10 +370,14 @@ void set_discpin       (const sdata_t *sdata,
                 if(BB_TEST(k_eff)){
                     pin = min_pos(&k_eff);
                     if(SENTE_KOMA(S_BOARD(sdata, pin))){
-                        if(g_rslp[ou] == g_rslp[src])
+                        if(g_rslp[ou] == g_rslp[src]){
                             disc->pin[pin] = g_rslp[ou]+30;
-                        else if(g_lslp[ou] == g_lslp[src])
+                            res++;
+                        }
+                        else if(g_lslp[ou] == g_lslp[src]){
                             disc->pin[pin] = g_lslp[ou]+17;
+                            res++;
+                        }
                     }
                 }
             }
@@ -378,17 +395,21 @@ void set_discpin       (const sdata_t *sdata,
                 if(BB_TEST(k_eff)){
                     pin = min_pos(&k_eff);
                     if(SENTE_KOMA(S_BOARD(sdata, pin))){
-                        if(g_rank[ou] == g_rank[src])
+                        if(g_rank[ou] == g_rank[src]){
                             disc->pin[pin] = g_rank[ou]+1;
-                        else if(g_file[ou] == g_file[src])
+                            res++;
+                        }
+                        else if(g_file[ou] == g_file[src]){
                             disc->pin[pin] = g_file[ou]+10;
+                            res++;
+                        }
                     }
                 }
             }
             BBA_XOR(src_bb, g_bpos[src]);
         }
     }
-    return;
+    return res;
 }
 
 int sdata_move_forward(sdata_t *sdata, move_t move){
