@@ -576,9 +576,9 @@ void bn_search_and              (const sdata_t   *sdata,
     tdata_t c_threshold;
     mcard_t *current;
     nsearchlog_t *log = &(g_tsearchinf.mvinf[S_COUNT(sdata)]);
+    //着手の並べ替え
+    list = sdata_mvlist_sort(list, sdata, disproof_number_comp);
     while(true){
-        //着手の並べ替え
-        list = sdata_mvlist_sort(list, sdata, disproof_number_comp);
         //龍馬による王手の場合、利きの無い中合いは他の手に縮退させる。
         if(ryuma_flag)
         {
@@ -722,15 +722,21 @@ void bn_search_and              (const sdata_t   *sdata,
         if(current) current->current = 0;
         
         //合駒着手が詰みの場合、次の詰んでいない合い駒まで展開しておく。
-        while(list->mlist->next && !list->tdata.pn){
-            tmp = mvlist_alloc();
-            tmp->mlist = list->mlist->next;
-            list->mlist->next = NULL;
-            tmp->next = list;
-            list = tmp;
-            memcpy(&sbuf, sdata, sizeof(sdata_t));
-            sdata_key_forward(&sbuf, list->mlist->move);
-            tbase_lookup(&sbuf, list, tn, tbase);
+        if(!list->tdata.pn && list->mlist->next){
+            while(list->mlist->next && !list->tdata.pn){
+                tmp = mvlist_alloc();
+                tmp->mlist = list->mlist->next;
+                list->mlist->next = NULL;
+                tmp->next = list;
+                list = tmp;
+                memcpy(&sbuf, sdata, sizeof(sdata_t));
+                sdata_key_forward(&sbuf, list->mlist->move);
+                tbase_lookup(&sbuf, list, tn, tbase);
+            }
+            list = sdata_mvlist_sort(list, sdata, disproof_number_comp);
+        }
+        else{
+            list = sdata_mvlist_reorder(list, sdata, disproof_number_comp);
         }
     }
 }
