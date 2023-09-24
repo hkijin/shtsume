@@ -76,13 +76,12 @@ mvlist_t* generate_check        (const sdata_t *sdata,
                 norm_bb,     //不成で王手になる位置のbitboard
                 prom_bb;     //成りで王手になる位置のbitboard
     //st_disc構造体に空き王手情報を記録しておく
-    int disc_pin = set_discpin(sdata, &st_disc);
+    set_discpin(sdata, &st_disc);
     //後手番
     if(S_TURN(sdata)){
         //無仕掛けチェック
         if(!BB_TEST(BB_GOC(sdata))){
-            if(!S_GMKEY(sdata).hi && !S_GMKEY(sdata).ka &&
-               !S_GMKEY(sdata).ke && !S_GMKEY(sdata).ky)
+            if(!S_GMKEY(sdata).hi && !S_GMKEY(sdata).ka && !S_GMKEY(sdata).ke && !S_GMKEY(sdata).ky)
                 return NULL;
         }
         ou = S_SOU(sdata);
@@ -164,566 +163,282 @@ mvlist_t* generate_check        (const sdata_t *sdata,
             }
         }
         //盤上駒による直接王手,空き王手
-        if(disc_pin){
-            //GFU
-            ou_bb  = EFFECT_TBL(ou, SFU, sdata);
-            pou_bb = EFFECT_TBL(ou, STO, sdata);
-            src_bb = BB_GFU(sdata);
+        //GFU
+        ou_bb  = EFFECT_TBL(ou, SFU, sdata);
+        pou_bb = EFFECT_TBL(ou, STO, sdata);
+        src_bb = BB_GFU(sdata);
+        while(1){
+            src = min_pos(&src_bb);
+            if(src<0) break;
+            dest_bb = EFFECT_TBL(src, GFU, sdata);
+            BB_ANDNOT(disc_bb, dest_bb, g_bb_pin[st_disc.pin[src]]);
+            //不成
+            BB_AND(norm_bb, dest_bb, ou_bb);
+            BBA_OR(norm_bb, disc_bb);
+            BBA_ANDNOT(norm_bb, BB_GOC(sdata));
+            BBA_AND(norm_bb, g_bb_pin[S_PINNED(sdata)[src]]);
+            dest = min_pos(&norm_bb);
+            if(dest>=0 && GFU_NORMAL(dest))
+                MVLIST_SET_NORM(mvlist, mlist, src, dest);
+            //成り
+            BB_AND(prom_bb, dest_bb, pou_bb);
+            BBA_OR(prom_bb, disc_bb);
+            BBA_ANDNOT(prom_bb, BB_GOC(sdata));
+            BBA_AND(prom_bb, g_bb_pin[S_PINNED(sdata)[src]]);
+            dest = min_pos(&prom_bb);
+            if(dest>=0 && GFU_PROMOTE(dest))
+                MVLIST_SET_PROM(mvlist, mlist, src, dest);
+            
+            BBA_XOR(src_bb, g_bpos[src]);
+        }
+        //GKY
+        ou_bb  = EFFECT_TBL(ou, SKY, sdata);
+        pou_bb = EFFECT_TBL(ou, SNY, sdata);
+        src_bb = BB_GKY(sdata);
+        while(1){
+            src = min_pos(&src_bb);
+            if(src<0) break;
+            dest_bb = EFFECT_TBL(src, GKY, sdata);
+            BB_ANDNOT(disc_bb, dest_bb, g_bb_pin[st_disc.pin[src]]);
+            //不成
+            BB_AND(norm_bb, dest_bb, ou_bb);
+            BBA_OR(norm_bb, disc_bb);
+            BBA_ANDNOT(norm_bb, BB_GOC(sdata));
+            BBA_AND(norm_bb, g_bb_pin[S_PINNED(sdata)[src]]);
             while(1){
-                src = min_pos(&src_bb);
-                if(src<0) break;
-                dest_bb = EFFECT_TBL(src, GFU, sdata);
-                BB_ANDNOT(disc_bb, dest_bb, g_bb_pin[st_disc.pin[src]]);
-                //不成
-                BB_AND(norm_bb, dest_bb, ou_bb);
-                BBA_OR(norm_bb, disc_bb);
-                BBA_ANDNOT(norm_bb, BB_GOC(sdata));
-                BBA_AND(norm_bb, g_bb_pin[S_PINNED(sdata)[src]]);
                 dest = min_pos(&norm_bb);
-                if(dest>=0 && GFU_NORMAL(dest))
+                if(dest<0) break;
+                if(GKY_NORMAL(dest))
                     MVLIST_SET_NORM(mvlist, mlist, src, dest);
-                //成り
-                BB_AND(prom_bb, dest_bb, pou_bb);
-                BBA_OR(prom_bb, disc_bb);
-                BBA_ANDNOT(prom_bb, BB_GOC(sdata));
-                BBA_AND(prom_bb, g_bb_pin[S_PINNED(sdata)[src]]);
+                BBA_XOR(norm_bb, g_bpos[dest]);
+            }
+            //成り
+            BB_AND(prom_bb, dest_bb, pou_bb);
+            BBA_OR(prom_bb, disc_bb);
+            BBA_ANDNOT(prom_bb, BB_GOC(sdata));
+            BBA_AND(prom_bb, g_bb_pin[S_PINNED(sdata)[src]]);
+            while(1){
                 dest = min_pos(&prom_bb);
-                if(dest>=0 && GFU_PROMOTE(dest))
+                if(dest<0) break;
+                if(GKY_PROMOTE(dest))
                     MVLIST_SET_PROM(mvlist, mlist, src, dest);
-                
-                BBA_XOR(src_bb, g_bpos[src]);
+                BBA_XOR(prom_bb, g_bpos[dest]);
             }
-            //GKY
-            ou_bb  = EFFECT_TBL(ou, SKY, sdata);
-            pou_bb = EFFECT_TBL(ou, SNY, sdata);
-            src_bb = BB_GKY(sdata);
+            BBA_XOR(src_bb, g_bpos[src]);
+        }
+        //GKE
+        ou_bb  = EFFECT_TBL(ou, SKE, sdata);
+        pou_bb = EFFECT_TBL(ou, SNK, sdata);
+        src_bb = BB_GKE(sdata);
+        while(1){
+            src = min_pos(&src_bb);
+            if(src<0) break;
+            dest_bb = EFFECT_TBL(src, GKE, sdata);
+            BB_ANDNOT(disc_bb, dest_bb, g_bb_pin[st_disc.pin[src]]);
+            //不成
+            BB_AND(norm_bb, dest_bb, ou_bb);
+            BBA_OR(norm_bb, disc_bb);
+            BBA_ANDNOT(norm_bb, BB_GOC(sdata));
+            BBA_AND(norm_bb, g_bb_pin[S_PINNED(sdata)[src]]);
             while(1){
-                src = min_pos(&src_bb);
-                if(src<0) break;
-                dest_bb = EFFECT_TBL(src, GKY, sdata);
-                BB_ANDNOT(disc_bb, dest_bb, g_bb_pin[st_disc.pin[src]]);
-                //不成
-                BB_AND(norm_bb, dest_bb, ou_bb);
-                BBA_OR(norm_bb, disc_bb);
-                BBA_ANDNOT(norm_bb, BB_GOC(sdata));
-                BBA_AND(norm_bb, g_bb_pin[S_PINNED(sdata)[src]]);
-                while(1){
-                    dest = min_pos(&norm_bb);
-                    if(dest<0) break;
-                    if(GKY_NORMAL(dest))
-                        MVLIST_SET_NORM(mvlist, mlist, src, dest);
-                    BBA_XOR(norm_bb, g_bpos[dest]);
-                }
-                //成り
-                BB_AND(prom_bb, dest_bb, pou_bb);
-                BBA_OR(prom_bb, disc_bb);
-                BBA_ANDNOT(prom_bb, BB_GOC(sdata));
-                BBA_AND(prom_bb, g_bb_pin[S_PINNED(sdata)[src]]);
-                while(1){
-                    dest = min_pos(&prom_bb);
-                    if(dest<0) break;
-                    if(GKY_PROMOTE(dest))
-                        MVLIST_SET_PROM(mvlist, mlist, src, dest);
-                    BBA_XOR(prom_bb, g_bpos[dest]);
-                }
-                BBA_XOR(src_bb, g_bpos[src]);
-            }
-            //GKE
-            ou_bb  = EFFECT_TBL(ou, SKE, sdata);
-            pou_bb = EFFECT_TBL(ou, SNK, sdata);
-            src_bb = BB_GKE(sdata);
-            while(1){
-                src = min_pos(&src_bb);
-                if(src<0) break;
-                dest_bb = EFFECT_TBL(src, GKE, sdata);
-                BB_ANDNOT(disc_bb, dest_bb, g_bb_pin[st_disc.pin[src]]);
-                //不成
-                BB_AND(norm_bb, dest_bb, ou_bb);
-                BBA_OR(norm_bb, disc_bb);
-                BBA_ANDNOT(norm_bb, BB_GOC(sdata));
-                BBA_AND(norm_bb, g_bb_pin[S_PINNED(sdata)[src]]);
-                while(1){
-                    dest = min_pos(&norm_bb);
-                    if(dest<0) break;
-                    if(GKE_NORMAL(dest))
-                        MVLIST_SET_NORM(mvlist, mlist, src, dest);
-                    BBA_XOR(norm_bb, g_bpos[dest]);
-                }
-                //成り
-                BB_AND(prom_bb, dest_bb, pou_bb);
-                BBA_OR(prom_bb, disc_bb);
-                BBA_ANDNOT(prom_bb, BB_GOC(sdata));
-                BBA_AND(prom_bb, g_bb_pin[S_PINNED(sdata)[src]]);
-                while(1){
-                    dest = min_pos(&prom_bb);
-                    if(dest<0) break;
-                    if(GKE_PROMOTE(dest))
-                        MVLIST_SET_PROM(mvlist, mlist, src, dest);
-                    BBA_XOR(prom_bb, g_bpos[dest]);
-                }
-                BBA_XOR(src_bb, g_bpos[src]);
-            }
-            //GGI
-            ou_bb  = EFFECT_TBL(ou, SGI, sdata);
-            pou_bb = EFFECT_TBL(ou, SNG, sdata);
-            src_bb = BB_GGI(sdata);
-            while(1){
-                src = min_pos(&src_bb);
-                if(src<0) break;
-                dest_bb = EFFECT_TBL(src, GGI, sdata);
-                BB_ANDNOT(disc_bb, dest_bb, g_bb_pin[st_disc.pin[src]]);
-                //不成
-                BB_AND(norm_bb, dest_bb, ou_bb);
-                BBA_OR(norm_bb, disc_bb);
-                BBA_ANDNOT(norm_bb, BB_GOC(sdata));
-                BBA_AND(norm_bb, g_bb_pin[S_PINNED(sdata)[src]]);
-                while(1){
-                    dest = min_pos(&norm_bb);
-                    if(dest<0) break;
+                dest = min_pos(&norm_bb);
+                if(dest<0) break;
+                if(GKE_NORMAL(dest))
                     MVLIST_SET_NORM(mvlist, mlist, src, dest);
-                    BBA_XOR(norm_bb, g_bpos[dest]);
-                }
-                //成り
-                BB_AND(prom_bb, dest_bb, pou_bb);
-                BBA_OR(prom_bb, disc_bb);
-                BBA_ANDNOT(prom_bb, BB_GOC(sdata));
-                BBA_AND(prom_bb, g_bb_pin[S_PINNED(sdata)[src]]);
-                while(1){
-                    dest = min_pos(&prom_bb);
-                    if(dest<0) break;
-                    if(GGI_PROMOTE(src, dest))
-                        MVLIST_SET_PROM(mvlist, mlist, src, dest);
-                    BBA_XOR(prom_bb, g_bpos[dest]);
-                }
-                BBA_XOR(src_bb, g_bpos[src]);
+                BBA_XOR(norm_bb, g_bpos[dest]);
             }
-            //GKI,GTO,GNY,GNK,GNG
-            ou_bb  = EFFECT_TBL(ou, SKI, sdata);
-            src_bb = BB_GTK(sdata);
+            //成り
+            BB_AND(prom_bb, dest_bb, pou_bb);
+            BBA_OR(prom_bb, disc_bb);
+            BBA_ANDNOT(prom_bb, BB_GOC(sdata));
+            BBA_AND(prom_bb, g_bb_pin[S_PINNED(sdata)[src]]);
             while(1){
-                src = min_pos(&src_bb);
-                if(src<0) break;
-                dest_bb = EFFECT_TBL(src, GKI, sdata);
-                BB_ANDNOT(disc_bb, dest_bb, g_bb_pin[st_disc.pin[src]]);
-                //不成
-                BB_AND(norm_bb, dest_bb, ou_bb);
-                BBA_OR(norm_bb, disc_bb);
-                BBA_ANDNOT(norm_bb, BB_GOC(sdata));
-                BBA_AND(norm_bb, g_bb_pin[S_PINNED(sdata)[src]]);
-                while(1){
-                    dest = min_pos(&norm_bb);
-                    if(dest<0) break;
-                    MVLIST_SET_NORM(mvlist, mlist, src, dest);
-                    BBA_XOR(norm_bb, g_bpos[dest]);
-                }
-                BBA_XOR(src_bb, g_bpos[src]);
+                dest = min_pos(&prom_bb);
+                if(dest<0) break;
+                if(GKE_PROMOTE(dest))
+                    MVLIST_SET_PROM(mvlist, mlist, src, dest);
+                BBA_XOR(prom_bb, g_bpos[dest]);
             }
-            //GOU
-            src = S_GOU(sdata);
-            if(src<N_SQUARE){
-                norm_bb = EFFECT_TBL(src, GOU, sdata);
-                BBA_ANDNOT(norm_bb, g_bb_pin[st_disc.pin[src]]);
-                BBA_ANDNOT(norm_bb, BB_GOC(sdata));
-                BBA_ANDNOT(norm_bb, SEFFECT(sdata));
-                while(1){
-                    dest = min_pos(&norm_bb);
-                    if(dest<0) break;
-                    MVLIST_SET_NORM(mvlist, mlist, src, dest);
-                    BBA_XOR(norm_bb, g_bpos[dest]);
-                }
-            }
-            //GKA
-            ou_bb  = EFFECT_TBL(ou, SKA, sdata);
-            pou_bb = EFFECT_TBL(ou, SUM, sdata);
-            src_bb = BB_GKA(sdata);
+            BBA_XOR(src_bb, g_bpos[src]);
+        }
+        //GGI
+        ou_bb  = EFFECT_TBL(ou, SGI, sdata);
+        pou_bb = EFFECT_TBL(ou, SNG, sdata);
+        src_bb = BB_GGI(sdata);
+        while(1){
+            src = min_pos(&src_bb);
+            if(src<0) break;
+            dest_bb = EFFECT_TBL(src, GGI, sdata);
+            BB_ANDNOT(disc_bb, dest_bb, g_bb_pin[st_disc.pin[src]]);
+            //不成
+            BB_AND(norm_bb, dest_bb, ou_bb);
+            BBA_OR(norm_bb, disc_bb);
+            BBA_ANDNOT(norm_bb, BB_GOC(sdata));
+            BBA_AND(norm_bb, g_bb_pin[S_PINNED(sdata)[src]]);
             while(1){
-                src = min_pos(&src_bb);
-                if(src<0) break;
-                dest_bb = EFFECT_TBL(src, GKA, sdata);
-                BB_ANDNOT(disc_bb, dest_bb, g_bb_pin[st_disc.pin[src]]);
-                //不成
-                BB_AND(norm_bb, dest_bb, ou_bb);
-                BBA_OR(norm_bb, disc_bb);
-                BBA_ANDNOT(norm_bb, BB_GOC(sdata));
-                BBA_AND(norm_bb, g_bb_pin[S_PINNED(sdata)[src]]);
-                while(1){
-                    dest = min_pos(&norm_bb);
-                    if(dest<0) break;
-                    MVLIST_SET_NORM(mvlist, mlist, src, dest);
-                    BBA_XOR(norm_bb, g_bpos[dest]);
-                }
-                //成り
-                BB_AND(prom_bb, dest_bb, pou_bb);
-                BBA_OR(prom_bb, disc_bb);
-                BBA_ANDNOT(prom_bb, BB_GOC(sdata));
-                BBA_AND(prom_bb, g_bb_pin[S_PINNED(sdata)[src]]);
-                while(1){
-                    dest = min_pos(&prom_bb);
-                    if(dest<0) break;
-                    if(GKA_PROMOTE(src, dest))
-                        MVLIST_SET_PROM(mvlist, mlist, src, dest);
-                    BBA_XOR(prom_bb, g_bpos[dest]);
-                }
-                BBA_XOR(src_bb, g_bpos[src]);
+                dest = min_pos(&norm_bb);
+                if(dest<0) break;
+                MVLIST_SET_NORM(mvlist, mlist, src, dest);
+                BBA_XOR(norm_bb, g_bpos[dest]);
             }
-            //GHI
-            ou_bb  = EFFECT_TBL(ou, SHI, sdata);
-            pou_bb = EFFECT_TBL(ou, SRY, sdata);
-            src_bb = BB_GHI(sdata);
+            //成り
+            BB_AND(prom_bb, dest_bb, pou_bb);
+            BBA_OR(prom_bb, disc_bb);
+            BBA_ANDNOT(prom_bb, BB_GOC(sdata));
+            BBA_AND(prom_bb, g_bb_pin[S_PINNED(sdata)[src]]);
             while(1){
-                src = min_pos(&src_bb);
-                if(src<0) break;
-                dest_bb = EFFECT_TBL(src, GHI, sdata);
-                BB_ANDNOT(disc_bb, dest_bb, g_bb_pin[st_disc.pin[src]]);
-                //不成
-                BB_AND(norm_bb, dest_bb, ou_bb);
-                BBA_OR(norm_bb, disc_bb);
-                BBA_ANDNOT(norm_bb, BB_GOC(sdata));
-                BBA_AND(norm_bb, g_bb_pin[S_PINNED(sdata)[src]]);
-                while(1){
-                    dest = min_pos(&norm_bb);
-                    if(dest<0) break;
-                    MVLIST_SET_NORM(mvlist, mlist, src, dest);
-                    BBA_XOR(norm_bb, g_bpos[dest]);
-                }
-                //成り
-                BB_AND(prom_bb, dest_bb, pou_bb);
-                BBA_OR(prom_bb, disc_bb);
-                BBA_ANDNOT(prom_bb, BB_GOC(sdata));
-                BBA_AND(prom_bb, g_bb_pin[S_PINNED(sdata)[src]]);
-                while(1){
-                    dest = min_pos(&prom_bb);
-                    if(dest<0) break;
-                    if(GHI_PROMOTE(src, dest))
-                        MVLIST_SET_PROM(mvlist, mlist, src, dest);
-                    BBA_XOR(prom_bb, g_bpos[dest]);
-                }
-                BBA_XOR(src_bb, g_bpos[src]);
+                dest = min_pos(&prom_bb);
+                if(dest<0) break;
+                if(GGI_PROMOTE(src, dest))
+                    MVLIST_SET_PROM(mvlist, mlist, src, dest);
+                BBA_XOR(prom_bb, g_bpos[dest]);
             }
-            //GUM
-            ou_bb  = EFFECT_TBL(ou, SUM, sdata);
-            src_bb = BB_GUM(sdata);
+            BBA_XOR(src_bb, g_bpos[src]);
+        }
+        //GKI,GTO,GNY,GNK,GNG
+        ou_bb  = EFFECT_TBL(ou, SKI, sdata);
+        src_bb = BB_GTK(sdata);
+        while(1){
+            src = min_pos(&src_bb);
+            if(src<0) break;
+            dest_bb = EFFECT_TBL(src, GKI, sdata);
+            BB_ANDNOT(disc_bb, dest_bb, g_bb_pin[st_disc.pin[src]]);
+            //不成
+            BB_AND(norm_bb, dest_bb, ou_bb);
+            BBA_OR(norm_bb, disc_bb);
+            BBA_ANDNOT(norm_bb, BB_GOC(sdata));
+            BBA_AND(norm_bb, g_bb_pin[S_PINNED(sdata)[src]]);
             while(1){
-                src = min_pos(&src_bb);
-                if(src<0) break;
-                dest_bb = EFFECT_TBL(src, GUM, sdata);
-                BB_ANDNOT(disc_bb, dest_bb, g_bb_pin[st_disc.pin[src]]);
-                //不成
-                BB_AND(norm_bb, dest_bb, ou_bb);
-                BBA_OR(norm_bb, disc_bb);
-                BBA_ANDNOT(norm_bb, BB_GOC(sdata));
-                BBA_AND(norm_bb, g_bb_pin[S_PINNED(sdata)[src]]);
-                while(1){
-                    dest = min_pos(&norm_bb);
-                    if(dest<0) break;
-                    MVLIST_SET_NORM(mvlist, mlist, src, dest);
-                    BBA_XOR(norm_bb, g_bpos[dest]);
-                }
-                BBA_XOR(src_bb, g_bpos[src]);
+                dest = min_pos(&norm_bb);
+                if(dest<0) break;
+                MVLIST_SET_NORM(mvlist, mlist, src, dest);
+                BBA_XOR(norm_bb, g_bpos[dest]);
             }
-            //GRY
-            ou_bb  = EFFECT_TBL(ou, SRY, sdata);
-            src_bb = BB_GRY(sdata);
+            BBA_XOR(src_bb, g_bpos[src]);
+        }
+        //GOU
+        src = S_GOU(sdata);
+        if(src<N_SQUARE){
+            norm_bb = EFFECT_TBL(src, GOU, sdata);
+            BBA_ANDNOT(norm_bb, g_bb_pin[st_disc.pin[src]]);
+            BBA_ANDNOT(norm_bb, BB_GOC(sdata));
+            BBA_ANDNOT(norm_bb, SEFFECT(sdata));
             while(1){
-                src = min_pos(&src_bb);
-                if(src<0) break;
-                dest_bb = EFFECT_TBL(src, GRY, sdata);
-                BB_ANDNOT(disc_bb, dest_bb, g_bb_pin[st_disc.pin[src]]);
-                //不成
-                BB_AND(norm_bb, dest_bb, ou_bb);
-                BBA_OR(norm_bb, disc_bb);
-                BBA_ANDNOT(norm_bb, BB_GOC(sdata));
-                BBA_AND(norm_bb, g_bb_pin[S_PINNED(sdata)[src]]);
-                while(1){
-                    dest = min_pos(&norm_bb);
-                    if(dest<0) break;
-                    MVLIST_SET_NORM(mvlist, mlist, src, dest);
-                    BBA_XOR(norm_bb, g_bpos[dest]);
-                }
-                BBA_XOR(src_bb, g_bpos[src]);
+                dest = min_pos(&norm_bb);
+                if(dest<0) break;
+                MVLIST_SET_NORM(mvlist, mlist, src, dest);
+                BBA_XOR(norm_bb, g_bpos[dest]);
             }
         }
-        else{
-            //GFU
-            ou_bb  = EFFECT_TBL(ou, SFU, sdata);
-            pou_bb = EFFECT_TBL(ou, STO, sdata);
-            src_bb = BB_GFU(sdata);
+        //GKA
+        ou_bb  = EFFECT_TBL(ou, SKA, sdata);
+        pou_bb = EFFECT_TBL(ou, SUM, sdata);
+        src_bb = BB_GKA(sdata);
+        while(1){
+            src = min_pos(&src_bb);
+            if(src<0) break;
+            dest_bb = EFFECT_TBL(src, GKA, sdata);
+            BB_ANDNOT(disc_bb, dest_bb, g_bb_pin[st_disc.pin[src]]);
+            //不成
+            BB_AND(norm_bb, dest_bb, ou_bb);
+            BBA_OR(norm_bb, disc_bb);
+            BBA_ANDNOT(norm_bb, BB_GOC(sdata));
+            BBA_AND(norm_bb, g_bb_pin[S_PINNED(sdata)[src]]);
             while(1){
-                src = min_pos(&src_bb);
-                if(src<0) break;
-                dest_bb = EFFECT_TBL(src, GFU, sdata);
-                //BB_ANDNOT(disc_bb, dest_bb, g_bb_pin[st_disc.pin[src]]);
-                //不成
-                BB_AND(norm_bb, dest_bb, ou_bb);
-                //BBA_OR(norm_bb, disc_bb);
-                BBA_ANDNOT(norm_bb, BB_GOC(sdata));
-                BBA_AND(norm_bb, g_bb_pin[S_PINNED(sdata)[src]]);
                 dest = min_pos(&norm_bb);
-                if(dest>=0 && GFU_NORMAL(dest))
-                    MVLIST_SET_NORM(mvlist, mlist, src, dest);
-                //成り
-                BB_AND(prom_bb, dest_bb, pou_bb);
-                //BBA_OR(prom_bb, disc_bb);
-                BBA_ANDNOT(prom_bb, BB_GOC(sdata));
-                BBA_AND(prom_bb, g_bb_pin[S_PINNED(sdata)[src]]);
+                if(dest<0) break;
+                MVLIST_SET_NORM(mvlist, mlist, src, dest);
+                BBA_XOR(norm_bb, g_bpos[dest]);
+            }
+            //成り
+            BB_AND(prom_bb, dest_bb, pou_bb);
+            BBA_OR(prom_bb, disc_bb);
+            BBA_ANDNOT(prom_bb, BB_GOC(sdata));
+            BBA_AND(prom_bb, g_bb_pin[S_PINNED(sdata)[src]]);
+            while(1){
                 dest = min_pos(&prom_bb);
-                if(dest>=0 && GFU_PROMOTE(dest))
+                if(dest<0) break;
+                if(GKA_PROMOTE(src, dest))
                     MVLIST_SET_PROM(mvlist, mlist, src, dest);
-                
-                BBA_XOR(src_bb, g_bpos[src]);
+                BBA_XOR(prom_bb, g_bpos[dest]);
             }
-            //GKY
-            ou_bb  = EFFECT_TBL(ou, SKY, sdata);
-            pou_bb = EFFECT_TBL(ou, SNY, sdata);
-            src_bb = BB_GKY(sdata);
+            BBA_XOR(src_bb, g_bpos[src]);
+        }
+        //GHI
+        ou_bb  = EFFECT_TBL(ou, SHI, sdata);
+        pou_bb = EFFECT_TBL(ou, SRY, sdata);
+        src_bb = BB_GHI(sdata);
+        while(1){
+            src = min_pos(&src_bb);
+            if(src<0) break;
+            dest_bb = EFFECT_TBL(src, GHI, sdata);
+            BB_ANDNOT(disc_bb, dest_bb, g_bb_pin[st_disc.pin[src]]);
+            //不成
+            BB_AND(norm_bb, dest_bb, ou_bb);
+            BBA_OR(norm_bb, disc_bb);
+            BBA_ANDNOT(norm_bb, BB_GOC(sdata));
+            BBA_AND(norm_bb, g_bb_pin[S_PINNED(sdata)[src]]);
             while(1){
-                src = min_pos(&src_bb);
-                if(src<0) break;
-                dest_bb = EFFECT_TBL(src, GKY, sdata);
-                //BB_ANDNOT(disc_bb, dest_bb, g_bb_pin[st_disc.pin[src]]);
-                //不成
-                BB_AND(norm_bb, dest_bb, ou_bb);
-                //BBA_OR(norm_bb, disc_bb);
-                BBA_ANDNOT(norm_bb, BB_GOC(sdata));
-                BBA_AND(norm_bb, g_bb_pin[S_PINNED(sdata)[src]]);
-                while(1){
-                    dest = min_pos(&norm_bb);
-                    if(dest<0) break;
-                    if(GKY_NORMAL(dest))
-                        MVLIST_SET_NORM(mvlist, mlist, src, dest);
-                    BBA_XOR(norm_bb, g_bpos[dest]);
-                }
-                //成り
-                BB_AND(prom_bb, dest_bb, pou_bb);
-                //BBA_OR(prom_bb, disc_bb);
-                BBA_ANDNOT(prom_bb, BB_GOC(sdata));
-                BBA_AND(prom_bb, g_bb_pin[S_PINNED(sdata)[src]]);
-                while(1){
-                    dest = min_pos(&prom_bb);
-                    if(dest<0) break;
-                    if(GKY_PROMOTE(dest))
-                        MVLIST_SET_PROM(mvlist, mlist, src, dest);
-                    BBA_XOR(prom_bb, g_bpos[dest]);
-                }
-                BBA_XOR(src_bb, g_bpos[src]);
+                dest = min_pos(&norm_bb);
+                if(dest<0) break;
+                MVLIST_SET_NORM(mvlist, mlist, src, dest);
+                BBA_XOR(norm_bb, g_bpos[dest]);
             }
-            //GKE
-            ou_bb  = EFFECT_TBL(ou, SKE, sdata);
-            pou_bb = EFFECT_TBL(ou, SNK, sdata);
-            src_bb = BB_GKE(sdata);
+            //成り
+            BB_AND(prom_bb, dest_bb, pou_bb);
+            BBA_OR(prom_bb, disc_bb);
+            BBA_ANDNOT(prom_bb, BB_GOC(sdata));
+            BBA_AND(prom_bb, g_bb_pin[S_PINNED(sdata)[src]]);
             while(1){
-                src = min_pos(&src_bb);
-                if(src<0) break;
-                dest_bb = EFFECT_TBL(src, GKE, sdata);
-                //BB_ANDNOT(disc_bb, dest_bb, g_bb_pin[st_disc.pin[src]]);
-                //不成
-                BB_AND(norm_bb, dest_bb, ou_bb);
-                //BBA_OR(norm_bb, disc_bb);
-                BBA_ANDNOT(norm_bb, BB_GOC(sdata));
-                BBA_AND(norm_bb, g_bb_pin[S_PINNED(sdata)[src]]);
-                while(1){
-                    dest = min_pos(&norm_bb);
-                    if(dest<0) break;
-                    if(GKE_NORMAL(dest))
-                        MVLIST_SET_NORM(mvlist, mlist, src, dest);
-                    BBA_XOR(norm_bb, g_bpos[dest]);
-                }
-                //成り
-                BB_AND(prom_bb, dest_bb, pou_bb);
-                //BBA_OR(prom_bb, disc_bb);
-                BBA_ANDNOT(prom_bb, BB_GOC(sdata));
-                BBA_AND(prom_bb, g_bb_pin[S_PINNED(sdata)[src]]);
-                while(1){
-                    dest = min_pos(&prom_bb);
-                    if(dest<0) break;
-                    if(GKE_PROMOTE(dest))
-                        MVLIST_SET_PROM(mvlist, mlist, src, dest);
-                    BBA_XOR(prom_bb, g_bpos[dest]);
-                }
-                BBA_XOR(src_bb, g_bpos[src]);
+                dest = min_pos(&prom_bb);
+                if(dest<0) break;
+                if(GHI_PROMOTE(src, dest))
+                    MVLIST_SET_PROM(mvlist, mlist, src, dest);
+                BBA_XOR(prom_bb, g_bpos[dest]);
             }
-            //GGI
-            ou_bb  = EFFECT_TBL(ou, SGI, sdata);
-            pou_bb = EFFECT_TBL(ou, SNG, sdata);
-            src_bb = BB_GGI(sdata);
+            BBA_XOR(src_bb, g_bpos[src]);
+        }
+        //GUM
+        ou_bb  = EFFECT_TBL(ou, SUM, sdata);
+        src_bb = BB_GUM(sdata);
+        while(1){
+            src = min_pos(&src_bb);
+            if(src<0) break;
+            dest_bb = EFFECT_TBL(src, GUM, sdata);
+            BB_ANDNOT(disc_bb, dest_bb, g_bb_pin[st_disc.pin[src]]);
+            //不成
+            BB_AND(norm_bb, dest_bb, ou_bb);
+            BBA_OR(norm_bb, disc_bb);
+            BBA_ANDNOT(norm_bb, BB_GOC(sdata));
+            BBA_AND(norm_bb, g_bb_pin[S_PINNED(sdata)[src]]);
             while(1){
-                src = min_pos(&src_bb);
-                if(src<0) break;
-                dest_bb = EFFECT_TBL(src, GGI, sdata);
-                //BB_ANDNOT(disc_bb, dest_bb, g_bb_pin[st_disc.pin[src]]);
-                //不成
-                BB_AND(norm_bb, dest_bb, ou_bb);
-                //BBA_OR(norm_bb, disc_bb);
-                BBA_ANDNOT(norm_bb, BB_GOC(sdata));
-                BBA_AND(norm_bb, g_bb_pin[S_PINNED(sdata)[src]]);
-                while(1){
-                    dest = min_pos(&norm_bb);
-                    if(dest<0) break;
-                    MVLIST_SET_NORM(mvlist, mlist, src, dest);
-                    BBA_XOR(norm_bb, g_bpos[dest]);
-                }
-                //成り
-                BB_AND(prom_bb, dest_bb, pou_bb);
-                //BBA_OR(prom_bb, disc_bb);
-                BBA_ANDNOT(prom_bb, BB_GOC(sdata));
-                BBA_AND(prom_bb, g_bb_pin[S_PINNED(sdata)[src]]);
-                while(1){
-                    dest = min_pos(&prom_bb);
-                    if(dest<0) break;
-                    if(GGI_PROMOTE(src, dest))
-                        MVLIST_SET_PROM(mvlist, mlist, src, dest);
-                    BBA_XOR(prom_bb, g_bpos[dest]);
-                }
-                BBA_XOR(src_bb, g_bpos[src]);
+                dest = min_pos(&norm_bb);
+                if(dest<0) break;
+                MVLIST_SET_NORM(mvlist, mlist, src, dest);
+                BBA_XOR(norm_bb, g_bpos[dest]);
             }
-            //GKI,GTO,GNY,GNK,GNG
-            ou_bb  = EFFECT_TBL(ou, SKI, sdata);
-            src_bb = BB_GTK(sdata);
+            BBA_XOR(src_bb, g_bpos[src]);
+        }
+        //GRY
+        ou_bb  = EFFECT_TBL(ou, SRY, sdata);
+        src_bb = BB_GRY(sdata);
+        while(1){
+            src = min_pos(&src_bb);
+            if(src<0) break;
+            dest_bb = EFFECT_TBL(src, GRY, sdata);
+            BB_ANDNOT(disc_bb, dest_bb, g_bb_pin[st_disc.pin[src]]);
+            //不成
+            BB_AND(norm_bb, dest_bb, ou_bb);
+            BBA_OR(norm_bb, disc_bb);
+            BBA_ANDNOT(norm_bb, BB_GOC(sdata));
+            BBA_AND(norm_bb, g_bb_pin[S_PINNED(sdata)[src]]);
             while(1){
-                src = min_pos(&src_bb);
-                if(src<0) break;
-                dest_bb = EFFECT_TBL(src, GKI, sdata);
-                //BB_ANDNOT(disc_bb, dest_bb, g_bb_pin[st_disc.pin[src]]);
-                //不成
-                BB_AND(norm_bb, dest_bb, ou_bb);
-                //BBA_OR(norm_bb, disc_bb);
-                BBA_ANDNOT(norm_bb, BB_GOC(sdata));
-                BBA_AND(norm_bb, g_bb_pin[S_PINNED(sdata)[src]]);
-                while(1){
-                    dest = min_pos(&norm_bb);
-                    if(dest<0) break;
-                    MVLIST_SET_NORM(mvlist, mlist, src, dest);
-                    BBA_XOR(norm_bb, g_bpos[dest]);
-                }
-                BBA_XOR(src_bb, g_bpos[src]);
+                dest = min_pos(&norm_bb);
+                if(dest<0) break;
+                MVLIST_SET_NORM(mvlist, mlist, src, dest);
+                BBA_XOR(norm_bb, g_bpos[dest]);
             }
-            //GOU
-            /*
-            src = S_GOU(sdata);
-            if(src<N_SQUARE){
-                norm_bb = EFFECT_TBL(src, GOU, sdata);
-                BBA_ANDNOT(norm_bb, g_bb_pin[st_disc.pin[src]]);
-                BBA_ANDNOT(norm_bb, BB_GOC(sdata));
-                BBA_ANDNOT(norm_bb, SEFFECT(sdata));
-                while(1){
-                    dest = min_pos(&norm_bb);
-                    if(dest<0) break;
-                    MVLIST_SET_NORM(mvlist, mlist, src, dest);
-                    BBA_XOR(norm_bb, g_bpos[dest]);
-                }
-            }
-             */
-            //GKA
-            ou_bb  = EFFECT_TBL(ou, SKA, sdata);
-            pou_bb = EFFECT_TBL(ou, SUM, sdata);
-            src_bb = BB_GKA(sdata);
-            while(1){
-                src = min_pos(&src_bb);
-                if(src<0) break;
-                dest_bb = EFFECT_TBL(src, GKA, sdata);
-                //BB_ANDNOT(disc_bb, dest_bb, g_bb_pin[st_disc.pin[src]]);
-                //不成
-                BB_AND(norm_bb, dest_bb, ou_bb);
-                //BBA_OR(norm_bb, disc_bb);
-                BBA_ANDNOT(norm_bb, BB_GOC(sdata));
-                BBA_AND(norm_bb, g_bb_pin[S_PINNED(sdata)[src]]);
-                while(1){
-                    dest = min_pos(&norm_bb);
-                    if(dest<0) break;
-                    MVLIST_SET_NORM(mvlist, mlist, src, dest);
-                    BBA_XOR(norm_bb, g_bpos[dest]);
-                }
-                //成り
-                BB_AND(prom_bb, dest_bb, pou_bb);
-                //BBA_OR(prom_bb, disc_bb);
-                BBA_ANDNOT(prom_bb, BB_GOC(sdata));
-                BBA_AND(prom_bb, g_bb_pin[S_PINNED(sdata)[src]]);
-                while(1){
-                    dest = min_pos(&prom_bb);
-                    if(dest<0) break;
-                    if(GKA_PROMOTE(src, dest))
-                        MVLIST_SET_PROM(mvlist, mlist, src, dest);
-                    BBA_XOR(prom_bb, g_bpos[dest]);
-                }
-                BBA_XOR(src_bb, g_bpos[src]);
-            }
-            //GHI
-            ou_bb  = EFFECT_TBL(ou, SHI, sdata);
-            pou_bb = EFFECT_TBL(ou, SRY, sdata);
-            src_bb = BB_GHI(sdata);
-            while(1){
-                src = min_pos(&src_bb);
-                if(src<0) break;
-                dest_bb = EFFECT_TBL(src, GHI, sdata);
-                //BB_ANDNOT(disc_bb, dest_bb, g_bb_pin[st_disc.pin[src]]);
-                //不成
-                BB_AND(norm_bb, dest_bb, ou_bb);
-                //BBA_OR(norm_bb, disc_bb);
-                BBA_ANDNOT(norm_bb, BB_GOC(sdata));
-                BBA_AND(norm_bb, g_bb_pin[S_PINNED(sdata)[src]]);
-                while(1){
-                    dest = min_pos(&norm_bb);
-                    if(dest<0) break;
-                    MVLIST_SET_NORM(mvlist, mlist, src, dest);
-                    BBA_XOR(norm_bb, g_bpos[dest]);
-                }
-                //成り
-                BB_AND(prom_bb, dest_bb, pou_bb);
-                //BBA_OR(prom_bb, disc_bb);
-                BBA_ANDNOT(prom_bb, BB_GOC(sdata));
-                BBA_AND(prom_bb, g_bb_pin[S_PINNED(sdata)[src]]);
-                while(1){
-                    dest = min_pos(&prom_bb);
-                    if(dest<0) break;
-                    if(GHI_PROMOTE(src, dest))
-                        MVLIST_SET_PROM(mvlist, mlist, src, dest);
-                    BBA_XOR(prom_bb, g_bpos[dest]);
-                }
-                BBA_XOR(src_bb, g_bpos[src]);
-            }
-            //GUM
-            ou_bb  = EFFECT_TBL(ou, SUM, sdata);
-            src_bb = BB_GUM(sdata);
-            while(1){
-                src = min_pos(&src_bb);
-                if(src<0) break;
-                dest_bb = EFFECT_TBL(src, GUM, sdata);
-                //BB_ANDNOT(disc_bb, dest_bb, g_bb_pin[st_disc.pin[src]]);
-                //不成
-                BB_AND(norm_bb, dest_bb, ou_bb);
-                //BBA_OR(norm_bb, disc_bb);
-                BBA_ANDNOT(norm_bb, BB_GOC(sdata));
-                BBA_AND(norm_bb, g_bb_pin[S_PINNED(sdata)[src]]);
-                while(1){
-                    dest = min_pos(&norm_bb);
-                    if(dest<0) break;
-                    MVLIST_SET_NORM(mvlist, mlist, src, dest);
-                    BBA_XOR(norm_bb, g_bpos[dest]);
-                }
-                BBA_XOR(src_bb, g_bpos[src]);
-            }
-            //GRY
-            ou_bb  = EFFECT_TBL(ou, SRY, sdata);
-            src_bb = BB_GRY(sdata);
-            while(1){
-                src = min_pos(&src_bb);
-                if(src<0) break;
-                dest_bb = EFFECT_TBL(src, GRY, sdata);
-                //BB_ANDNOT(disc_bb, dest_bb, g_bb_pin[st_disc.pin[src]]);
-                //不成
-                BB_AND(norm_bb, dest_bb, ou_bb);
-                //BBA_OR(norm_bb, disc_bb);
-                BBA_ANDNOT(norm_bb, BB_GOC(sdata));
-                BBA_AND(norm_bb, g_bb_pin[S_PINNED(sdata)[src]]);
-                while(1){
-                    dest = min_pos(&norm_bb);
-                    if(dest<0) break;
-                    MVLIST_SET_NORM(mvlist, mlist, src, dest);
-                    BBA_XOR(norm_bb, g_bpos[dest]);
-                }
-                BBA_XOR(src_bb, g_bpos[src]);
-            }
-            
+            BBA_XOR(src_bb, g_bpos[src]);
         }
     }
     //先手番
@@ -731,8 +446,7 @@ mvlist_t* generate_check        (const sdata_t *sdata,
         //無仕掛けチェック
         
         if(!BB_TEST(BB_SOC(sdata))){
-            if(!S_SMKEY(sdata).hi && !S_SMKEY(sdata).ka &&
-               !S_SMKEY(sdata).ke && !S_SMKEY(sdata).ky)
+            if(!S_SMKEY(sdata).hi && !S_SMKEY(sdata).ka && !S_SMKEY(sdata).ke && !S_SMKEY(sdata).ky)
                 return NULL;
         }
          
@@ -814,565 +528,282 @@ mvlist_t* generate_check        (const sdata_t *sdata,
             }
         }
         //盤上駒による直接王手,空き王手
-        if(disc_pin){
-            //SFU
-            ou_bb  = EFFECT_TBL(ou, GFU, sdata);
-            pou_bb = EFFECT_TBL(ou, GTO, sdata);
-            src_bb = BB_SFU(sdata);
+        //SFU
+        ou_bb  = EFFECT_TBL(ou, GFU, sdata);
+        pou_bb = EFFECT_TBL(ou, GTO, sdata);
+        src_bb = BB_SFU(sdata);
+        while(1){
+            src = min_pos(&src_bb);
+            if(src<0) break;
+            dest_bb = EFFECT_TBL(src, SFU, sdata);
+            BB_ANDNOT(disc_bb, dest_bb, g_bb_pin[st_disc.pin[src]]);
+            //不成
+            BB_AND(norm_bb, dest_bb, ou_bb);
+            BBA_OR(norm_bb, disc_bb);
+            BBA_ANDNOT(norm_bb, BB_SOC(sdata));
+            BBA_AND(norm_bb, g_bb_pin[S_PINNED(sdata)[src]]);
+            dest = min_pos(&norm_bb);
+            if(dest>=0 && SFU_NORMAL(dest))
+                MVLIST_SET_NORM(mvlist, mlist, src, dest);;
+            //成り
+            BB_AND(prom_bb, dest_bb, pou_bb);
+            BBA_OR(prom_bb, disc_bb);
+            BBA_ANDNOT(prom_bb, BB_SOC(sdata));
+            BBA_AND(prom_bb, g_bb_pin[S_PINNED(sdata)[src]]);
+            dest = min_pos(&prom_bb);
+            if(dest>=0 && SFU_PROMOTE(dest))
+                MVLIST_SET_PROM(mvlist, mlist, src, dest);
+            BBA_XOR(src_bb, g_bpos[src]);
+        }
+        //SKY
+        ou_bb  = EFFECT_TBL(ou, GKY, sdata);
+        pou_bb = EFFECT_TBL(ou, GNY, sdata);
+        src_bb = BB_SKY(sdata);
+        while(1){
+            src = min_pos(&src_bb);
+            if(src<0) break;
+            dest_bb = EFFECT_TBL(src, SKY, sdata);
+            BB_ANDNOT(disc_bb, dest_bb, g_bb_pin[st_disc.pin[src]]);
+            //不成
+            BB_AND(norm_bb, dest_bb, ou_bb);
+            BBA_OR(norm_bb, disc_bb);
+            BBA_ANDNOT(norm_bb, BB_SOC(sdata));
+            BBA_AND(norm_bb, g_bb_pin[S_PINNED(sdata)[src]]);
             while(1){
-                src = min_pos(&src_bb);
-                if(src<0) break;
-                dest_bb = EFFECT_TBL(src, SFU, sdata);
-                BB_ANDNOT(disc_bb, dest_bb, g_bb_pin[st_disc.pin[src]]);
-                //不成
-                BB_AND(norm_bb, dest_bb, ou_bb);
-                BBA_OR(norm_bb, disc_bb);
-                BBA_ANDNOT(norm_bb, BB_SOC(sdata));
-                BBA_AND(norm_bb, g_bb_pin[S_PINNED(sdata)[src]]);
                 dest = min_pos(&norm_bb);
-                if(dest>=0 && SFU_NORMAL(dest))
-                    MVLIST_SET_NORM(mvlist, mlist, src, dest);;
-                //成り
-                BB_AND(prom_bb, dest_bb, pou_bb);
-                BBA_OR(prom_bb, disc_bb);
-                BBA_ANDNOT(prom_bb, BB_SOC(sdata));
-                BBA_AND(prom_bb, g_bb_pin[S_PINNED(sdata)[src]]);
+                if(dest<0) break;
+                if(SKY_NORMAL(dest))
+                    MVLIST_SET_NORM(mvlist, mlist, src, dest);
+                BBA_XOR(norm_bb, g_bpos[dest]);
+            }
+            //成り
+            BB_AND(prom_bb, dest_bb, pou_bb);
+            BBA_OR(prom_bb, disc_bb);
+            BBA_ANDNOT(prom_bb, BB_SOC(sdata));
+            BBA_AND(prom_bb, g_bb_pin[S_PINNED(sdata)[src]]);
+            while(1){
                 dest = min_pos(&prom_bb);
-                if(dest>=0 && SFU_PROMOTE(dest))
+                if(dest<0) break;
+                if(SKY_PROMOTE(dest))
                     MVLIST_SET_PROM(mvlist, mlist, src, dest);
-                BBA_XOR(src_bb, g_bpos[src]);
+                BBA_XOR(prom_bb, g_bpos[dest]);
             }
-            //SKY
-            ou_bb  = EFFECT_TBL(ou, GKY, sdata);
-            pou_bb = EFFECT_TBL(ou, GNY, sdata);
-            src_bb = BB_SKY(sdata);
+            BBA_XOR(src_bb, g_bpos[src]);
+        }
+        //SKE
+        ou_bb  = EFFECT_TBL(ou, GKE, sdata);
+        pou_bb = EFFECT_TBL(ou, GNK, sdata);
+        src_bb = BB_SKE(sdata);
+        while(1){
+            src = min_pos(&src_bb);
+            if(src<0) break;
+            dest_bb = EFFECT_TBL(src, SKE, sdata);
+            BB_ANDNOT(disc_bb, dest_bb, g_bb_pin[st_disc.pin[src]]);
+            //不成
+            BB_AND(norm_bb, dest_bb, ou_bb);
+            BBA_OR(norm_bb, disc_bb);
+            BBA_ANDNOT(norm_bb, BB_SOC(sdata));
+            BBA_AND(norm_bb, g_bb_pin[S_PINNED(sdata)[src]]);
             while(1){
-                src = min_pos(&src_bb);
-                if(src<0) break;
-                dest_bb = EFFECT_TBL(src, SKY, sdata);
-                BB_ANDNOT(disc_bb, dest_bb, g_bb_pin[st_disc.pin[src]]);
-                //不成
-                BB_AND(norm_bb, dest_bb, ou_bb);
-                BBA_OR(norm_bb, disc_bb);
-                BBA_ANDNOT(norm_bb, BB_SOC(sdata));
-                BBA_AND(norm_bb, g_bb_pin[S_PINNED(sdata)[src]]);
-                while(1){
-                    dest = min_pos(&norm_bb);
-                    if(dest<0) break;
-                    if(SKY_NORMAL(dest))
-                        MVLIST_SET_NORM(mvlist, mlist, src, dest);
-                    BBA_XOR(norm_bb, g_bpos[dest]);
-                }
-                //成り
-                BB_AND(prom_bb, dest_bb, pou_bb);
-                BBA_OR(prom_bb, disc_bb);
-                BBA_ANDNOT(prom_bb, BB_SOC(sdata));
-                BBA_AND(prom_bb, g_bb_pin[S_PINNED(sdata)[src]]);
-                while(1){
-                    dest = min_pos(&prom_bb);
-                    if(dest<0) break;
-                    if(SKY_PROMOTE(dest))
-                        MVLIST_SET_PROM(mvlist, mlist, src, dest);
-                    BBA_XOR(prom_bb, g_bpos[dest]);
-                }
-                BBA_XOR(src_bb, g_bpos[src]);
-            }
-            //SKE
-            ou_bb  = EFFECT_TBL(ou, GKE, sdata);
-            pou_bb = EFFECT_TBL(ou, GNK, sdata);
-            src_bb = BB_SKE(sdata);
-            while(1){
-                src = min_pos(&src_bb);
-                if(src<0) break;
-                dest_bb = EFFECT_TBL(src, SKE, sdata);
-                BB_ANDNOT(disc_bb, dest_bb, g_bb_pin[st_disc.pin[src]]);
-                //不成
-                BB_AND(norm_bb, dest_bb, ou_bb);
-                BBA_OR(norm_bb, disc_bb);
-                BBA_ANDNOT(norm_bb, BB_SOC(sdata));
-                BBA_AND(norm_bb, g_bb_pin[S_PINNED(sdata)[src]]);
-                while(1){
-                    dest = min_pos(&norm_bb);
-                    if(dest<0) break;
-                    if(SKE_NORMAL(dest))
-                        MVLIST_SET_NORM(mvlist, mlist, src, dest);
-                    BBA_XOR(norm_bb, g_bpos[dest]);
-                }
-                //成り
-                BB_AND(prom_bb, dest_bb, pou_bb);
-                BBA_OR(prom_bb, disc_bb);
-                BBA_ANDNOT(prom_bb, BB_SOC(sdata));
-                BBA_AND(prom_bb, g_bb_pin[S_PINNED(sdata)[src]]);
-                while(1){
-                    dest = min_pos(&prom_bb);
-                    if(dest<0) break;
-                    if(SKE_PROMOTE(dest))
-                        MVLIST_SET_PROM(mvlist, mlist, src, dest);
-                    BBA_XOR(prom_bb, g_bpos[dest]);
-                }
-                BBA_XOR(src_bb, g_bpos[src]);
-            }
-            //SGI
-            ou_bb  = EFFECT_TBL(ou, GGI, sdata);
-            pou_bb = EFFECT_TBL(ou, GNG, sdata);
-            src_bb = BB_SGI(sdata);
-            while(1){
-                src = min_pos(&src_bb);
-                if(src<0) break;
-                dest_bb = EFFECT_TBL(src, SGI, sdata);
-                BB_ANDNOT(disc_bb, dest_bb, g_bb_pin[st_disc.pin[src]]);
-                //不成
-                BB_AND(norm_bb, dest_bb, ou_bb);
-                BBA_OR(norm_bb, disc_bb);
-                BBA_ANDNOT(norm_bb, BB_SOC(sdata));
-                BBA_AND(norm_bb, g_bb_pin[S_PINNED(sdata)[src]]);
-                while(1){
-                    dest = min_pos(&norm_bb);
-                    if(dest<0) break;
+                dest = min_pos(&norm_bb);
+                if(dest<0) break;
+                if(SKE_NORMAL(dest))
                     MVLIST_SET_NORM(mvlist, mlist, src, dest);
-                    BBA_XOR(norm_bb, g_bpos[dest]);
-                }
-                //成り
-                BB_AND(prom_bb, dest_bb, pou_bb);
-                BBA_OR(prom_bb, disc_bb);
-                BBA_ANDNOT(prom_bb, BB_SOC(sdata));
-                BBA_AND(prom_bb, g_bb_pin[S_PINNED(sdata)[src]]);
-                while(1){
-                    dest = min_pos(&prom_bb);
-                    if(dest<0) break;
-                    if(SGI_PROMOTE(src, dest))
-                        MVLIST_SET_PROM(mvlist, mlist, src, dest);
-                    BBA_XOR(prom_bb, g_bpos[dest]);
-                }
-                BBA_XOR(src_bb, g_bpos[src]);
+                BBA_XOR(norm_bb, g_bpos[dest]);
             }
-            //SKI,STO,SNY,SNK,SNG
-            ou_bb  = EFFECT_TBL(ou, GKI, sdata);
-            src_bb = BB_STK(sdata);
+            //成り
+            BB_AND(prom_bb, dest_bb, pou_bb);
+            BBA_OR(prom_bb, disc_bb);
+            BBA_ANDNOT(prom_bb, BB_SOC(sdata));
+            BBA_AND(prom_bb, g_bb_pin[S_PINNED(sdata)[src]]);
             while(1){
-                src = min_pos(&src_bb);
-                if(src<0) break;
-                dest_bb = EFFECT_TBL(src, SKI, sdata);
-                BB_ANDNOT(disc_bb, dest_bb, g_bb_pin[st_disc.pin[src]]);
-                //不成
-                BB_AND(norm_bb, dest_bb, ou_bb);
-                BBA_OR(norm_bb, disc_bb);
-                BBA_ANDNOT(norm_bb, BB_SOC(sdata));
-                BBA_AND(norm_bb, g_bb_pin[S_PINNED(sdata)[src]]);
-                while(1){
-                    dest = min_pos(&norm_bb);
-                    if(dest<0) break;
-                    MVLIST_SET_NORM(mvlist, mlist, src, dest);
-                    BBA_XOR(norm_bb, g_bpos[dest]);
-                }
-                BBA_XOR(src_bb, g_bpos[src]);
+                dest = min_pos(&prom_bb);
+                if(dest<0) break;
+                if(SKE_PROMOTE(dest))
+                    MVLIST_SET_PROM(mvlist, mlist, src, dest);
+                BBA_XOR(prom_bb, g_bpos[dest]);
             }
-            //SOU
-            src = S_SOU(sdata);
-            if(src<N_SQUARE){
-                norm_bb = EFFECT_TBL(src, SOU, sdata);
-                BBA_ANDNOT(norm_bb, g_bb_pin[st_disc.pin[src]]);
-                BBA_ANDNOT(norm_bb, BB_SOC(sdata));
-                BBA_ANDNOT(norm_bb, GEFFECT(sdata));
-                while(1){
-                    dest = min_pos(&norm_bb);
-                    if(dest<0) break;
-                    MVLIST_SET_NORM(mvlist, mlist, src, dest);
-                    BBA_XOR(norm_bb, g_bpos[dest]);
-                }
-            }
-            //SKA
-            ou_bb  = EFFECT_TBL(ou, GKA, sdata);
-            pou_bb = EFFECT_TBL(ou, GUM, sdata);
-            src_bb = BB_SKA(sdata);
+            BBA_XOR(src_bb, g_bpos[src]);
+        }
+        //SGI
+        ou_bb  = EFFECT_TBL(ou, GGI, sdata);
+        pou_bb = EFFECT_TBL(ou, GNG, sdata);
+        src_bb = BB_SGI(sdata);
+        while(1){
+            src = min_pos(&src_bb);
+            if(src<0) break;
+            dest_bb = EFFECT_TBL(src, SGI, sdata);
+            BB_ANDNOT(disc_bb, dest_bb, g_bb_pin[st_disc.pin[src]]);
+            //不成
+            BB_AND(norm_bb, dest_bb, ou_bb);
+            BBA_OR(norm_bb, disc_bb);
+            BBA_ANDNOT(norm_bb, BB_SOC(sdata));
+            BBA_AND(norm_bb, g_bb_pin[S_PINNED(sdata)[src]]);
             while(1){
-                src = min_pos(&src_bb);
-                if(src<0) break;
-                dest_bb = EFFECT_TBL(src, SKA, sdata);
-                BB_ANDNOT(disc_bb, dest_bb, g_bb_pin[st_disc.pin[src]]);
-                //不成
-                BB_AND(norm_bb, dest_bb, ou_bb);
-                BBA_OR(norm_bb, disc_bb);
-                BBA_ANDNOT(norm_bb, BB_SOC(sdata));
-                BBA_AND(norm_bb, g_bb_pin[S_PINNED(sdata)[src]]);
-                while(1){
-                    dest = min_pos(&norm_bb);
-                    if(dest<0) break;
-                    MVLIST_SET_NORM(mvlist, mlist, src, dest);
-                    BBA_XOR(norm_bb, g_bpos[dest]);
-                }
-                //成り
-                BB_AND(prom_bb, dest_bb, pou_bb);
-                BBA_OR(prom_bb, disc_bb);
-                BBA_ANDNOT(prom_bb, BB_SOC(sdata));
-                BBA_AND(prom_bb, g_bb_pin[S_PINNED(sdata)[src]]);
-                while(1){
-                    dest = min_pos(&prom_bb);
-                    if(dest<0) break;
-                    if(SKA_PROMOTE(src, dest))
-                        MVLIST_SET_PROM(mvlist, mlist, src, dest);
-                    BBA_XOR(prom_bb, g_bpos[dest]);
-                }
-                BBA_XOR(src_bb, g_bpos[src]);
+                dest = min_pos(&norm_bb);
+                if(dest<0) break;
+                MVLIST_SET_NORM(mvlist, mlist, src, dest);
+                BBA_XOR(norm_bb, g_bpos[dest]);
             }
-            //SHI
-            ou_bb  = EFFECT_TBL(ou, GHI, sdata);
-            pou_bb = EFFECT_TBL(ou, GRY, sdata);
-            src_bb = BB_SHI(sdata);
+            //成り
+            BB_AND(prom_bb, dest_bb, pou_bb);
+            BBA_OR(prom_bb, disc_bb);
+            BBA_ANDNOT(prom_bb, BB_SOC(sdata));
+            BBA_AND(prom_bb, g_bb_pin[S_PINNED(sdata)[src]]);
             while(1){
-                src = min_pos(&src_bb);
-                if(src<0) break;
-                dest_bb = EFFECT_TBL(src, SHI, sdata);
-                BB_ANDNOT(disc_bb, dest_bb, g_bb_pin[st_disc.pin[src]]);
-                //不成
-                BB_AND(norm_bb, dest_bb, ou_bb);
-                BBA_OR(norm_bb, disc_bb);
-                BBA_ANDNOT(norm_bb, BB_SOC(sdata));
-                BBA_AND(norm_bb, g_bb_pin[S_PINNED(sdata)[src]]);
-                while(1){
-                    dest = min_pos(&norm_bb);
-                    if(dest<0) break;
-                    MVLIST_SET_NORM(mvlist, mlist, src, dest);
-                    BBA_XOR(norm_bb, g_bpos[dest]);
-                }
-                //成り
-                BB_AND(prom_bb, dest_bb, pou_bb);
-                BBA_OR(prom_bb, disc_bb);
-                BBA_ANDNOT(prom_bb, BB_SOC(sdata));
-                BBA_AND(prom_bb, g_bb_pin[S_PINNED(sdata)[src]]);
-                while(1){
-                    dest = min_pos(&prom_bb);
-                    if(dest<0) break;
-                    if(SHI_PROMOTE(src, dest))
-                        MVLIST_SET_PROM(mvlist, mlist, src, dest);
-                    BBA_XOR(prom_bb, g_bpos[dest]);
-                }
-                BBA_XOR(src_bb, g_bpos[src]);
+                dest = min_pos(&prom_bb);
+                if(dest<0) break;
+                if(SGI_PROMOTE(src, dest))
+                    MVLIST_SET_PROM(mvlist, mlist, src, dest);
+                BBA_XOR(prom_bb, g_bpos[dest]);
             }
-            //SUM
-            ou_bb  = EFFECT_TBL(ou, GUM, sdata);
-            src_bb = BB_SUM(sdata);
+            BBA_XOR(src_bb, g_bpos[src]);
+        }
+        //SKI,STO,SNY,SNK,SNG
+        ou_bb  = EFFECT_TBL(ou, GKI, sdata);
+        src_bb = BB_STK(sdata);
+        while(1){
+            src = min_pos(&src_bb);
+            if(src<0) break;
+            dest_bb = EFFECT_TBL(src, SKI, sdata);
+            BB_ANDNOT(disc_bb, dest_bb, g_bb_pin[st_disc.pin[src]]);
+            //不成
+            BB_AND(norm_bb, dest_bb, ou_bb);
+            BBA_OR(norm_bb, disc_bb);
+            BBA_ANDNOT(norm_bb, BB_SOC(sdata));
+            BBA_AND(norm_bb, g_bb_pin[S_PINNED(sdata)[src]]);
             while(1){
-                src = min_pos(&src_bb);
-                if(src<0) break;
-                dest_bb = EFFECT_TBL(src, GUM, sdata);
-                BB_ANDNOT(disc_bb, dest_bb, g_bb_pin[st_disc.pin[src]]);
-                //不成
-                BB_AND(norm_bb, dest_bb, ou_bb);
-                BBA_OR(norm_bb, disc_bb);
-                BBA_ANDNOT(norm_bb, BB_SOC(sdata));
-                BBA_AND(norm_bb, g_bb_pin[S_PINNED(sdata)[src]]);
-                while(1){
-                    dest = min_pos(&norm_bb);
-                    if(dest<0) break;
-                    MVLIST_SET_NORM(mvlist, mlist, src, dest);
-                    BBA_XOR(norm_bb, g_bpos[dest]);
-                }
-                BBA_XOR(src_bb, g_bpos[src]);
+                dest = min_pos(&norm_bb);
+                if(dest<0) break;
+                MVLIST_SET_NORM(mvlist, mlist, src, dest);
+                BBA_XOR(norm_bb, g_bpos[dest]);
             }
-            //SRY
-            ou_bb  = EFFECT_TBL(ou, GRY, sdata);
-            src_bb = BB_SRY(sdata);
+            BBA_XOR(src_bb, g_bpos[src]);
+        }
+        //SOU
+        src = S_SOU(sdata);
+        if(src<N_SQUARE){
+            norm_bb = EFFECT_TBL(src, SOU, sdata);
+            BBA_ANDNOT(norm_bb, g_bb_pin[st_disc.pin[src]]);
+            BBA_ANDNOT(norm_bb, BB_SOC(sdata));
+            BBA_ANDNOT(norm_bb, GEFFECT(sdata));
             while(1){
-                src = min_pos(&src_bb);
-                if(src<0) break;
-                dest_bb = EFFECT_TBL(src, SRY, sdata);
-                BB_ANDNOT(disc_bb, dest_bb, g_bb_pin[st_disc.pin[src]]);
-                //不成
-                BB_AND(norm_bb, dest_bb, ou_bb);
-                BBA_OR(norm_bb, disc_bb);
-                BBA_ANDNOT(norm_bb, BB_SOC(sdata));
-                BBA_AND(norm_bb, g_bb_pin[S_PINNED(sdata)[src]]);
-                while(1){
-                    dest = min_pos(&norm_bb);
-                    if(dest<0) break;
-                    MVLIST_SET_NORM(mvlist, mlist, src, dest);
-                    BBA_XOR(norm_bb, g_bpos[dest]);
-                }
-                BBA_XOR(src_bb, g_bpos[src]);
+                dest = min_pos(&norm_bb);
+                if(dest<0) break;
+                MVLIST_SET_NORM(mvlist, mlist, src, dest);
+                BBA_XOR(norm_bb, g_bpos[dest]);
             }
         }
-        else{
-            //SFU
-            ou_bb  = EFFECT_TBL(ou, GFU, sdata);
-            pou_bb = EFFECT_TBL(ou, GTO, sdata);
-            src_bb = BB_SFU(sdata);
+        //SKA
+        ou_bb  = EFFECT_TBL(ou, GKA, sdata);
+        pou_bb = EFFECT_TBL(ou, GUM, sdata);
+        src_bb = BB_SKA(sdata);
+        while(1){
+            src = min_pos(&src_bb);
+            if(src<0) break;
+            dest_bb = EFFECT_TBL(src, SKA, sdata);
+            BB_ANDNOT(disc_bb, dest_bb, g_bb_pin[st_disc.pin[src]]);
+            //不成
+            BB_AND(norm_bb, dest_bb, ou_bb);
+            BBA_OR(norm_bb, disc_bb);
+            BBA_ANDNOT(norm_bb, BB_SOC(sdata));
+            BBA_AND(norm_bb, g_bb_pin[S_PINNED(sdata)[src]]);
             while(1){
-                src = min_pos(&src_bb);
-                if(src<0) break;
-                dest_bb = EFFECT_TBL(src, SFU, sdata);
-                //BB_ANDNOT(disc_bb, dest_bb, g_bb_pin[st_disc.pin[src]]);
-                //不成
-                BB_AND(norm_bb, dest_bb, ou_bb);
-                //BBA_OR(norm_bb, disc_bb);
-                BBA_ANDNOT(norm_bb, BB_SOC(sdata));
-                BBA_AND(norm_bb, g_bb_pin[S_PINNED(sdata)[src]]);
                 dest = min_pos(&norm_bb);
-                if(dest>=0 && SFU_NORMAL(dest))
-                    MVLIST_SET_NORM(mvlist, mlist, src, dest);;
-                //成り
-                BB_AND(prom_bb, dest_bb, pou_bb);
-                //BBA_OR(prom_bb, disc_bb);
-                BBA_ANDNOT(prom_bb, BB_SOC(sdata));
-                BBA_AND(prom_bb, g_bb_pin[S_PINNED(sdata)[src]]);
+                if(dest<0) break;
+                MVLIST_SET_NORM(mvlist, mlist, src, dest);
+                BBA_XOR(norm_bb, g_bpos[dest]);
+            }
+            //成り
+            BB_AND(prom_bb, dest_bb, pou_bb);
+            BBA_OR(prom_bb, disc_bb);
+            BBA_ANDNOT(prom_bb, BB_SOC(sdata));
+            BBA_AND(prom_bb, g_bb_pin[S_PINNED(sdata)[src]]);
+            while(1){
                 dest = min_pos(&prom_bb);
-                if(dest>=0 && SFU_PROMOTE(dest))
+                if(dest<0) break;
+                if(SKA_PROMOTE(src, dest))
                     MVLIST_SET_PROM(mvlist, mlist, src, dest);
-                BBA_XOR(src_bb, g_bpos[src]);
+                BBA_XOR(prom_bb, g_bpos[dest]);
             }
-            //SKY
-            ou_bb  = EFFECT_TBL(ou, GKY, sdata);
-            pou_bb = EFFECT_TBL(ou, GNY, sdata);
-            src_bb = BB_SKY(sdata);
-            while(1){
-                src = min_pos(&src_bb);
-                if(src<0) break;
-                dest_bb = EFFECT_TBL(src, SKY, sdata);
-                //BB_ANDNOT(disc_bb, dest_bb, g_bb_pin[st_disc.pin[src]]);
-                //不成
-                BB_AND(norm_bb, dest_bb, ou_bb);
-                //BBA_OR(norm_bb, disc_bb);
-                BBA_ANDNOT(norm_bb, BB_SOC(sdata));
-                BBA_AND(norm_bb, g_bb_pin[S_PINNED(sdata)[src]]);
-                while(1){
-                    dest = min_pos(&norm_bb);
-                    if(dest<0) break;
-                    if(SKY_NORMAL(dest))
-                        MVLIST_SET_NORM(mvlist, mlist, src, dest);
-                    BBA_XOR(norm_bb, g_bpos[dest]);
-                }
-                //成り
-                BB_AND(prom_bb, dest_bb, pou_bb);
-                //BBA_OR(prom_bb, disc_bb);
-                BBA_ANDNOT(prom_bb, BB_SOC(sdata));
-                BBA_AND(prom_bb, g_bb_pin[S_PINNED(sdata)[src]]);
-                while(1){
-                    dest = min_pos(&prom_bb);
-                    if(dest<0) break;
-                    if(SKY_PROMOTE(dest))
-                        MVLIST_SET_PROM(mvlist, mlist, src, dest);
-                    BBA_XOR(prom_bb, g_bpos[dest]);
-                }
-                BBA_XOR(src_bb, g_bpos[src]);
-            }
-            //SKE
-            ou_bb  = EFFECT_TBL(ou, GKE, sdata);
-            pou_bb = EFFECT_TBL(ou, GNK, sdata);
-            src_bb = BB_SKE(sdata);
-            while(1){
-                src = min_pos(&src_bb);
-                if(src<0) break;
-                dest_bb = EFFECT_TBL(src, SKE, sdata);
-                //BB_ANDNOT(disc_bb, dest_bb, g_bb_pin[st_disc.pin[src]]);
-                //不成
-                BB_AND(norm_bb, dest_bb, ou_bb);
-                //BBA_OR(norm_bb, disc_bb);
-                BBA_ANDNOT(norm_bb, BB_SOC(sdata));
-                BBA_AND(norm_bb, g_bb_pin[S_PINNED(sdata)[src]]);
-                while(1){
-                    dest = min_pos(&norm_bb);
-                    if(dest<0) break;
-                    if(SKE_NORMAL(dest))
-                        MVLIST_SET_NORM(mvlist, mlist, src, dest);
-                    BBA_XOR(norm_bb, g_bpos[dest]);
-                }
-                //成り
-                BB_AND(prom_bb, dest_bb, pou_bb);
-                //BBA_OR(prom_bb, disc_bb);
-                BBA_ANDNOT(prom_bb, BB_SOC(sdata));
-                BBA_AND(prom_bb, g_bb_pin[S_PINNED(sdata)[src]]);
-                while(1){
-                    dest = min_pos(&prom_bb);
-                    if(dest<0) break;
-                    if(SKE_PROMOTE(dest))
-                        MVLIST_SET_PROM(mvlist, mlist, src, dest);
-                    BBA_XOR(prom_bb, g_bpos[dest]);
-                }
-                BBA_XOR(src_bb, g_bpos[src]);
-            }
-            //SGI
-            ou_bb  = EFFECT_TBL(ou, GGI, sdata);
-            pou_bb = EFFECT_TBL(ou, GNG, sdata);
-            src_bb = BB_SGI(sdata);
-            while(1){
-                src = min_pos(&src_bb);
-                if(src<0) break;
-                dest_bb = EFFECT_TBL(src, SGI, sdata);
-                //BB_ANDNOT(disc_bb, dest_bb, g_bb_pin[st_disc.pin[src]]);
-                //不成
-                BB_AND(norm_bb, dest_bb, ou_bb);
-                //BBA_OR(norm_bb, disc_bb);
-                BBA_ANDNOT(norm_bb, BB_SOC(sdata));
-                BBA_AND(norm_bb, g_bb_pin[S_PINNED(sdata)[src]]);
-                while(1){
-                    dest = min_pos(&norm_bb);
-                    if(dest<0) break;
-                    MVLIST_SET_NORM(mvlist, mlist, src, dest);
-                    BBA_XOR(norm_bb, g_bpos[dest]);
-                }
-                //成り
-                BB_AND(prom_bb, dest_bb, pou_bb);
-                //BBA_OR(prom_bb, disc_bb);
-                BBA_ANDNOT(prom_bb, BB_SOC(sdata));
-                BBA_AND(prom_bb, g_bb_pin[S_PINNED(sdata)[src]]);
-                while(1){
-                    dest = min_pos(&prom_bb);
-                    if(dest<0) break;
-                    if(SGI_PROMOTE(src, dest))
-                        MVLIST_SET_PROM(mvlist, mlist, src, dest);
-                    BBA_XOR(prom_bb, g_bpos[dest]);
-                }
-                BBA_XOR(src_bb, g_bpos[src]);
-            }
-            //SKI,STO,SNY,SNK,SNG
-            ou_bb  = EFFECT_TBL(ou, GKI, sdata);
-            src_bb = BB_STK(sdata);
-            while(1){
-                src = min_pos(&src_bb);
-                if(src<0) break;
-                dest_bb = EFFECT_TBL(src, SKI, sdata);
-                //BB_ANDNOT(disc_bb, dest_bb, g_bb_pin[st_disc.pin[src]]);
-                //不成
-                BB_AND(norm_bb, dest_bb, ou_bb);
-                //BBA_OR(norm_bb, disc_bb);
-                BBA_ANDNOT(norm_bb, BB_SOC(sdata));
-                BBA_AND(norm_bb, g_bb_pin[S_PINNED(sdata)[src]]);
-                while(1){
-                    dest = min_pos(&norm_bb);
-                    if(dest<0) break;
-                    MVLIST_SET_NORM(mvlist, mlist, src, dest);
-                    BBA_XOR(norm_bb, g_bpos[dest]);
-                }
-                BBA_XOR(src_bb, g_bpos[src]);
-            }
-            /*
-            //SOU
-            src = S_SOU(sdata);
-            if(src<N_SQUARE){
-                norm_bb = EFFECT_TBL(src, SOU, sdata);
-                BBA_ANDNOT(norm_bb, g_bb_pin[st_disc.pin[src]]);
-                BBA_ANDNOT(norm_bb, BB_SOC(sdata));
-                BBA_ANDNOT(norm_bb, GEFFECT(sdata));
-                while(1){
-                    dest = min_pos(&norm_bb);
-                    if(dest<0) break;
-                    MVLIST_SET_NORM(mvlist, mlist, src, dest);
-                    BBA_XOR(norm_bb, g_bpos[dest]);
-                }
-            }
-             */
-            //SKA
-            ou_bb  = EFFECT_TBL(ou, GKA, sdata);
-            pou_bb = EFFECT_TBL(ou, GUM, sdata);
-            src_bb = BB_SKA(sdata);
-            while(1){
-                src = min_pos(&src_bb);
-                if(src<0) break;
-                dest_bb = EFFECT_TBL(src, SKA, sdata);
-                //BB_ANDNOT(disc_bb, dest_bb, g_bb_pin[st_disc.pin[src]]);
-                //不成
-                BB_AND(norm_bb, dest_bb, ou_bb);
-                //BBA_OR(norm_bb, disc_bb);
-                BBA_ANDNOT(norm_bb, BB_SOC(sdata));
-                BBA_AND(norm_bb, g_bb_pin[S_PINNED(sdata)[src]]);
-                while(1){
-                    dest = min_pos(&norm_bb);
-                    if(dest<0) break;
-                    MVLIST_SET_NORM(mvlist, mlist, src, dest);
-                    BBA_XOR(norm_bb, g_bpos[dest]);
-                }
-                //成り
-                BB_AND(prom_bb, dest_bb, pou_bb);
-                //BBA_OR(prom_bb, disc_bb);
-                BBA_ANDNOT(prom_bb, BB_SOC(sdata));
-                BBA_AND(prom_bb, g_bb_pin[S_PINNED(sdata)[src]]);
-                while(1){
-                    dest = min_pos(&prom_bb);
-                    if(dest<0) break;
-                    if(SKA_PROMOTE(src, dest))
-                        MVLIST_SET_PROM(mvlist, mlist, src, dest);
-                    BBA_XOR(prom_bb, g_bpos[dest]);
-                }
-                BBA_XOR(src_bb, g_bpos[src]);
-            }
-            //SHI
-            ou_bb  = EFFECT_TBL(ou, GHI, sdata);
-            pou_bb = EFFECT_TBL(ou, GRY, sdata);
-            src_bb = BB_SHI(sdata);
-            while(1){
-                src = min_pos(&src_bb);
-                if(src<0) break;
-                dest_bb = EFFECT_TBL(src, SHI, sdata);
-                //BB_ANDNOT(disc_bb, dest_bb, g_bb_pin[st_disc.pin[src]]);
-                //不成
-                BB_AND(norm_bb, dest_bb, ou_bb);
-                //BBA_OR(norm_bb, disc_bb);
-                BBA_ANDNOT(norm_bb, BB_SOC(sdata));
-                BBA_AND(norm_bb, g_bb_pin[S_PINNED(sdata)[src]]);
-                while(1){
-                    dest = min_pos(&norm_bb);
-                    if(dest<0) break;
-                    MVLIST_SET_NORM(mvlist, mlist, src, dest);
-                    BBA_XOR(norm_bb, g_bpos[dest]);
-                }
-                //成り
-                BB_AND(prom_bb, dest_bb, pou_bb);
-                //BBA_OR(prom_bb, disc_bb);
-                BBA_ANDNOT(prom_bb, BB_SOC(sdata));
-                BBA_AND(prom_bb, g_bb_pin[S_PINNED(sdata)[src]]);
-                while(1){
-                    dest = min_pos(&prom_bb);
-                    if(dest<0) break;
-                    if(SHI_PROMOTE(src, dest))
-                        MVLIST_SET_PROM(mvlist, mlist, src, dest);
-                    BBA_XOR(prom_bb, g_bpos[dest]);
-                }
-                BBA_XOR(src_bb, g_bpos[src]);
-            }
-            //SUM
-            ou_bb  = EFFECT_TBL(ou, GUM, sdata);
-            src_bb = BB_SUM(sdata);
-            while(1){
-                src = min_pos(&src_bb);
-                if(src<0) break;
-                dest_bb = EFFECT_TBL(src, GUM, sdata);
-                //BB_ANDNOT(disc_bb, dest_bb, g_bb_pin[st_disc.pin[src]]);
-                //不成
-                BB_AND(norm_bb, dest_bb, ou_bb);
-                //BBA_OR(norm_bb, disc_bb);
-                BBA_ANDNOT(norm_bb, BB_SOC(sdata));
-                BBA_AND(norm_bb, g_bb_pin[S_PINNED(sdata)[src]]);
-                while(1){
-                    dest = min_pos(&norm_bb);
-                    if(dest<0) break;
-                    MVLIST_SET_NORM(mvlist, mlist, src, dest);
-                    BBA_XOR(norm_bb, g_bpos[dest]);
-                }
-                BBA_XOR(src_bb, g_bpos[src]);
-            }
-            //SRY
-            ou_bb  = EFFECT_TBL(ou, GRY, sdata);
-            src_bb = BB_SRY(sdata);
-            while(1){
-                src = min_pos(&src_bb);
-                if(src<0) break;
-                dest_bb = EFFECT_TBL(src, SRY, sdata);
-                //BB_ANDNOT(disc_bb, dest_bb, g_bb_pin[st_disc.pin[src]]);
-                //不成
-                BB_AND(norm_bb, dest_bb, ou_bb);
-                //BBA_OR(norm_bb, disc_bb);
-                BBA_ANDNOT(norm_bb, BB_SOC(sdata));
-                BBA_AND(norm_bb, g_bb_pin[S_PINNED(sdata)[src]]);
-                while(1){
-                    dest = min_pos(&norm_bb);
-                    if(dest<0) break;
-                    MVLIST_SET_NORM(mvlist, mlist, src, dest);
-                    BBA_XOR(norm_bb, g_bpos[dest]);
-                }
-                BBA_XOR(src_bb, g_bpos[src]);
-            }
+            BBA_XOR(src_bb, g_bpos[src]);
         }
-
+        //SHI
+        ou_bb  = EFFECT_TBL(ou, GHI, sdata);
+        pou_bb = EFFECT_TBL(ou, GRY, sdata);
+        src_bb = BB_SHI(sdata);
+        while(1){
+            src = min_pos(&src_bb);
+            if(src<0) break;
+            dest_bb = EFFECT_TBL(src, SHI, sdata);
+            BB_ANDNOT(disc_bb, dest_bb, g_bb_pin[st_disc.pin[src]]);
+            //不成
+            BB_AND(norm_bb, dest_bb, ou_bb);
+            BBA_OR(norm_bb, disc_bb);
+            BBA_ANDNOT(norm_bb, BB_SOC(sdata));
+            BBA_AND(norm_bb, g_bb_pin[S_PINNED(sdata)[src]]);
+            while(1){
+                dest = min_pos(&norm_bb);
+                if(dest<0) break;
+                MVLIST_SET_NORM(mvlist, mlist, src, dest);
+                BBA_XOR(norm_bb, g_bpos[dest]);
+            }
+            //成り
+            BB_AND(prom_bb, dest_bb, pou_bb);
+            BBA_OR(prom_bb, disc_bb);
+            BBA_ANDNOT(prom_bb, BB_SOC(sdata));
+            BBA_AND(prom_bb, g_bb_pin[S_PINNED(sdata)[src]]);
+            while(1){
+                dest = min_pos(&prom_bb);
+                if(dest<0) break;
+                if(SHI_PROMOTE(src, dest))
+                    MVLIST_SET_PROM(mvlist, mlist, src, dest);
+                BBA_XOR(prom_bb, g_bpos[dest]);
+            }
+            BBA_XOR(src_bb, g_bpos[src]);
+        }
+        //SUM
+        ou_bb  = EFFECT_TBL(ou, GUM, sdata);
+        src_bb = BB_SUM(sdata);
+        while(1){
+            src = min_pos(&src_bb);
+            if(src<0) break;
+            dest_bb = EFFECT_TBL(src, GUM, sdata);
+            BB_ANDNOT(disc_bb, dest_bb, g_bb_pin[st_disc.pin[src]]);
+            //不成
+            BB_AND(norm_bb, dest_bb, ou_bb);
+            BBA_OR(norm_bb, disc_bb);
+            BBA_ANDNOT(norm_bb, BB_SOC(sdata));
+            BBA_AND(norm_bb, g_bb_pin[S_PINNED(sdata)[src]]);
+            while(1){
+                dest = min_pos(&norm_bb);
+                if(dest<0) break;
+                MVLIST_SET_NORM(mvlist, mlist, src, dest);
+                BBA_XOR(norm_bb, g_bpos[dest]);
+            }
+            BBA_XOR(src_bb, g_bpos[src]);
+        }
+        //SRY
+        ou_bb  = EFFECT_TBL(ou, GRY, sdata);
+        src_bb = BB_SRY(sdata);
+        while(1){
+            src = min_pos(&src_bb);
+            if(src<0) break;
+            dest_bb = EFFECT_TBL(src, SRY, sdata);
+            BB_ANDNOT(disc_bb, dest_bb, g_bb_pin[st_disc.pin[src]]);
+            //不成
+            BB_AND(norm_bb, dest_bb, ou_bb);
+            BBA_OR(norm_bb, disc_bb);
+            BBA_ANDNOT(norm_bb, BB_SOC(sdata));
+            BBA_AND(norm_bb, g_bb_pin[S_PINNED(sdata)[src]]);
+            while(1){
+                dest = min_pos(&norm_bb);
+                if(dest<0) break;
+                MVLIST_SET_NORM(mvlist, mlist, src, dest);
+                BBA_XOR(norm_bb, g_bpos[dest]);
+            }
+            BBA_XOR(src_bb, g_bpos[src]);
+        }
     }
     return mvlist;
 }
