@@ -255,9 +255,8 @@ bool fu_tsume_check    (move_t move,
 }
 
 // 開き王手生成のためのpin情報セット　*discにpin情報をセット
-int set_discpin        (const sdata_t *sdata,
+void set_discpin        (const sdata_t *sdata,
                         discpin_t *disc)           {
-    int res = 0;
     memset(&(disc->pin), 0, sizeof(int)*N_SQUARE);
     int ou, src, pin;
     bitboard_t src_bb, k_eff, o_eff;
@@ -276,7 +275,6 @@ int set_discpin        (const sdata_t *sdata,
                     pin = min_pos(&k_eff);
                     if(GOTE_KOMA(S_BOARD(sdata, pin))){
                         disc->pin[pin] = g_file[pin] +10;
-                        res++;
                         break;
                     }
                 }
@@ -297,11 +295,9 @@ int set_discpin        (const sdata_t *sdata,
                     if(GOTE_KOMA(S_BOARD(sdata, pin))){
                         if(g_rslp[ou] == g_rslp[src]){
                             disc->pin[pin] = g_rslp[ou]+30;
-                            res++;
                         }
                         else if(g_lslp[ou] == g_lslp[src]){
                             disc->pin[pin] = g_lslp[ou]+17;
-                            res++;
                         }
                     }
                 }
@@ -322,11 +318,9 @@ int set_discpin        (const sdata_t *sdata,
                     if(GOTE_KOMA(S_BOARD(sdata, pin))){
                         if(g_rank[ou] == g_rank[src]){
                             disc->pin[pin] = g_rank[ou]+1;
-                            res++;
                         }
                         else if(g_file[ou] == g_file[src]){
                             disc->pin[pin] = g_file[ou]+10;
-                            res++;
                         }
                     }
                 }
@@ -349,7 +343,6 @@ int set_discpin        (const sdata_t *sdata,
                     pin = min_pos(&k_eff);
                     if(SENTE_KOMA(S_BOARD(sdata, pin))){
                         disc->pin[pin] = g_file[pin] +10;
-                        res++;
                         break;
                     }
                 }
@@ -370,11 +363,9 @@ int set_discpin        (const sdata_t *sdata,
                     if(SENTE_KOMA(S_BOARD(sdata, pin))){
                         if(g_rslp[ou] == g_rslp[src]){
                             disc->pin[pin] = g_rslp[ou]+30;
-                            res++;
                         }
                         else if(g_lslp[ou] == g_lslp[src]){
                             disc->pin[pin] = g_lslp[ou]+17;
-                            res++;
                         }
                     }
                 }
@@ -395,11 +386,9 @@ int set_discpin        (const sdata_t *sdata,
                     if(SENTE_KOMA(S_BOARD(sdata, pin))){
                         if(g_rank[ou] == g_rank[src]){
                             disc->pin[pin] = g_rank[ou]+1;
-                            res++;
                         }
                         else if(g_file[ou] == g_file[src]){
                             disc->pin[pin] = g_file[ou]+10;
-                            res++;
                         }
                     }
                 }
@@ -407,7 +396,7 @@ int set_discpin        (const sdata_t *sdata,
             BBA_XOR(src_bb, g_bpos[src]);
         }
     }
-    return res;
+    return;
 }
 
 int sdata_move_forward(sdata_t *sdata, move_t move){
