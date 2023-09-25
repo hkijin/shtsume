@@ -720,7 +720,7 @@ typedef struct _discpin_t discpin_t;
 struct _discpin_t{
     int pin[N_SQUARE];
 };
-int set_discpin       (const sdata_t *sdata, discpin_t *disc);
+void set_discpin       (const sdata_t *sdata, discpin_t *disc);
 
 
 //着手情報
