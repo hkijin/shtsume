@@ -420,7 +420,6 @@ void bn_search_or               (const sdata_t   *sdata,
      -------- */
     tdata_t c_threshold;
     mcard_t *current;
-    nsearchlog_t *log = &(g_tsearchinf.mvinf[S_COUNT(sdata)]);
     //着手の並べ替え
     list = sdata_mvlist_sort(list, sdata, proof_number_comp);
     while(true){
@@ -495,31 +494,48 @@ void bn_search_or               (const sdata_t   *sdata,
         }
         c_threshold.sh = th_tdata->sh-1;
         
-        
-        //探索log
-        log->move = list->mlist->move;
-        move_sprintf(log->move_str,log->move,sdata);
-        log->tdata = mvlist->tdata;
-        log->thdata = c_threshold;
-        
-        //探索局面証明数、反証数にしきい値を代入。
-        memcpy(&(mvlist->tdata),&c_threshold, sizeof(tdata_t));
-        if(c_threshold.pn <PROOF_MAX-1)
-            st_max_thpn = MAX(st_max_thpn, c_threshold.pn);
-        list->search = 1;
-        
-        //王手千日手回避のための設定
-        current = tbase_set_current(sdata, mvlist, tn, tbase);
-        
-        //深化
-        memcpy(&sbuf, sdata, sizeof(sdata_t));
-        sdata_move_forward(&sbuf, list->mlist->move);
-        log->zkey = S_ZKEY(&sbuf);
-        log->mkey = tn?S_GMKEY(&sbuf):S_SMKEY(&sbuf);
-        bn_search_and(&sbuf, &c_threshold, list, tbase);
-        memset(&(log->move), 0, sizeof(move_t));
-        memset(log->move_str, 0, sizeof(char)*32);
-        
+        if(g_pv_length>=S_COUNT(sdata)){
+            nsearchlog_t *log = &(g_tsearchinf.mvinf[S_COUNT(sdata)]);
+            //探索log
+            log->move = list->mlist->move;
+            move_sprintf(log->move_str,log->move,sdata);
+            log->tdata = mvlist->tdata;
+            log->thdata = c_threshold;
+            
+            //探索局面証明数、反証数にしきい値を代入。
+            memcpy(&(mvlist->tdata),&c_threshold, sizeof(tdata_t));
+            if(c_threshold.pn <PROOF_MAX-1)
+                st_max_thpn = MAX(st_max_thpn, c_threshold.pn);
+            list->search = 1;
+            
+            //王手千日手回避のための設定
+            current = tbase_set_current(sdata, mvlist, tn, tbase);
+            
+            //深化
+            memcpy(&sbuf, sdata, sizeof(sdata_t));
+            sdata_move_forward(&sbuf, list->mlist->move);
+            log->zkey = S_ZKEY(&sbuf);
+            log->mkey = tn?S_GMKEY(&sbuf):S_SMKEY(&sbuf);
+            bn_search_and(&sbuf, &c_threshold, list, tbase);
+            memset(&(log->move), 0, sizeof(move_t));
+            memset(log->move_str, 0, sizeof(char)*32);
+        }
+        else{
+            //探索局面証明数、反証数にしきい値を代入。
+            memcpy(&(mvlist->tdata),&c_threshold, sizeof(tdata_t));
+            if(c_threshold.pn <PROOF_MAX-1)
+                st_max_thpn = MAX(st_max_thpn, c_threshold.pn);
+            list->search = 1;
+            
+            //王手千日手回避のための設定
+            current = tbase_set_current(sdata, mvlist, tn, tbase);
+            
+            //深化
+            memcpy(&sbuf, sdata, sizeof(sdata_t));
+            sdata_move_forward(&sbuf, list->mlist->move);
+            bn_search_and(&sbuf, &c_threshold, list, tbase);
+        }
+
         if(current) current->current = 0;
         list = sdata_mvlist_reorder(list, sdata, proof_number_comp);
     }
@@ -575,7 +591,6 @@ void bn_search_and              (const sdata_t   *sdata,
     //反復深化
     tdata_t c_threshold;
     mcard_t *current;
-    nsearchlog_t *log = &(g_tsearchinf.mvinf[S_COUNT(sdata)]);
     while(true){
         //着手の並べ替え
         list = sdata_mvlist_sort(list, sdata, disproof_number_comp);
@@ -694,34 +709,50 @@ void bn_search_and              (const sdata_t   *sdata,
             c_threshold.dn = th_tdata->dn;
             c_threshold.sh = th_tdata->sh-1;
         }
-        
-        //探索log(1)
-        log->move = list->mlist->move;
-        move_sprintf(log->move_str,log->move,sdata);
-        log->tdata = mvlist->tdata;
-        log->thdata = c_threshold;
-        
-        //千日手回避のため、しきい値を現局面に代入。
-        memcpy(&(mvlist->tdata), &c_threshold,sizeof(tdata_t));
-        if(c_threshold.dn <INFINATE-1)
-            st_max_thdn = MAX(st_max_thdn, c_threshold.dn);
-        
-        //王手千日手回避のための設定
-        current = tbase_set_current(sdata, mvlist, tn, tbase);
-        
-        //深化
-        memcpy(&sbuf, sdata, sizeof(sdata_t));
-        sdata_move_forward(&sbuf, list->mlist->move);
-        
-        //探索log(2)
-        log->zkey = S_ZKEY(&sbuf);
-        log->mkey = tn?S_GMKEY(&sbuf):S_SMKEY(&sbuf);
-        
-        bn_search_or(&sbuf, &c_threshold, list, tbase);
-        
-        memset(&(log->move), 0, sizeof(move_t));
-        memset(log->move_str, 0, sizeof(char)*32);
-        
+        if(g_pv_length>=S_COUNT(sdata)){
+            nsearchlog_t *log = &(g_tsearchinf.mvinf[S_COUNT(sdata)]);
+            //探索log(1)
+            log->move = list->mlist->move;
+            move_sprintf(log->move_str,log->move,sdata);
+            log->tdata = mvlist->tdata;
+            log->thdata = c_threshold;
+            
+            //千日手回避のため、しきい値を現局面に代入。
+            memcpy(&(mvlist->tdata), &c_threshold,sizeof(tdata_t));
+            if(c_threshold.dn <INFINATE-1)
+                st_max_thdn = MAX(st_max_thdn, c_threshold.dn);
+            
+            //王手千日手回避のための設定
+            current = tbase_set_current(sdata, mvlist, tn, tbase);
+            
+            //深化
+            memcpy(&sbuf, sdata, sizeof(sdata_t));
+            sdata_move_forward(&sbuf, list->mlist->move);
+            
+            //探索log(2)
+            log->zkey = S_ZKEY(&sbuf);
+            log->mkey = tn?S_GMKEY(&sbuf):S_SMKEY(&sbuf);
+            
+            bn_search_or(&sbuf, &c_threshold, list, tbase);
+            
+            memset(&(log->move), 0, sizeof(move_t));
+            memset(log->move_str, 0, sizeof(char)*32);
+        }
+        else{
+            //千日手回避のため、しきい値を現局面に代入。
+            memcpy(&(mvlist->tdata), &c_threshold,sizeof(tdata_t));
+            if(c_threshold.dn <INFINATE-1)
+                st_max_thdn = MAX(st_max_thdn, c_threshold.dn);
+            
+            //王手千日手回避のための設定
+            current = tbase_set_current(sdata, mvlist, tn, tbase);
+            
+            //深化
+            memcpy(&sbuf, sdata, sizeof(sdata_t));
+            sdata_move_forward(&sbuf, list->mlist->move);
+            bn_search_or(&sbuf, &c_threshold, list, tbase);
+        }
+
         if(current) current->current = 0;
         
         //合駒着手が詰みの場合、次の詰んでいない合い駒まで展開しておく。
