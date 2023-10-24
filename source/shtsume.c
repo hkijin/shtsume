@@ -1090,7 +1090,6 @@ void bns_plus_or                (const sdata_t   *sdata,
     
     //追加探索
     tmp = list;
-    nsearchlog_t *log = &(g_tsearchinf.mvinf[S_COUNT(sdata)]);
     turn_t tn = S_TURN(sdata);
     while(tmp){
         //詰んでいる局面(ループ局面は避けておく）
@@ -1101,23 +1100,30 @@ void bns_plus_or                (const sdata_t   *sdata,
             if(!tmp->pr) {
                 //王手千日手回避のための設定
                 mcard_t *current = tbase_set_current(sdata, mvlist, tn, tbase);
-                //探索log(1)
-                log->move = list->mlist->move;
-                move_sprintf(log->move_str,log->move,sdata);
-                
-                memcpy(&sbuf, sdata, sizeof(sdata_t));
-                sdata_move_forward(&sbuf, tmp->mlist->move);
-                
-                //探索log(2)
-                log->zkey = S_ZKEY(&sbuf);
-                log->mkey = tn?S_GMKEY(&sbuf):S_SMKEY(&sbuf);
+                if(g_pv_length>=S_COUNT(sdata)){
+                    nsearchlog_t *log = &(g_tsearchinf.mvinf[S_COUNT(sdata)]);
+                    //探索log(1)
+                    log->move = list->mlist->move;
+                    move_sprintf(log->move_str,log->move,sdata);
+                    
+                    memcpy(&sbuf, sdata, sizeof(sdata_t));
+                    sdata_move_forward(&sbuf, tmp->mlist->move);
+                    
+                    //探索log(2)
+                    log->zkey = S_ZKEY(&sbuf);
+                    log->mkey = tn?S_GMKEY(&sbuf):S_SMKEY(&sbuf);
 
-                bns_plus_and(&sbuf, tmp, tsh, tbase);
-                
-                //探索log(3)
-                memset(&(log->move), 0, sizeof(move_t));
-                memset(log->move_str, 0, sizeof(char)*32);
-                
+                    bns_plus_and(&sbuf, tmp, tsh, tbase);
+                    
+                    //探索log(3)
+                    memset(&(log->move), 0, sizeof(move_t));
+                    memset(log->move_str, 0, sizeof(char)*32);
+                }
+                else{
+                    memcpy(&sbuf, sdata, sizeof(sdata_t));
+                    sdata_move_forward(&sbuf, tmp->mlist->move);
+                    bns_plus_and(&sbuf, tmp, tsh, tbase);
+                }
                 if(current) current->current = 0;
                 tmp->pr = 1;
             }
@@ -1225,30 +1231,36 @@ void bns_plus_and               (const sdata_t   *sdata,
     //追加探索
     unsigned int tsh = ptsh-1;
     mcard_t *current = MAKE_TREE_SET_CURRENT(sdata, tn, tbase);
-    nsearchlog_t *log = &(g_tsearchinf.mvinf[S_COUNT(sdata)]);
     while (true) {
         if (list->inc || list->pr) {
             break;
         }
         tsh = MIN(tsh, list->tdata.sh);
-
-        //探索log(1)
-        log->move = list->mlist->move;
-        move_sprintf(log->move_str,log->move,sdata);
         
-        memcpy(&sbuf, sdata, sizeof(sdata_t));
-        sdata_move_forward(&sbuf, list->mlist->move);
+        if(g_pv_length>=S_COUNT(sdata)){
+            nsearchlog_t *log = &(g_tsearchinf.mvinf[S_COUNT(sdata)]);
+            //探索log(1)
+            log->move = list->mlist->move;
+            move_sprintf(log->move_str,log->move,sdata);
+            
+            memcpy(&sbuf, sdata, sizeof(sdata_t));
+            sdata_move_forward(&sbuf, list->mlist->move);
 
-        //探索log(2)
-        log->zkey = S_ZKEY(&sbuf);
-        log->mkey = tn?S_GMKEY(&sbuf):S_SMKEY(&sbuf);
-        
-        bns_plus_or(&sbuf, list, tsh, tbase);
+            //探索log(2)
+            log->zkey = S_ZKEY(&sbuf);
+            log->mkey = tn?S_GMKEY(&sbuf):S_SMKEY(&sbuf);
+            
+            bns_plus_or(&sbuf, list, tsh, tbase);
 
-        //探索log(3)
-        memset(&(log->move), 0, sizeof(move_t));
-        memset(log->move_str, 0, sizeof(char)*32);
-        
+            //探索log(3)
+            memset(&(log->move), 0, sizeof(move_t));
+            memset(log->move_str, 0, sizeof(char)*32);
+        }
+        else{
+            memcpy(&sbuf, sdata, sizeof(sdata_t));
+            sdata_move_forward(&sbuf, list->mlist->move);
+            bns_plus_or(&sbuf, list, tsh, tbase);
+        }
         list->pr = 1;
         list = sdata_mvlist_sort(list, sdata, disproof_number_comp);
     }
