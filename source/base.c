@@ -104,10 +104,18 @@ void initialize_sdata(sdata_t *sdata,
             //zkey
             S_ZKEY(sdata) ^= g_zkey_seed[koma*N_SQUARE+pos];
             //fflag
-            if(koma == SFU)
-                S_FFLAG(sdata) = FLAG_SET(S_FFLAG(sdata), g_file[pos]);
-            if(koma == GFU)
-                S_FFLAG(sdata) = FLAG_SET(S_FFLAG(sdata), g_file[pos]+9);
+            if(koma == SFU){
+                if(FLAG(S_FFLAG(sdata), g_file[pos]))
+                    S_FFLAG(sdata) = FLAG_SET(S_FFLAG(sdata), 19);
+                else
+                    S_FFLAG(sdata) = FLAG_SET(S_FFLAG(sdata), g_file[pos]);
+            }
+            if(koma == GFU){
+                if(FLAG(S_FFLAG(sdata), g_file[pos]+9))
+                    S_FFLAG(sdata) = FLAG_SET(S_FFLAG(sdata), 19);
+                else
+                    S_FFLAG(sdata) = FLAG_SET(S_FFLAG(sdata), g_file[pos]+9);
+            }
             //occupied bitboard
             SDATA_OCC_XOR(sdata, pos);
             SENTE_KOMA(koma)?
@@ -163,6 +171,55 @@ void initialize_sdata(sdata_t *sdata,
     create_effect(sdata);
     create_pin(sdata);
     return;
+}
+
+/* -------------------------------------------------------------
+   is_sdata_illegal
+   局面の合法性をチェックする
+   戻り値 0:PASS     合法
+         1:CHECKED 相手の玉にすでに王手がかかっている
+         2:NIFU    局面に２歩がある
+         3:ILL_POS 行きどころの無い駒がある
+  ------------------------------------------------------------- */
+int  is_sdata_illegal       (sdata_t *sdata)
+{
+    int ou;
+    bitboard_t bb;
+    //相手玉に王手がかかっていないことの確認
+    if(SENTEBAN(sdata)){
+        ou = S_GOU(sdata);     //後手玉の位置
+        bb = SEFFECT(sdata);   //先手駒の利き
+    }
+    else{
+        ou = S_SOU(sdata);     //先手玉の位置
+        bb = GEFFECT(sdata);   //後手駒の利き
+    }
+    if(BPOS_TEST(bb,ou)) return CHECKED;
+    //２歩が無いことの確認
+    if(FLAG(S_FFLAG(sdata),19)) return NIFU;
+    
+    //行きどころの無い駒チェック
+    //先手
+    //歩
+    BB_AND(bb,BB_SFU(sdata),g_bb_rank[0]);
+    if(BB_TEST(bb)) return ILL_POS;
+    //香
+    BB_AND(bb,BB_SKY(sdata),g_bb_rank[0]);
+    if(BB_TEST(bb)) return ILL_POS;
+    //桂
+    BB_AND(bb,BB_SKE(sdata),g_bb_rank01);
+    if(BB_TEST(bb)) return ILL_POS;
+    //後手
+    //歩
+    BB_AND(bb,BB_GFU(sdata),g_bb_rank[8]);
+    if(BB_TEST(bb)) return ILL_POS;
+    //香
+    BB_AND(bb,BB_GKY(sdata),g_bb_rank[8]);
+    if(BB_TEST(bb)) return ILL_POS;
+    //桂
+    BB_AND(bb,BB_GKE(sdata),g_bb_rank78);
+    if(BB_TEST(bb)) return ILL_POS;
+    return PASS;
 }
 
 //tsumi_check  詰み:　true 詰みではない: false

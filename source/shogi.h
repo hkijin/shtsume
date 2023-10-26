@@ -425,6 +425,9 @@ extern bitboard_t g_bb_rank[N_RANK];
 extern bitboard_t g_bb_file[N_FILE];
 extern bitboard_t g_bb_pin[45];
 
+extern bitboard_t g_bb_rank01;
+extern bitboard_t g_bb_rank78;
+
 extern bitboard_t g_bb_rank012;
 extern bitboard_t g_bb_rank345;
 extern bitboard_t g_bb_rank678;
@@ -705,7 +708,12 @@ struct _sdata_t {
         BBA_XOR(BB_OCC(s),g_bpos[p]),BBA_XOR(BB_VOC(s),g_vpos[p]),\
         BBA_XOR(BB_ROC(s),g_rpos[p]),BBA_XOR(BB_LOC(s),g_lpos[p])
 
+#define PASS        0
+#define CHECKED     1
+#define NIFU        2
+#define ILL_POS     3
 
+int  is_sdata_illegal  (sdata_t *sdata);
 bitboard_t bb_to_effect(komainf_t koma,
                         const bitboard_t *bb_koma,
                         const sdata_t *sdata);

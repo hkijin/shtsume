@@ -146,6 +146,24 @@ int main(int argc, char * const argv[]) {
         printf("-----局面図-----\n");
         SDATA_PRINTF(&g_sdata, PR_BOARD);
         
+        //局面の合法性check
+        int err = is_sdata_illegal(&g_sdata);
+        if(err){
+            printf("局面エラー: ");
+            switch(err){
+                case CHECKED:
+                    printf("すでに相手玉に王手がかかった局面です。\n");
+                    break;
+                case NIFU:
+                    printf("二歩のある局面です。\n");
+                    break;
+                case ILL_POS:
+                    printf("行きどころの無い駒があります。\n");
+                    break;
+            }
+            return 1;
+        }
+        
         //tbaseの作成
         uint64_t size = g_usi_hash*MCARDS_PER_MBYTE-1;
         g_tbase = create_tbase(size);

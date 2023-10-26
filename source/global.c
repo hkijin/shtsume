@@ -188,6 +188,9 @@ bitboard_t g_bb_pin[45]       = {
     //{0X00000000, 0X00000000, 0X04000000},
 };          //PIN
 
+bitboard_t g_bb_rank01  = {0X0003FFFF, 0X00000000, 0X00000000};
+bitboard_t g_bb_rank78  = {0X00000000, 0X00000000, 0X07FFFE00};
+
 bitboard_t g_bb_rank012 = {0X07FFFFFF, 0X00000000, 0X00000000};
 bitboard_t g_bb_rank345 = {0X00000000, 0X07FFFFFF, 0X00000000};
 bitboard_t g_bb_rank678 = {0X00000000, 0X00000000, 0X07FFFFFF};
