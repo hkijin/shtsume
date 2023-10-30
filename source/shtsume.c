@@ -879,26 +879,33 @@ void make_tree_or               (const sdata_t   *sdata,
     }
     if(list->cu) return;              //通常バグがなければここに来ることはあり得ない
     
-    nsearchlog_t *log = &(g_tsearchinf.mvinf[S_COUNT(sdata)]);
     turn_t tn = S_TURN(sdata);
 
     while(!list->inc && !list->pr){
-        //探索log(1)
-        log->move = list->mlist->move;
-        move_sprintf(log->move_str,log->move,sdata);
-        
-        memcpy(&sbuf, sdata, sizeof(sdata_t));
-        sdata_move_forward(&sbuf, list->mlist->move);
-        
-        //探索log(2)
-        log->zkey = S_ZKEY(&sbuf);
-        log->mkey = tn?S_GMKEY(&sbuf):S_SMKEY(&sbuf);
-        
-        make_tree_and(&sbuf, list, tbase);
-        //探索log(3)
-        memset(&(log->move), 0, sizeof(move_t));
-        memset(log->move_str, 0, sizeof(char)*32);
-        
+        if(g_pv_length>=S_COUNT(sdata)){
+            nsearchlog_t *log = &(g_tsearchinf.mvinf[S_COUNT(sdata)]);
+            //探索log(1)
+            log->move = list->mlist->move;
+            move_sprintf(log->move_str,log->move,sdata);
+            
+            memcpy(&sbuf, sdata, sizeof(sdata_t));
+            sdata_move_forward(&sbuf, list->mlist->move);
+            
+            //探索log(2)
+            log->zkey = S_ZKEY(&sbuf);
+            log->mkey = tn?S_GMKEY(&sbuf):S_SMKEY(&sbuf);
+            
+            make_tree_and(&sbuf, list, tbase);
+            //探索log(3)
+            memset(&(log->move), 0, sizeof(move_t));
+            memset(log->move_str, 0, sizeof(char)*32);
+        }
+        else{
+            memcpy(&sbuf, sdata, sizeof(sdata_t));
+            sdata_move_forward(&sbuf, list->mlist->move);
+            make_tree_and(&sbuf, list, tbase);
+        }
+
         list->pr = 1;
         list = sdata_mvlist_sort(list, sdata, proof_number_comp);
     }
@@ -967,27 +974,33 @@ void make_tree_and              (const sdata_t   *sdata,
     
     mcard_t *current = MAKE_TREE_SET_CURRENT(sdata, tn, tbase);
     tmp = list;
-    nsearchlog_t *log = &(g_tsearchinf.mvinf[S_COUNT(sdata)]);
     while(tmp){
         if(tmp->inc||tmp->cu || tmp->pr);
         else{
-            //探索log(1)
-            log->move = tmp->mlist->move;
-            move_sprintf(log->move_str,log->move,sdata);
-            
-            memcpy(&sbuf, sdata, sizeof(sdata_t));
-            sdata_move_forward(&sbuf, tmp->mlist->move);
-            
-            //探索log(2)
-            log->zkey = S_ZKEY(&sbuf);
-            log->mkey = tn?S_GMKEY(&sbuf):S_SMKEY(&sbuf);
-            
-            make_tree_or(&sbuf, tmp, tbase);
-            
-            //探索log(3)
-            memset(&(log->move), 0, sizeof(move_t));
-            memset(log->move_str, 0, sizeof(char)*32);
-            
+            if(g_pv_length>=S_COUNT(sdata)){
+                nsearchlog_t *log = &(g_tsearchinf.mvinf[S_COUNT(sdata)]);
+                //探索log(1)
+                log->move = tmp->mlist->move;
+                move_sprintf(log->move_str,log->move,sdata);
+                
+                memcpy(&sbuf, sdata, sizeof(sdata_t));
+                sdata_move_forward(&sbuf, tmp->mlist->move);
+                
+                //探索log(2)
+                log->zkey = S_ZKEY(&sbuf);
+                log->mkey = tn?S_GMKEY(&sbuf):S_SMKEY(&sbuf);
+                
+                make_tree_or(&sbuf, tmp, tbase);
+                
+                //探索log(3)
+                memset(&(log->move), 0, sizeof(move_t));
+                memset(log->move_str, 0, sizeof(char)*32);
+            }
+            else{
+                memcpy(&sbuf, sdata, sizeof(sdata_t));
+                sdata_move_forward(&sbuf, tmp->mlist->move);
+                make_tree_or(&sbuf, tmp, tbase);
+            }
             tmp->pr = 1;
         }
         tmp = tmp->next;
