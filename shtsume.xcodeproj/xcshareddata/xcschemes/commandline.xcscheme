@@ -80,6 +80,22 @@
             argument = "&quot;b2+P4n/1r2s1n2/3p1P3/1g3nK+P1/1Gl+B2s1+r/PPpn3PG/3+p5/2P2L1S1/+p3L3P w GL3Ps3p 1&quot;"
             isEnabled = "NO">
          </CommandLineArgument>
+         <CommandLineArgument
+            argument = "&quot;4k4/9/PPPPPPPPP/9/9/9/9/9/4n4 b B4L2rb4g4s4n8p 1&quot; "
+            isEnabled = "NO">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "&quot;4k4/9/9/9/9/9/9/9/9 b B4G2S9P2rb2s4n4l9p 1&quot;"
+            isEnabled = "NO">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "&quot;B1gs2+N1g/gP3nS1P/1ppRp2N+P/B4p+pk1/6l2/9/n8/4KLP1L/5PSrs b gl8p 1&quot;"
+            isEnabled = "NO">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "&quot;l3+P2B+p/k2+rpg+P2/3+p+rPS1n/PP1s4p/3l+p+B1pP/L2n4g/+p4p+N2/5S1s+P/+PL+P+pg+N1G1 b - 1&quot;"
+            isEnabled = "NO">
+         </CommandLineArgument>
       </CommandLineArguments>
    </LaunchAction>
    <ProfileAction

@@ -657,7 +657,6 @@ void bn_search_and              (const sdata_t   *sdata,
            g_suspend       ||
            g_stop_received   )
         {
-            
             //不詰の場合
             if      (!mvlist->tdata.dn)
             {
@@ -666,10 +665,7 @@ void bn_search_and              (const sdata_t   *sdata,
             //詰みの場合
             else if(!mvlist->tdata.pn)
             {
-                if(!list->inc)      {
-                    mvlist->mkey = ENEMY_MKEY(sdata);
-                }
-                else if(proof_flag) {
+                if(proof_flag) {
                     mvlist->mkey = ENEMY_MKEY(sdata);
                     mvlist->inc  = list->inc;
                     mvlist->hinc = list->inc;
