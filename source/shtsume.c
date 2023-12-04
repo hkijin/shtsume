@@ -498,7 +498,7 @@ void bn_search_or               (const sdata_t   *sdata,
             nsearchlog_t *log = &(g_tsearchinf.mvinf[S_COUNT(sdata)]);
             //探索log
             log->move = list->mlist->move;
-            move_sprintf(log->move_str,log->move,sdata);
+            //move_sprintf(log->move_str,log->move,sdata);
             log->tdata = mvlist->tdata;
             log->thdata = c_threshold;
             
@@ -518,7 +518,7 @@ void bn_search_or               (const sdata_t   *sdata,
             log->mkey = tn?S_GMKEY(&sbuf):S_SMKEY(&sbuf);
             bn_search_and(&sbuf, &c_threshold, list, tbase);
             memset(&(log->move), 0, sizeof(move_t));
-            memset(log->move_str, 0, sizeof(char)*32);
+            //memset(log->move_str, 0, sizeof(char)*32);
         }
         else{
             //探索局面証明数、反証数にしきい値を代入。
@@ -709,7 +709,7 @@ void bn_search_and              (const sdata_t   *sdata,
             nsearchlog_t *log = &(g_tsearchinf.mvinf[S_COUNT(sdata)]);
             //探索log(1)
             log->move = list->mlist->move;
-            move_sprintf(log->move_str,log->move,sdata);
+            //move_sprintf(log->move_str,log->move,sdata);
             log->tdata = mvlist->tdata;
             log->thdata = c_threshold;
             
@@ -732,7 +732,7 @@ void bn_search_and              (const sdata_t   *sdata,
             bn_search_or(&sbuf, &c_threshold, list, tbase);
             
             memset(&(log->move), 0, sizeof(move_t));
-            memset(log->move_str, 0, sizeof(char)*32);
+            //memset(log->move_str, 0, sizeof(char)*32);
         }
         else{
             //千日手回避のため、しきい値を現局面に代入。
@@ -882,7 +882,7 @@ void make_tree_or               (const sdata_t   *sdata,
             nsearchlog_t *log = &(g_tsearchinf.mvinf[S_COUNT(sdata)]);
             //探索log(1)
             log->move = list->mlist->move;
-            move_sprintf(log->move_str,log->move,sdata);
+            //move_sprintf(log->move_str,log->move,sdata);
             
             memcpy(&sbuf, sdata, sizeof(sdata_t));
             sdata_move_forward(&sbuf, list->mlist->move);
@@ -977,7 +977,7 @@ void make_tree_and              (const sdata_t   *sdata,
                 nsearchlog_t *log = &(g_tsearchinf.mvinf[S_COUNT(sdata)]);
                 //探索log(1)
                 log->move = tmp->mlist->move;
-                move_sprintf(log->move_str,log->move,sdata);
+                //move_sprintf(log->move_str,log->move,sdata);
                 
                 memcpy(&sbuf, sdata, sizeof(sdata_t));
                 sdata_move_forward(&sbuf, tmp->mlist->move);
@@ -1113,7 +1113,7 @@ void bns_plus_or                (const sdata_t   *sdata,
                     nsearchlog_t *log = &(g_tsearchinf.mvinf[S_COUNT(sdata)]);
                     //探索log(1)
                     log->move = list->mlist->move;
-                    move_sprintf(log->move_str,log->move,sdata);
+                    //move_sprintf(log->move_str,log->move,sdata);
                     
                     memcpy(&sbuf, sdata, sizeof(sdata_t));
                     sdata_move_forward(&sbuf, tmp->mlist->move);
@@ -1250,7 +1250,7 @@ void bns_plus_and               (const sdata_t   *sdata,
             nsearchlog_t *log = &(g_tsearchinf.mvinf[S_COUNT(sdata)]);
             //探索log(1)
             log->move = list->mlist->move;
-            move_sprintf(log->move_str,log->move,sdata);
+            //move_sprintf(log->move_str,log->move,sdata);
             
             memcpy(&sbuf, sdata, sizeof(sdata_t));
             sdata_move_forward(&sbuf, list->mlist->move);

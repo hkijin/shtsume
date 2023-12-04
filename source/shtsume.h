@@ -20,7 +20,7 @@
  * プログラムID
  */
 #define PROGRAM_NAME       "shtsume"
-#define VERSION_INFO       "v1.1.1"
+#define VERSION_INFO       "v1.1.2"
 #define AUTHOR_NAME        "hkijin"
 /*
  * USIオプション情報
@@ -220,9 +220,9 @@ struct _tlist_t
 typedef struct _mcard_t mcard_t;
 struct _mcard_t
 {
-    mkey_t               mkey;          /* 詰方の持ち駒     */
     mcard_t             *next;
     tlist_t            *tlist;          /* 深さ別情報格納    */
+    mkey_t               mkey;          /* 詰方の持ち駒     */
     unsigned int         hinc: 1;       // 詰め上がりで駒余り
     unsigned int        nouse: 6;       // 詰時余り駒数
     unsigned int      current: 1;       // pvで使用中
