@@ -111,11 +111,15 @@ void print_help                (void)
     return;
 }
 
-uint16_t proof_number     (mvlist_t  *mvlist)
+uint16_t proof_number    (mvlist_t  *mvlist, uint16_t *pcnt)
 {
     mvlist_t *list = mvlist;
     uint16_t wpn = list->tdata.pn, pn = 0;
-    if(wpn == INFINATE && !list->tdata.dn) return INFINATE;
+    if(wpn == INFINATE && !list->tdata.dn){
+        if(pcnt) *pcnt = 0;
+        return INFINATE;
+    }
+        
     list = list->next;
     while(list){
         if(!list->tdata.pn) break;
@@ -123,27 +127,18 @@ uint16_t proof_number     (mvlist_t  *mvlist)
         wpn = MAX(wpn, list->tdata.pn);
         list = list->next;
     }
+    if(pcnt) *pcnt = pn;
     return MIN(INFINATE-1, wpn+pn);
 }
-/*
-uint16_t sub_proof_number (mvlist_t  *mvlist)
-{
-    mvlist_t *list = mvlist;
-    uint16_t pn = 0;
-    while(list){
-        if(!list->tdata.pn) break;
-        pn += list->tdata.pn;
-        if(pn>SPN_MAX) return SPN_MAX;
-        list = list->next;
-    }
-    return pn;
-}
-*/
-uint16_t disproof_number  (mvlist_t  *mvlist)
+uint16_t disproof_number (mvlist_t  *mvlist, uint16_t *dcnt)
 {
     mvlist_t *list = mvlist;
     uint16_t wdn = list->tdata.dn, dn = 0;
-    if(wdn == INFINATE && !list->tdata.pn) return INFINATE;
+    if(wdn == INFINATE && !list->tdata.pn) {
+        if(dcnt) *dcnt = 0;
+        return INFINATE;
+    }
+        
     list = list->next;
     while(list){
         if(!list->tdata.dn) break;
@@ -151,29 +146,8 @@ uint16_t disproof_number  (mvlist_t  *mvlist)
         wdn = MAX(wdn, list->tdata.dn);
         list = list->next;
     }
+    if(dcnt) *dcnt = dn;
     return MIN(INFINATE-1, wdn+dn);
-}
-uint16_t proof_count      (mvlist_t  *mvlist)
-{
-    mvlist_t *list = mvlist->next;
-    uint16_t cnt = 0;
-    while(list){
-        if(!list->tdata.pn) break;
-        cnt++;
-        list = list->next;
-    }
-    return cnt;
-}
-uint16_t disproof_count   (mvlist_t  *mvlist)
-{
-    mvlist_t *list = mvlist->next;
-    uint16_t cnt = 0;
-    while(list){
-        if(!list->tdata.dn) break;
-        cnt++;
-        list = list->next;
-    }
-    return cnt;
 }
 
 void bn_search                  (const sdata_t   *sdata,
@@ -420,6 +394,7 @@ void bn_search_or               (const sdata_t   *sdata,
      -------- */
     tdata_t c_threshold;
     mcard_t *current;
+    uint16_t dcnt = 0;
     //着手の並べ替え
     list = sdata_mvlist_sort(list, sdata, proof_number_comp);
     while(true){
@@ -438,8 +413,9 @@ void bn_search_or               (const sdata_t   *sdata,
             g_root_pn = mvlist->tdata.pn;
             g_root_max = MAX(g_root_max, g_root_pn);
         }
+        
         mvlist->tdata.dn =
-        (S_COUNT(sdata))? disproof_number(list): list->tdata.dn;
+        (S_COUNT(sdata))? disproof_number(list,&dcnt): list->tdata.dn;
         mvlist->tdata.sh = list->tdata.sh+1;
         mvlist->inc = list->inc;
         //判定
@@ -484,9 +460,7 @@ void bn_search_or               (const sdata_t   *sdata,
                 c_threshold.dn = INFINATE-1;
             else
                 c_threshold.dn =
-                S_COUNT(sdata)?
-                th_tdata->dn - disproof_count(list):
-                th_tdata->dn;
+                S_COUNT(sdata)? th_tdata->dn - dcnt:th_tdata->dn;
         }
         else           {
             c_threshold.pn = th_tdata->pn;
@@ -591,6 +565,7 @@ void bn_search_and              (const sdata_t   *sdata,
     //反復深化
     tdata_t c_threshold;
     mcard_t *current;
+    uint16_t pcnt = 0;
     while(true){
         //着手の並べ替え
         list = sdata_mvlist_sort(list, sdata, disproof_number_comp);
@@ -647,7 +622,7 @@ void bn_search_and              (const sdata_t   *sdata,
         
         //証明数、反証数等の更新
         mvlist->tdata.dn = list->tdata.dn;
-        mvlist->tdata.pn = proof_number(list);
+        mvlist->tdata.pn = proof_number(list, &pcnt);
         mvlist->tdata.sh = list->tdata.sh+1;
         
         //判定
@@ -697,7 +672,7 @@ void bn_search_and              (const sdata_t   *sdata,
         //しきい値の更新
         if(list->next) {
             c_threshold.dn = MIN(th_tdata->dn, (list->next)->tdata.dn+1);
-            c_threshold.pn = th_tdata->pn - proof_count(list);
+            c_threshold.pn = th_tdata->pn - pcnt;
             c_threshold.sh = th_tdata->sh-1;
         }
         else           {
@@ -1086,7 +1061,7 @@ void bns_plus_or                (const sdata_t   *sdata,
     {
         mvlist->tdata.pn = list->tdata.pn;
         mvlist->tdata.dn =
-        S_COUNT(sdata) ? disproof_number(list): list->tdata.dn;
+        S_COUNT(sdata) ? disproof_number(list, NULL): list->tdata.dn;
         mvlist->tdata.sh = list->tdata.sh+1;
         proof_koma_or(sdata, mvlist, list);
         make_tree_update(sdata, mvlist, S_TURN(sdata), tbase);
@@ -1165,7 +1140,7 @@ void bns_plus_or                (const sdata_t   *sdata,
     {
         mvlist->tdata.pn = list->tdata.pn;
         mvlist->tdata.dn =
-        S_COUNT(sdata) ? disproof_number(list): list->tdata.dn;
+        S_COUNT(sdata) ? disproof_number(list, NULL): list->tdata.dn;
         mvlist->tdata.sh = list->tdata.sh+1;
         mvlist->inc = list->inc;
         if (!mvlist->tdata.pn) {
@@ -1277,7 +1252,7 @@ void bns_plus_and               (const sdata_t   *sdata,
         current->current = 0;
     }
     
-    mvlist->tdata.pn = proof_number(list);
+    mvlist->tdata.pn = proof_number(list, NULL);
     mvlist->tdata.dn = list->tdata.dn;
     mvlist->tdata.sh = list->tdata.sh+1;
     if     (!mvlist->tdata.dn){

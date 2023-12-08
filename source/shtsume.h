@@ -20,7 +20,7 @@
  * プログラムID
  */
 #define PROGRAM_NAME       "shtsume"
-#define VERSION_INFO       "v1.1.2"
+#define VERSION_INFO       "v1.1.3"
 #define AUTHOR_NAME        "hkijin"
 /*
  * USIオプション情報
@@ -442,12 +442,8 @@ extern bool g_invalid_drops;
 /*
  * bn探索
  */
-uint16_t proof_number     (mvlist_t  *mvlist);
-uint16_t disproof_number  (mvlist_t  *mvlist);
-uint16_t proof_count      (mvlist_t  *mvlist);
-uint16_t disproof_count   (mvlist_t  *mvlist);
-
-//uint16_t sub_proof_number (mvlist_t  *mvlist);
+uint16_t proof_number    (mvlist_t  *mvlist, uint16_t *pcnt);
+uint16_t disproof_number (mvlist_t  *mvlist, uint16_t *dcnt);
 
 void bn_search                  (const sdata_t   *sdata,
                                  tdata_t         *tdata,
