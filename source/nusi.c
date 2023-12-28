@@ -480,14 +480,24 @@ int create_search_report(void)
     time(&now);
     struct tm t = *localtime(&now);
     char s[16];
+    memset(s,'0',sizeof(s));
     strftime(s, 16, "%Y%m%d%H%M%S", &t);
     char filename[256];
+    memset(filename,'0',sizeof(filename));
     sprintf(filename,"%s/search_report%s.log",g_user_path,s);
     int num = 0;
     FILE *fp = fopen(filename, "w");
     if(!fp){
-        num += fprintf(stdout,
-                       "info string error search_report could not be opened.");
+        if(g_commandline){
+            num += fprintf
+            (stdout,"info string error search_report could not be opened.");
+        }
+        else{
+            sprintf
+            (g_str, "info string error search_report could not be opened.");
+            record_log(g_str);
+            puts(g_str);
+        }
         return num;
     }
     //プログラム＆バージョン

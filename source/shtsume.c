@@ -797,6 +797,7 @@ void make_tree_or               (const sdata_t   *sdata,
     /* --------------------------------------------------------------------
      GCで詰みデータを削除した場合、再探索を実施する。
      ------------------------------------------------------------------- */
+    turn_t tn = S_TURN(sdata);
     while(list->tdata.pn){
         if(list->tdata.pn >= INFINATE-1){
             SDATA_PRINTF(sdata,PR_BOARD);
@@ -807,9 +808,29 @@ void make_tree_or               (const sdata_t   *sdata,
         if(list->next) thdata.pn = MIN(INFINATE-1,(list->next)->tdata.pn+1);
         else thdata.pn = INFINATE-1;
         thdata.sh = TSUME_MAX_DEPTH-sdata->core.count-1;
-        memcpy(&sbuf, sdata, sizeof(sdata_t));
-        sdata_move_forward(&sbuf, list->mlist->move);
-        bn_search_and(&sbuf, &thdata, list, tbase);
+        if(g_pv_length>=S_COUNT(sdata)){
+            nsearchlog_t *log = &(g_tsearchinf.mvinf[S_COUNT(sdata)]);
+            //探索log(1)
+            log->move = list->mlist->move;
+            //move_sprintf(log->move_str,log->move,sdata);
+            
+            memcpy(&sbuf, sdata, sizeof(sdata_t));
+            sdata_move_forward(&sbuf, list->mlist->move);
+            
+            //探索log(2)
+            log->zkey = S_ZKEY(&sbuf);
+            log->mkey = tn?S_GMKEY(&sbuf):S_SMKEY(&sbuf);
+            
+            bn_search_and(&sbuf, &thdata, list, tbase);
+            //探索log(3)
+            memset(&(log->move), 0, sizeof(move_t));
+            memset(log->move_str, 0, sizeof(char)*32);
+        }
+        else{
+            memcpy(&sbuf, sdata, sizeof(sdata_t));
+            sdata_move_forward(&sbuf, list->mlist->move);
+            bn_search_and(&sbuf, &thdata, list, tbase);
+        }
         list = sdata_mvlist_sort(list, sdata, proof_number_comp);
     }
     /* --------------------------------------------------------------------
@@ -823,9 +844,30 @@ void make_tree_or               (const sdata_t   *sdata,
         tmp = list;
         uint16_t ptsh = mvlist->tdata.sh;
         while(!tmp->tdata.pn){
-            memcpy(&sbuf, sdata, sizeof(sdata_t));
-            sdata_move_forward(&sbuf, tmp->mlist->move);
-            bns_plus_and(&sbuf, tmp, ptsh, tbase);
+            if(g_pv_length>=S_COUNT(sdata)){
+                nsearchlog_t *log = &(g_tsearchinf.mvinf[S_COUNT(sdata)]);
+                //探索log(1)
+                log->move = list->mlist->move;
+                //move_sprintf(log->move_str,log->move,sdata);
+                
+                memcpy(&sbuf, sdata, sizeof(sdata_t));
+                sdata_move_forward(&sbuf, tmp->mlist->move);
+                
+                //探索log(2)
+                log->zkey = S_ZKEY(&sbuf);
+                log->mkey = tn?S_GMKEY(&sbuf):S_SMKEY(&sbuf);
+                
+                bns_plus_and(&sbuf, tmp, ptsh, tbase);
+                
+                //探索log(3)
+                memset(&(log->move), 0, sizeof(move_t));
+                memset(log->move_str, 0, sizeof(char)*32);
+            }
+            else{
+                memcpy(&sbuf, sdata, sizeof(sdata_t));
+                sdata_move_forward(&sbuf, tmp->mlist->move);
+                bns_plus_and(&sbuf, tmp, ptsh, tbase);
+            }
             tmp = tmp->next;
         }
         list = sdata_mvlist_sort(list, sdata, proof_number_comp);
@@ -849,8 +891,6 @@ void make_tree_or               (const sdata_t   *sdata,
         }
     }
     if(list->cu) return;              //通常バグがなければここに来ることはあり得ない
-    
-    turn_t tn = S_TURN(sdata);
 
     while(!list->inc && !list->pr){
         if(g_pv_length>=S_COUNT(sdata)){
@@ -932,9 +972,29 @@ void make_tree_and              (const sdata_t   *sdata,
     
     //詰みデータ消失の場合
     while(list->tdata.pn){
-        memcpy(&sbuf, sdata, sizeof(sdata_t));
-        sdata_move_forward(&sbuf, list->mlist->move);
-        bn_search_or(&sbuf, &thdata, list, tbase);
+        if(g_pv_length>=S_COUNT(sdata)){
+            nsearchlog_t *log = &(g_tsearchinf.mvinf[S_COUNT(sdata)]);
+            //探索log(1)
+            log->move = list->mlist->move;
+            
+            memcpy(&sbuf, sdata, sizeof(sdata_t));
+            sdata_move_forward(&sbuf, list->mlist->move);
+            
+            //探索log(2)
+            log->zkey = S_ZKEY(&sbuf);
+            log->mkey = tn?S_GMKEY(&sbuf):S_SMKEY(&sbuf);
+            
+            bn_search_or(&sbuf, &thdata, list, tbase);
+            
+            //探索log(3)
+            memset(&(log->move), 0, sizeof(move_t));
+            memset(log->move_str, 0, sizeof(char)*32);
+        }
+        else{
+            memcpy(&sbuf, sdata, sizeof(sdata_t));
+            sdata_move_forward(&sbuf, list->mlist->move);
+            bn_search_or(&sbuf, &thdata, list, tbase);
+        }
         if(!list->tdata.dn){
             //不詰の場合の処理
             printf("エラー\n");
@@ -952,7 +1012,6 @@ void make_tree_and              (const sdata_t   *sdata,
                 nsearchlog_t *log = &(g_tsearchinf.mvinf[S_COUNT(sdata)]);
                 //探索log(1)
                 log->move = tmp->mlist->move;
-                //move_sprintf(log->move_str,log->move,sdata);
                 
                 memcpy(&sbuf, sdata, sizeof(sdata_t));
                 sdata_move_forward(&sbuf, tmp->mlist->move);
@@ -1124,9 +1183,30 @@ void bns_plus_or                (const sdata_t   *sdata,
             MIN(st_add_thpn,MAX(tmp->tdata.pn,g_gc_max_level))+1;
             thdata.sh = MIN(TSUME_MAX_DEPTH - S_COUNT(sdata)-1,
                             mvlist->tdata.sh+ADD_SEARCH_SH);
-            memcpy(&sbuf, sdata, sizeof(sdata_t));
-            sdata_move_forward(&sbuf, tmp->mlist->move);
-            bn_search_and(&sbuf, &thdata, tmp, tbase);
+            if(g_pv_length>=S_COUNT(sdata)){
+                nsearchlog_t *log = &(g_tsearchinf.mvinf[S_COUNT(sdata)]);
+                //探索log(1)
+                log->move = list->mlist->move;
+                //move_sprintf(log->move_str,log->move,sdata);
+                
+                memcpy(&sbuf, sdata, sizeof(sdata_t));
+                sdata_move_forward(&sbuf, tmp->mlist->move);
+                
+                //探索log(2)
+                log->zkey = S_ZKEY(&sbuf);
+                log->mkey = tn?S_GMKEY(&sbuf):S_SMKEY(&sbuf);
+                
+                bn_search_and(&sbuf, &thdata, tmp, tbase);
+                
+                //探索log(3)
+                memset(&(log->move), 0, sizeof(move_t));
+                memset(log->move_str, 0, sizeof(char)*32);
+            }
+            else{
+                memcpy(&sbuf, sdata, sizeof(sdata_t));
+                sdata_move_forward(&sbuf, tmp->mlist->move);
+                bn_search_and(&sbuf, &thdata, tmp, tbase);
+            }
             tmp->pr = 1;
         }
         
@@ -1206,9 +1286,32 @@ void bns_plus_and               (const sdata_t   *sdata,
     
     //詰みデータが消失していた場合の処理
     while(list->tdata.pn){
-        memcpy(&sbuf, sdata, sizeof(sdata_t));
-        sdata_move_forward(&sbuf, list->mlist->move);
-        bn_search_or(&sbuf, &thdata, list, tbase);
+        if(g_pv_length>=S_COUNT(sdata)){
+            nsearchlog_t *log = &(g_tsearchinf.mvinf[S_COUNT(sdata)]);
+            //探索log(1)
+            log->move = list->mlist->move;
+            //move_sprintf(log->move_str,log->move,sdata);
+            
+            memcpy(&sbuf, sdata, sizeof(sdata_t));
+            sdata_move_forward(&sbuf, list->mlist->move);
+            
+            //探索log(2)
+            log->zkey = S_ZKEY(&sbuf);
+            log->mkey = tn?S_GMKEY(&sbuf):S_SMKEY(&sbuf);
+            
+            bn_search_or(&sbuf, &thdata, list, tbase);
+            
+            //探索log(3)
+            memset(&(log->move), 0, sizeof(move_t));
+            memset(log->move_str, 0, sizeof(char)*32);
+            
+        }
+        else{
+            memcpy(&sbuf, sdata, sizeof(sdata_t));
+            sdata_move_forward(&sbuf, list->mlist->move);
+            bn_search_or(&sbuf, &thdata, list, tbase);
+        }
+
         list = sdata_mvlist_sort(list, sdata, disproof_number_comp);
     }
     

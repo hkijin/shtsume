@@ -20,7 +20,7 @@
  * プログラムID
  */
 #define PROGRAM_NAME       "shtsume"
-#define VERSION_INFO       "v1.1.3"
+#define VERSION_INFO       "v1.1.3a"
 #define AUTHOR_NAME        "hkijin"
 /*
  * USIオプション情報

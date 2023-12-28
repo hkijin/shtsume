@@ -65,6 +65,7 @@
 		689734ED28605F2400665FC6 /* README.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		689734EE28605F7300665FC6 /* LICENSE */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = LICENSE; sourceTree = "<group>"; };
 		689734F2286077DF00665FC6 /* .gitignore */ = {isa = PBXFileReference; lastKnownFileType = text; path = .gitignore; sourceTree = "<group>"; };
+		68D6478F2B397BF000244D88 /* note.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = note.md; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -81,6 +82,7 @@
 		6896341728629EF7007EA17E /* docs */ = {
 			isa = PBXGroup;
 			children = (
+				68D6478F2B397BF000244D88 /* note.md */,
 				68160338293DB87300422F9A /* _config.yml */,
 				68103F6A28F6BAD800050DB6 /* sample.sh */,
 				68103F6928F6BABC00050DB6 /* sample.bat */,

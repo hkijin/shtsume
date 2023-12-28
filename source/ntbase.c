@@ -203,7 +203,7 @@ void destroy_tbase          (tbase_t  *tbase)
 static bool delete_func     (tlist_t      *tl,
                              unsigned int gc_level)
 {
-    //詰め方の詰みデータを削除する。
+    //玉方手番の詰みデータを削除する。
     if(!tl->tdata.pn){
         st_n_tsumi++;
         if(st_tsumi_delete_flag){
@@ -219,7 +219,7 @@ static bool delete_func     (tlist_t      *tl,
             }
         }
     }
-    //玉方の不詰データを削除する
+    //詰方手番の不詰データを削除する
     else if(!tl->tdata.dn){
         st_n_fudumi++;
         if(gc_level<GC_DELETE_OFFSET){
