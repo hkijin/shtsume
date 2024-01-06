@@ -31,9 +31,9 @@
       </Testables>
    </TestAction>
    <LaunchAction
-      buildConfiguration = "Debug"
-      selectedDebuggerIdentifier = "Xcode.DebuggerFoundation.Debugger.LLDB"
-      selectedLauncherIdentifier = "Xcode.DebuggerFoundation.Launcher.LLDB"
+      buildConfiguration = "Release"
+      selectedDebuggerIdentifier = ""
+      selectedLauncherIdentifier = "Xcode.IDEFoundation.Launcher.PosixSpawn"
       launchStyle = "0"
       useCustomWorkingDirectory = "NO"
       ignoresPersistentStateOnLaunch = "NO"
@@ -57,16 +57,20 @@
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "-l 2"
+            argument = "-d"
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "-m 6144"
+            argument = "-l 3"
+            isEnabled = "YES">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "-m 4096"
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "&quot;g1+P1k1+P+P+L/1p3P3/+R+p2pp1pl/1NNsg+p2+R/+b+nL+P1+p3/1P3ssP1/2P1+Ps2N/4+P1P1L/+B5G1g b - 1&quot;"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "&quot;G1g5+b/l1p1+p4/n2S+p1p2/1pSS3p1/3+P1+pl+N+B/+r2+PGSnn1/LP1PP2+P+r/3p3P1/+l+p+p1K1+p1G w - 1&quot;"
@@ -98,6 +102,18 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "&quot;l+P1pl4/S3L4/2NP1+Bp+p+p/4+n2+pS/B3+r+pns+p/p3+P+PPk1/4P4/g7L/+P3+R2SN b 3g3p 1&quot;"
+            isEnabled = "NO">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "&quot;3+p5/7S1/2PLpkN2/1gS3Ps1/1G3pgp+b/4LL1N1/5G+sP1/5N3/4N4 b RLrb11p 1&quot;"
+            isEnabled = "NO">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "&quot;3+p2R2/4+p1RS1/2PLpkN21gS3Ps1/1G+pp1pgp+b/1+p+p1LL1N1/+p+p+p+p1G+sP1/2+p2N3/4N4 b blp 1&quot;"
+            isEnabled = "YES">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "&quot;3sks3/9/4S4/9/9/B8/9/9/9 b S2rb4g4n4l18p 1&quot;"
             isEnabled = "NO">
          </CommandLineArgument>
       </CommandLineArguments>

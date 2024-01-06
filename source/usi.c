@@ -153,6 +153,41 @@ void record_log(const char *message){
     return;
 }
 
+
+//特定の局面の読み書き履歴を記録しておく
+zkey_t g_test_zkey;
+mkey_t g_test_mkey;
+char g_debuglog_name[SZ_FILEPATH];
+bool g_debug_enable = false;          //debug logを使用したい時はtrueにする。
+
+void create_debug_filename(void)       {
+    if(!g_debug_enable) return;
+    char s[16];
+    time_t now;
+    time(&now);
+    struct tm t = *localtime(&now);
+    strftime(s, 16, "%Y%m%d%H%M%S", &t);
+    sprintf(g_debuglog_name,"%s/debuglog%s.txt",g_logfile_path,s);
+    FILE *fp = fopen(g_debuglog_name, "w");
+    if(!fp){
+        perror("debuglogfile could not be opened.");
+        exit (EXIT_FAILURE);
+    }
+    fprintf(fp, "debuglog start at %s\n", s);
+    fclose(fp);
+    return;
+}
+
+void debug_log(const char *message){
+    if(!g_debug_enable) return;
+    FILE *fp;
+    fp = fopen(g_debuglog_name, "a");
+    assert(fp != NULL);
+    fprintf(fp,"%s\n", message);
+    fclose(fp);
+    return;
+}
+
 /*
  -----------------------------------------------------------------------------
  sfen形式の盤面情報読み込み

@@ -103,6 +103,15 @@ void create_log_filename(void);       //Logファイル名を生成する
 void record_log(const char *message); //LOGファイルにmessageテキストを記録する
 
 
+extern zkey_t g_test_zkey;
+extern mkey_t g_test_mkey;
+extern char g_debuglog_name[SZ_FILEPATH];
+extern bool g_debug_enable;
+void create_debug_filename(void);     //デバッグ用LOGファイルの作成
+void debug_log(const char *message);  //デバッグ用LOGファイルへの記録
+#define TEST_SDATA(zkey,mkey) \
+        ((zkey) == g_test_zkey && !MKEY_COMPARE((mkey),g_test_mkey))
+
 
 //sfenフォーマット読み書き
 char *sfen_to_ssdata (char *str, ssdata_t *ssdata);

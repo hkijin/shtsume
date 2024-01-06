@@ -132,6 +132,13 @@ int main(int argc, char * const argv[]) {
         if(home) strncpy(g_user_path, home, strlen(home));
         else     home = getcwd(g_user_path, sizeof(g_user_path));
         
+        //局面デバッグ用
+        g_debug_enable = false;              //デバッグの場合true
+        g_test_mkey.ky = 1;                  //調べたい局面の持駒キーを入力
+        g_test_zkey = 0X64E474062DD95AE6;    //調べたい局面の盤面キーを入力
+        strncpy(g_logfile_path,g_user_path,sizeof(g_logfile_path));
+        create_debug_filename();
+        
         //基本ライブラリの初期化処理
         create_seed();                        //zkey
         init_distance();                      //g_distance

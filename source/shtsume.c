@@ -398,6 +398,21 @@ void bn_search_or               (const sdata_t   *sdata,
     //着手の並べ替え
     list = sdata_mvlist_sort(list, sdata, proof_number_comp);
     while(true){
+        //駒余り2手詰発見の際は他に0手詰が無いか確認する
+        if(g_gc_num && !list->tdata.pn && list->tdata.sh==2 && list->inc)
+        {
+            c_threshold.sh = 2;
+            tmp = list->next;
+            while(tmp){
+                if(tmp->search) break;
+                memcpy(&sbuf, sdata, sizeof(sdata_t));
+                sdata_move_forward(&sbuf, tmp->mlist->move);
+                bn_search_and(&sbuf, &c_threshold, tmp, tbase);
+                tmp->search = 1;
+                tmp = tmp->next;
+            }
+            list = sdata_mvlist_sort(list, sdata, proof_number_comp);
+        }
         //予想手の出力
         if(S_COUNT(sdata)==0 && !g_commandline){
             g_tsearchinf.mvinf[S_COUNT(sdata)].move = list->mlist->move;
@@ -1092,7 +1107,7 @@ void bns_plus_or                (const sdata_t   *sdata,
         /* -----------------------------------------------
           GCを実施している場合、末端データの喪失が想定される。
           それらのデータは復元しておく
-         ------------------------------------------------*/
+         ------------------------------------------------ */
         //データ消失時の処理
         if(!tmp->search)
         {

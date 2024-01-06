@@ -272,14 +272,17 @@ void tbase_gc              (tbase_t  *tbase)
     if(!g_commandline)
         strncpy(prefix, "info string ", strlen("info string "));
     //ガベージコレクション実施宣言
-    sprintf(g_str, "%sGarbage collection start. "
-                   "size:%llu del_target:%llu protected:%llu gc_num:%d ",
+    sprintf(g_str, "%sGarbage collection start. ",prefix);
+    record_log(g_str); 
+    puts(g_str);
+    sprintf(g_str, "%ssize:%llu del_target:%llu protected:%llu gc_num:%d ",
             prefix,tbase->sz_elm, gc_target, tbase->pr_num, g_gc_num);
-    record_log(g_str); puts(g_str);
+    record_log(g_str);
+    puts(g_str);
     do{
         if(gc_level>g_gc_max_level) g_gc_max_level = gc_level;
         //gc_level出力
-        sprintf(g_str, "info string gc_level:%u", gc_level);
+        sprintf(g_str, "%sgc_level:%u", prefix, gc_level);
         record_log(g_str); puts(g_str);
         counter_reset();
         for(i=0; i<tbase->sz_tbl; i++)
@@ -383,7 +386,7 @@ void tbase_gc              (tbase_t  *tbase)
     
     record_log(g_str);
     puts(g_str);
-    sprintf(g_str, "%sGarbage collection end.",prefix);
+    sprintf(g_str, "%sGarbage collection end.\n",prefix);
     record_log(g_str);
     puts(g_str);
     tbase->num -= delete_num;
