@@ -399,7 +399,7 @@ void bn_search_or               (const sdata_t   *sdata,
     list = sdata_mvlist_sort(list, sdata, proof_number_comp);
     while(true){
         //駒余り2手詰発見の際は他に0手詰が無いか確認する
-        if(g_gc_num && !list->tdata.pn && list->tdata.sh==2 && list->inc)
+        if(!list->tdata.pn && list->tdata.sh==2 && list->inc)
         {
             c_threshold.sh = 2;
             tmp = list->next;
