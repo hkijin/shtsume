@@ -316,9 +316,7 @@ int proof_number_comp     (const mvlist_t *a,
     //dnの小さい着手を優先
     if(a->tdata.dn < b->tdata.dn) return -1;
     if(a->tdata.dn > b->tdata.dn) return  1;
-    //王手千日手は回避
-    if(a->cu < b->cu) return -1;
-    if(a->cu > b->cu) return  1;
+
     //詰んでいる着手を優先
     if (!a->tdata.pn && !a->tdata.sh) return -1;
     if (!b->tdata.pn && !b->tdata.sh) return  1;
@@ -328,6 +326,15 @@ int proof_number_comp     (const mvlist_t *a,
     //より短手数で詰む着手を優先
     if (a->tdata.sh < b->tdata.sh) return -1;
     if (a->tdata.sh > b->tdata.sh) return  1;
+    
+    //保護されていない着手を優先
+    if(a->pr < b->pr) return -1;
+    if(a->pr > b->pr) return  1;
+    
+    //王手千日手は回避
+    if(a->cu < b->cu) return -1;
+    if(a->cu > b->cu) return  1;
+    
     //駒をより多く余す着手を優先
     if (a->nouse2 < b->nouse2) return -1;
     if (a->nouse2 > b->nouse2) return  1;
