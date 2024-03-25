@@ -65,7 +65,7 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "-m 4096"
+            argument = "-m 6144"
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
@@ -101,7 +101,7 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "&quot;l+P1pl4/S3L4/2NP1+Bp+p+p/4+n2+pS/B3+r+pns+p/p3+P+PPk1/4P4/g7L/+P3+R2SN b 3g3p 1&quot;"
+            argument = "&quot;1+p3lp+s1/1n2P2Pn/sp2pG1N1/G4G3/9/8P/p1pp1p2k/LNP3B1p/S+R1B3G+s b R4P2lp 1&quot;"
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument

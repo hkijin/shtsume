@@ -317,11 +317,7 @@ void tsumi_proof                (const sdata_t   *sdata,
     else                         mvlist->hinc = 0;
     return;
 }
-/*
- 　デバッグオプション　USE_REORDER
- */
 
-//#define USE_REORDER 1
 void bn_search_or               (const sdata_t   *sdata,
                                  tdata_t      *th_tdata,
                                  mvlist_t       *mvlist,
@@ -399,8 +395,11 @@ void bn_search_or               (const sdata_t   *sdata,
     list = sdata_mvlist_sort(list, sdata, proof_number_comp);
     while(true){
         //駒余り2手詰発見の際は他に0手詰が無いか確認する
+        /*
         if(!list->tdata.pn && list->tdata.sh==2 && list->inc)
         {
+            c_threshold.pn = INFINATE-1;
+            c_threshold.dn = INFINATE-1;
             c_threshold.sh = 2;
             tmp = list->next;
             while(tmp){
@@ -413,6 +412,7 @@ void bn_search_or               (const sdata_t   *sdata,
             }
             list = sdata_mvlist_sort(list, sdata, proof_number_comp);
         }
+         */
         //予想手の出力
         if(S_COUNT(sdata)==0 && !g_commandline){
             g_tsearchinf.mvinf[S_COUNT(sdata)].move = list->mlist->move;

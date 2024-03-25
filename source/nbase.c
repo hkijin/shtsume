@@ -320,9 +320,11 @@ int proof_number_comp     (const mvlist_t *a,
     //詰んでいる着手を優先
     if (!a->tdata.pn && !a->tdata.sh) return -1;
     if (!b->tdata.pn && !b->tdata.sh) return  1;
+    
     //持ち駒を余す着手を優先
     if(a->inc < b->inc) return  1;
     if(a->inc > b->inc) return -1;
+    
     //より短手数で詰む着手を優先
     if (a->tdata.sh < b->tdata.sh) return -1;
     if (a->tdata.sh > b->tdata.sh) return  1;
