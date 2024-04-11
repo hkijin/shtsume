@@ -786,9 +786,9 @@ extern move_t g_mv_toryo;
 #define GKA_PROMOTE(src,dest)       ((src)>53||(dest)>53)
 #define GHI_PROMOTE(src,dest)       ((src)>53||(dest)>53)
 
-#define MV_SET(mv,p,n,a)            (mv)->prev_pos = (p),\
-                                    (mv)->new_pos  = (n),\
-                                    (mv)->new_pos  +=a*0x80
+#define MV_SET(mv,p,n,a)            (mv).prev_pos = (p),\
+                                    (mv).new_pos  = (n),\
+                                    (mv).new_pos  +=a*0x80
 
 int sdata_move_forward(sdata_t *sdata, move_t move);
 int sdata_key_forward (sdata_t *sdata, move_t move);
