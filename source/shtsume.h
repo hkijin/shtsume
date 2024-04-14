@@ -20,7 +20,7 @@
  * プログラムID
  */
 #define PROGRAM_NAME       "shtsume"
-#define VERSION_INFO       "v1.1.7"
+#define VERSION_INFO       "v1.1.8"
 #define AUTHOR_NAME        "hkijin"
 /*
  * USIオプション情報
@@ -429,6 +429,13 @@ extern mcard_t *g_mcard[N_MCARD_TYPE];
 bool invalid_drops         (const sdata_t *sdata,
                             unsigned int   dest ,
                             tbase_t       *tbase );
+
+bool invalid_moves         (const sdata_t *sdata,
+                            move_t         move ,
+                            tbase_t       *tbase );
+
+bool enemy_effect          (const sdata_t *sdata,
+                            move_t         move  );
 
 /*
  * 着手生成

@@ -538,8 +538,8 @@ void bn_search_and              (const sdata_t   *sdata,
     //中合が発生する可能性を示すフラグ
     bool ryuma_flag = false;
     if(mvlist->length>2) ryuma_flag = true;
-
     turn_t tn = TURN_FLIP(S_TURN(sdata));
+    
     //着手生成
     mvlist_t *list = generate_evasion(sdata, tbase);
     bool proof_flag = g_invalid_drops;

@@ -76,6 +76,8 @@ static void sdata_tentative_move (sdata_t *sdata,
                                   char src,
                                   char dest,
                                   bool promote    );
+static void sdata_pickup_table   (sdata_t *sdata,
+                                  char     src    );
 static bool is_move_possible(komainf_t koma, char dest);
 
 /* -----------
@@ -839,6 +841,57 @@ bool invalid_drops           (const sdata_t  *sdata,
     }
     return false;
 }
+
+/* ---------------------------------------------------------------------------
+ 無駄移動合い判定
+ move(src->dest)で定義された移動合に対し、以下の処理を行い、移動合の有効性を判定する。
+ １、移動元の駒を玉方の持ち駒に移動する。
+    この移動で詰方の玉に王手がかかる場合 falseとする。
+ ２、王手をかけている飛び駒をdestの位置（玉に隣接した桝）に移動させ、
+ 　　詰んでいるかどうかを判定する。飛駒が成れる場合、成りも含めて判定する。
+ 　　また玉の隣接枡では王手している駒以外も動かしてみて詰み判定を行う。
+ 戻り値：
+ invalid_moves どれか詰みであればTRUE（＝移動無駄合である）
+ enemy_effect  移動中合が有効であればTRUE
+ --------------------------------------------------------------------------- */
+
+bool invalid_moves         (const sdata_t *sdata,
+                            move_t         move ,
+                            tbase_t       *tbase )
+{
+    sdata_t   sbuf;  //仮想局面
+    memcpy(&sbuf, sdata, sizeof(sdata_t));
+    sdata_pickup_table(&sbuf, PREV_POS(move));
+    
+    //詰方の玉に王手が掛かっていれば有効合
+    if(ENEMY_OU(&sbuf)<HAND &&
+       BPOS_TEST(SELF_EFFECT(&sbuf), ENEMY_OU(&sbuf)))
+    {
+        return false;
+    }
+    // 仮想局面で無駄合判定を行う
+    return invalid_drops(&sbuf, NEW_POS(move), tbase);
+}
+
+bool enemy_effect          (const sdata_t *sdata,
+                            move_t         move  )
+{
+    sdata_t   sbuf;  //仮想局面
+    memcpy(&sbuf, sdata, sizeof(sdata_t));
+    sdata_pickup_table(&sbuf, PREV_POS(move));
+    
+    //詰方の玉に王手が掛かっていれば有効合
+    if(ENEMY_OU(&sbuf)<HAND &&
+       BPOS_TEST(SELF_EFFECT(&sbuf), ENEMY_OU(&sbuf)))
+    {
+        return true;
+    }
+    //仮想局面において、dest箇所の玉方利きがあれば true;
+    if(BPOS_TEST(SELF_EFFECT(&sbuf), NEW_POS(move)))
+        return true;
+    return false;
+}
+
 
 /* -----------------------------------------------------
  _tbase_lookup
@@ -1950,10 +2003,10 @@ void    mtt_reset   (const sdata_t *sdata,
     }
 }
 
-/* ---------------------------------------------------
+/* --------------------------------------------------------
  盤面上のsrcの位置の駒をdestの位置に変更した局面データを生成する
  （無駄合判定用)
- --------------------------------------------------- */
+ ---------------------------------------------------------- */
 void        sdata_tentative_move (sdata_t *sdata,
                                   char src,
                                   char dest,
@@ -2020,5 +2073,70 @@ void        sdata_tentative_move (sdata_t *sdata,
             S_NOUTE(sdata) = 0;
         }
     }
+    return;
+}
+
+/* --------------------------------------------------------
+ 盤上(src)の自分の駒をピックアップして自分の駒台においた局面を作る。
+ (移動無駄合判定用）
+ --------------------------------------------------------- */
+void        sdata_pickup_table   (sdata_t *sdata,
+                                  char     src      )
+{
+    //移動元にある移動合駒を消去する
+    komainf_t koma = S_BOARD(sdata,src);
+    S_BOARD(sdata, src) = SPC;
+    S_ZKEY(sdata) ^= g_zkey_seed[koma*N_SQUARE+src];
+    if(koma == SFU)
+        S_FFLAG(sdata) =
+        FLAG_UNSET(S_FFLAG(sdata), g_file[src]);
+    else if(koma == GFU)
+        S_FFLAG(sdata) =
+        FLAG_UNSET(S_FFLAG(sdata), g_file[src]+9);
+    
+    // ビットボード処理
+    SDATA_OCC_XOR(sdata, src);
+    sdata_bb_xor(sdata, koma, src);
+    S_TURN(sdata)?
+    (BBA_XOR(BB_GOC(sdata), g_bpos[src])):
+    (BBA_XOR(BB_SOC(sdata), g_bpos[src]));
+    
+    //消去した駒を玉方の駒として計上する。
+    switch(koma){
+        case SFU: SMKEY_FU(sdata)++; break;
+        case SKY: SMKEY_KY(sdata)++; break;
+        case SKE: SMKEY_KE(sdata)++; break;
+        case SGI: SMKEY_GI(sdata)++; break;
+        case SKI: SMKEY_KI(sdata)++; break;
+        case SKA: SMKEY_KA(sdata)++; break;
+        case SHI: SMKEY_HI(sdata)++; break;
+        case STO: SMKEY_FU(sdata)++; break;
+        case SNY: SMKEY_KY(sdata)++; break;
+        case SNK: SMKEY_KE(sdata)++; break;
+        case SNG: SMKEY_GI(sdata)++; break;
+        case SUM: SMKEY_KA(sdata)++; break;
+        case SRY: SMKEY_HI(sdata)++; break;
+
+        case GFU: GMKEY_FU(sdata)++; break;
+        case GKY: GMKEY_KY(sdata)++; break;
+        case GKE: GMKEY_KE(sdata)++; break;
+        case GGI: GMKEY_GI(sdata)++; break;
+        case GKI: GMKEY_KI(sdata)++; break;
+        case GKA: GMKEY_KA(sdata)++; break;
+        case GHI: GMKEY_HI(sdata)++; break;
+        case GTO: GMKEY_FU(sdata)++; break;
+        case GNY: GMKEY_KY(sdata)++; break;
+        case GNK: GMKEY_KE(sdata)++; break;
+        case GNG: GMKEY_GI(sdata)++; break;
+        case GUM: GMKEY_KA(sdata)++; break;
+        case GRY: GMKEY_HI(sdata)++; break;
+        default: assert(false); break;
+    }
+    
+    // count,turn
+    // n_oute, attack
+    // pinned, effect
+    create_effect(sdata);
+    create_pin(sdata);
     return;
 }
