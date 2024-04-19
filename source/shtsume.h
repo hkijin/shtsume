@@ -445,6 +445,7 @@ mvlist_t* generate_evasion      (const sdata_t *sdata, tbase_t *tbase);
 bool drop_check                 (const sdata_t *sdata, komainf_t drop);
 bool symmetry_check             (const sdata_t *sdata);
 extern bool g_invalid_drops;
+extern bool g_invalid_moves;
 
 /*
  * bn探索

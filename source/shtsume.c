@@ -542,8 +542,10 @@ void bn_search_and              (const sdata_t   *sdata,
     
     //着手生成
     mvlist_t *list = generate_evasion(sdata, tbase);
-    bool proof_flag = g_invalid_drops;
+    bool proof_flag   = g_invalid_drops;
+    bool invalid_flag = g_invalid_moves;
     g_tsearchinf.nodes++;
+
     if(!list){
         //無駄合い判定ありの場合の証明駒　false: あり proof_flag: なし
         tsumi_proof(sdata, mvlist, proof_flag);
@@ -633,6 +635,16 @@ void bn_search_and              (const sdata_t   *sdata,
                     tmp = tmp->next;
                 }
             }
+        }
+        
+        // -----------------------------------------
+        // 移動無駄合判定した局面が余り詰となった場合の処置
+        // -----------------------------------------
+        if(invalid_flag && !list->tdata.pn && list->inc){
+            tsumi_proof(sdata, mvlist, proof_flag);
+            tbase_update(sdata, mvlist, tn, tbase);
+            mvlist_free(list);
+            return;
         }
         
         //証明数、反証数等の更新
@@ -957,7 +969,8 @@ void make_tree_and              (const sdata_t   *sdata,
     
     //着手生成
     mvlist_t *list = generate_evasion(sdata, tbase);
-    bool proof_flag = g_invalid_drops;
+    bool proof_flag   = g_invalid_drops;
+    bool invalid_flag = g_invalid_moves;
     g_tsearchinf.nodes++;
     
     if(!list){
@@ -1053,6 +1066,17 @@ void make_tree_and              (const sdata_t   *sdata,
     list = sdata_mvlist_sort(list, sdata, disproof_number_comp);
 
     if(current) current->current = 0;
+    
+    // -----------------------------------------
+    // 移動無駄合判定した局面が余り詰となった場合の処置
+    // -----------------------------------------
+    if(invalid_flag && !list->tdata.pn && list->inc){
+        
+        tsumi_proof(sdata, mvlist, proof_flag);
+        make_tree_update(sdata, mvlist, tn, tbase);
+        mvlist_free(list);
+        return;
+    }
     
     mvlist->tdata.pn = list->tdata.pn;
     mvlist->tdata.dn = list->tdata.dn;
@@ -1263,12 +1287,13 @@ void bns_plus_and               (const sdata_t   *sdata,
     
     //着手生成
     mvlist_t *list = generate_evasion(sdata, tbase);
-    bool proof_flag = g_invalid_drops;
+    bool proof_flag   = g_invalid_drops;
+    bool invalid_flag = g_invalid_moves;
     g_tsearchinf.nodes++;
     if(!list){
         //無駄合い判定ありの場合の証明駒　false: あり proof_flag: なし
         tsumi_proof(sdata, mvlist, proof_flag);
-        tbase_update(sdata, mvlist, tn, tbase);
+        make_tree_update(sdata, mvlist, tn, tbase);
         return;
     }
     //深さしきい値が0で詰んでいない場合、この変化は目的外なので探索を中断する。
@@ -1368,6 +1393,17 @@ void bns_plus_and               (const sdata_t   *sdata,
     }
     if (current) {
         current->current = 0;
+    }
+    
+    // -----------------------------------------
+    // 移動無駄合判定した局面が余り詰となった場合の処置
+    // -----------------------------------------
+    if(invalid_flag && !list->tdata.pn && list->inc){
+
+        tsumi_proof(sdata, mvlist, proof_flag);
+        make_tree_update(sdata, mvlist, tn, tbase);
+        mvlist_free(list);
+        return;
     }
     
     mvlist->tdata.pn = proof_number(list, NULL);

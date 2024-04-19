@@ -472,6 +472,10 @@ void _tsume_print_or             (const sdata_t  *sdata,
         sprintf(g_error_location, "%s line %d", __FILE__, __LINE__);
         return;
     }
+    if(!list->tdata.pn && !list->tdata.sh){
+        printf("まで%u手詰め\n", S_COUNT(sdata)+1);
+        return;
+    }
     //着手を進める（再帰呼び出し)
     if(list && list->mlist){
         memcpy(&sbuf, sdata, sizeof(sdata_t));

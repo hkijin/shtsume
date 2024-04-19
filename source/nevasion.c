@@ -9,7 +9,7 @@
 #include "shtsume.h"
 
 bool g_invalid_drops;
-//generate_evasionが局面表を見て無駄合いと判定した手がある場合 true;
+bool g_invalid_moves;
 
 static mvlist_t *move_to_dest      (mvlist_t      *list,
                                     int            dest,
@@ -32,15 +32,15 @@ static mlist_t *evasion_drop       (mlist_t       *list,
  tbase_t *tbase  局面表tbaseへのポインタ
  [戻り値]
  無駄合いを除く王手回避着手
- g_invalid_drops
- 局面表による無駄合い判定あり    true
-           無駄合い判定なし    false
+ g_invalid_drops   局面表による無駄合い判定　  あり:true
+ g_invalid_moves   無駄移動合判定            あり:true
  ----------------------------------------------------------------------- */
 
 mvlist_t *generate_evasion   (const sdata_t *sdata,
                               tbase_t       *tbase  )
 {
     g_invalid_drops = false;
+    g_invalid_moves = false;
     mvlist_t *mvlist = NULL;
     //玉の移動
     komainf_t koma;
@@ -147,23 +147,37 @@ mvlist_t *generate_evasion   (const sdata_t *sdata,
                     mlist = evasion_drop(mlist, dest, sdata);
             }
             
-            //移動合いがあれば着手に追加
-            if(next_ou){
-                if(!mvlist){
-                    mvlist = move_to_desta(mvlist, dest, sdata, tbase);
+        //移動合いがあれば着手に追加
+            //詰方玉がない場合
+            if(ENEMY_OU(sdata)==HAND){
+                if(next_ou){
+                    if(!mvlist && !mlist)
+                        mvlist = move_to_desta(mvlist, dest, sdata, tbase);
+                    else
+                        mvlist = move_to_dest(mvlist, dest, sdata);
                 }
                 else {
-                    mvlist = move_to_dest(mvlist, dest, sdata);
+                    if(!mvlist && !drop_list && !mlist)
+                        mvlist = move_to_destb(mvlist, dest, sdata);
+                    else
+                        mvlist = move_to_dest(mvlist, dest, sdata);
                 }
             }
-                
-            else {
-                if(!mvlist && !drop_list){
-                    mvlist = move_to_destb(mvlist, dest, sdata);
+            //詰方玉がある場合、
+            // -----------------------------------------------
+            //　移動合について、移動元の駒が全て無くなった場合、
+            //　逆王手になっていないことの確認が必要。
+            //　逆王手の場合は有効合とする。
+            // -----------------------------------------------
+            else{
+                if(next_ou){
+                    if(!mvlist && !mlist)
+                        mvlist = move_to_desta(mvlist, dest, sdata, tbase);
+                    else
+                        mvlist = move_to_dest(mvlist, dest, sdata);
                 }
-                else{
+                else
                     mvlist = move_to_dest(mvlist, dest, sdata);
-                }
             }
             
             next_ou = false;
