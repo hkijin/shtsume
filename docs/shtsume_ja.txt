@@ -3,8 +3,8 @@
 USI_Ponder      不使用
 USI_Hash        局面表のサイズ
 mt_min_pn       末端探索レベル
-search_level    余詰探索レベル
-out_lvkif       余詰探索時の棋譜出力
+search_level    探索レベル
+out_lvkif       探索レベル毎の棋譜出力
 summary         探索ログの出力
 s_allmove       探索ログ詰方全候補手
 user_path       出力用フォルダ
