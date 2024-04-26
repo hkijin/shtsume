@@ -897,12 +897,15 @@ mvlist_t *move_to_destb       (mvlist_t      *list,
                         MV_SET(mv,src,dest,1);
                         if(enemy_effect(sdata, mv)){
                             MVLIST_SET_PROM(mvlist, mlist, src, dest);
+                            if(g_invalid_moves) g_invalid_moves = false;
                         }
+                        
                     }
                     if(GFU_NORMAL(dest) ){
                         MV_SET(mv,src,dest,0);
                         if(enemy_effect(sdata, mv)){
                             MVLIST_SET_NORM(mvlist, mlist, src, dest);
+                            if(g_invalid_moves) g_invalid_moves = false;
                         }
                     }
                 }
@@ -919,12 +922,15 @@ mvlist_t *move_to_destb       (mvlist_t      *list,
                         MV_SET(mv,src,dest,1);
                         if(enemy_effect(sdata, mv)){
                             MVLIST_SET_PROM(mvlist, mlist, src, dest);
+                            if(g_invalid_moves) g_invalid_moves = false;
                         }
+                        
                     }
                     if(GKY_NORMAL(dest) ){
                         MV_SET(mv,src,dest,0);
                         if(enemy_effect(sdata, mv)){
                             MVLIST_SET_NORM(mvlist, mlist, src, dest);
+                            if(g_invalid_moves) g_invalid_moves = false;
                         }
                     }
                 }
@@ -941,12 +947,14 @@ mvlist_t *move_to_destb       (mvlist_t      *list,
                         MV_SET(mv,src,dest,1);
                         if(enemy_effect(sdata, mv)){
                             MVLIST_SET_PROM(mvlist, mlist, src, dest);
+                            if(g_invalid_moves) g_invalid_moves = false;
                         }
                     }
                     if(GKE_NORMAL(dest) ){
                         MV_SET(mv,src,dest,0);
                         if(enemy_effect(sdata, mv)){
                             MVLIST_SET_NORM(mvlist, mlist, src, dest);
+                            if(g_invalid_moves) g_invalid_moves = false;
                         }
                     }
                 }
@@ -968,6 +976,7 @@ mvlist_t *move_to_destb       (mvlist_t      *list,
                     MV_SET(mv,src,dest,0);
                     if(enemy_effect(sdata, mv)){
                         MVLIST_SET_NORM(mvlist, mlist, src, dest);
+                        if(g_invalid_moves) g_invalid_moves = false;
                     }
                 }
                 BBA_XOR(effect, g_bpos[src]);
@@ -989,6 +998,7 @@ mvlist_t *move_to_destb       (mvlist_t      *list,
                         else{
                             MVLIST_SET_NORM(mvlist, mlist, src, dest);
                         }
+                        if(g_invalid_moves) g_invalid_moves = false;
                     }
                 }
                 BBA_XOR(effect, g_bpos[src]);
@@ -1009,6 +1019,7 @@ mvlist_t *move_to_destb       (mvlist_t      *list,
                     MV_SET(mv,src,dest,0);
                     if(enemy_effect(sdata, mv)){
                         MVLIST_SET_NORM(mvlist, mlist, src, dest);
+                        if(g_invalid_moves) g_invalid_moves = false;
                     }
                 }
                 BBA_XOR(effect, g_bpos[src]);
@@ -1029,6 +1040,7 @@ mvlist_t *move_to_destb       (mvlist_t      *list,
                     MV_SET(mv,src,dest,0);
                     if(enemy_effect(sdata, mv)){
                         MVLIST_SET_NORM(mvlist, mlist, src, dest);
+                        if(g_invalid_moves) g_invalid_moves = false;
                     }
                 }
                 BBA_XOR(effect, g_bpos[src]);
@@ -1043,6 +1055,7 @@ mvlist_t *move_to_destb       (mvlist_t      *list,
                     MV_SET(mv,src,dest,0);
                     if(enemy_effect(sdata, mv)){
                         MVLIST_SET_NORM(mvlist, mlist, src, dest);
+                        if(g_invalid_moves) g_invalid_moves = false;
                     }
                 }
                 BBA_XOR(effect, g_bpos[src]);
@@ -1057,6 +1070,7 @@ mvlist_t *move_to_destb       (mvlist_t      *list,
                     MV_SET(mv,src,dest,0);
                     if(enemy_effect(sdata, mv)){
                         MVLIST_SET_NORM(mvlist, mlist, src, dest);
+                        if(g_invalid_moves) g_invalid_moves = false;
                     }
                 }
                 BBA_XOR(effect, g_bpos[src]);
@@ -1075,12 +1089,14 @@ mvlist_t *move_to_destb       (mvlist_t      *list,
                         MV_SET(mv,src,dest,1);
                         if(enemy_effect(sdata, mv)){
                             MVLIST_SET_PROM(mvlist, mlist, src, dest);
+                            if(g_invalid_moves) g_invalid_moves = false;
                         }
                     }
                     if(SFU_NORMAL(dest) ){
                         MV_SET(mv,src,dest,0);
                         if(enemy_effect(sdata, mv)){
                             MVLIST_SET_NORM(mvlist, mlist, src, dest);
+                            if(g_invalid_moves) g_invalid_moves = false;
                         }
                     }
                 }
@@ -1097,12 +1113,14 @@ mvlist_t *move_to_destb       (mvlist_t      *list,
                         MV_SET(mv,src,dest,1);
                         if(enemy_effect(sdata, mv)){
                             MVLIST_SET_PROM(mvlist, mlist, src, dest);
+                            if(g_invalid_moves) g_invalid_moves = false;
                         }
                     }
                     if(SKY_NORMAL(dest) ){
                         MV_SET(mv,src,dest,0);
                         if(enemy_effect(sdata, mv)){
                             MVLIST_SET_NORM(mvlist, mlist, src, dest);
+                            if(g_invalid_moves) g_invalid_moves = false;
                         }
                     }
                 }
@@ -1119,12 +1137,14 @@ mvlist_t *move_to_destb       (mvlist_t      *list,
                         MV_SET(mv,src,dest,1);
                         if(enemy_effect(sdata, mv)){
                             MVLIST_SET_PROM(mvlist, mlist, src, dest);
+                            if(g_invalid_moves) g_invalid_moves = false;
                         }
                     }
                     if(SKE_NORMAL(dest) ){
                         MV_SET(mv,src,dest,0);
                         if(enemy_effect(sdata, mv)){
                             MVLIST_SET_NORM(mvlist, mlist, src, dest);
+                            if(g_invalid_moves) g_invalid_moves = false;
                         }
                     }
                 }
@@ -1146,6 +1166,7 @@ mvlist_t *move_to_destb       (mvlist_t      *list,
                     MV_SET(mv,src,dest,0);
                     if(enemy_effect(sdata, mv)){
                         MVLIST_SET_NORM(mvlist, mlist, src, dest);
+                        if(g_invalid_moves) g_invalid_moves = false;
                     }
                 }
                 BBA_XOR(effect, g_bpos[src]);
@@ -1167,6 +1188,7 @@ mvlist_t *move_to_destb       (mvlist_t      *list,
                         else{
                             MVLIST_SET_NORM(mvlist, mlist, src, dest);
                         }
+                        if(g_invalid_moves) g_invalid_moves = false;
                     }
                 }
                 BBA_XOR(effect, g_bpos[src]);
@@ -1187,6 +1209,7 @@ mvlist_t *move_to_destb       (mvlist_t      *list,
                     MV_SET(mv,src,dest,0);
                     if(enemy_effect(sdata, mv)){
                         MVLIST_SET_NORM(mvlist, mlist, src, dest);
+                        if(g_invalid_moves) g_invalid_moves = false;
                     }
                 }
                 BBA_XOR(effect, g_bpos[src]);
@@ -1207,6 +1230,7 @@ mvlist_t *move_to_destb       (mvlist_t      *list,
                     MV_SET(mv,src,dest,0);
                     if(enemy_effect(sdata, mv)){
                         MVLIST_SET_NORM(mvlist, mlist, src, dest);
+                        if(g_invalid_moves) g_invalid_moves = false;
                     }
                 }
                 BBA_XOR(effect, g_bpos[src]);
@@ -1221,6 +1245,7 @@ mvlist_t *move_to_destb       (mvlist_t      *list,
                     MV_SET(mv,src,dest,0);
                     if(enemy_effect(sdata, mv)){
                         MVLIST_SET_NORM(mvlist, mlist, src, dest);
+                        if(g_invalid_moves) g_invalid_moves = false;
                     }
                 }
                 BBA_XOR(effect, g_bpos[src]);
@@ -1235,6 +1260,7 @@ mvlist_t *move_to_destb       (mvlist_t      *list,
                     MV_SET(mv,src,dest,0);
                     if(enemy_effect(sdata, mv)){
                         MVLIST_SET_NORM(mvlist, mlist, src, dest);
+                        if(g_invalid_moves) g_invalid_moves = false;
                     }
                 }
                 BBA_XOR(effect, g_bpos[src]);
