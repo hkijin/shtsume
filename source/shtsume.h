@@ -20,7 +20,7 @@
  * プログラムID
  */
 #define PROGRAM_NAME       "shtsume"
-#define VERSION_INFO       "v1.2.0"
+#define VERSION_INFO       "v1.2.1"
 #define AUTHOR_NAME        "hkijin"
 /*
  * USIオプション情報
@@ -62,6 +62,7 @@ extern bool                 g_commandline;
 #define PROOF_MAX           256
 #define DISPROOF_MAX        2048
 #define ADD_SEARCH_SH       30
+#define PRE_PROOF_MAX       225
 
 /*
  * 探索パラメータ制限値

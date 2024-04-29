@@ -638,6 +638,35 @@ void bn_search_and              (const sdata_t   *sdata,
         }
         
         // -----------------------------------------
+        // 先頭着手の証明数が上限に近付いた場合の処置。
+        // 先頭着手と２番目の着手は、駒を取らない玉の移動である。
+        // -----------------------------------------
+        if(list->next){
+            //玉移動
+            if(list->tdata.pn > PRE_PROOF_MAX &&
+               list->tdata.dn                 &&
+               list->next->tdata.pn           &&
+               list->next->tdata.dn           &&
+               PREV_POS(list->mlist->move)==SELF_OU(sdata)       &&
+               PREV_POS(list->next->mlist->move)==SELF_OU(sdata) &&
+               !S_BOARD(sdata, NEW_POS(list->mlist->move))       &&
+               !S_BOARD(sdata, NEW_POS(list->next->mlist->move))
+               ){
+                //SDATA_PRINTF(sdata, PR_BOARD|PR_ZKEY);
+                //MVLIST_PRINTF_ITEM(list, sdata);
+                //printf("\n");
+                tmp = list;
+                list = list->next;
+                mlist_t *last = mlist_last(list->mlist);
+                last->next = tmp->mlist;
+                //tmpの削除
+                tmp->mlist = NULL;
+                tmp->next = NULL;
+                mvlist_free(tmp);
+            }
+        }
+        
+        // -----------------------------------------
         // 移動無駄合判定した局面が余り詰となった場合の処置
         // -----------------------------------------
         if(invalid_flag && !list->tdata.pn && list->inc){
@@ -865,12 +894,12 @@ void make_tree_or               (const sdata_t   *sdata,
      これは追加探索を実施しないと検出できない詰手数をもつデータが消去されていた場合に
      発生する。その場合は復旧のため親局面が示す詰手数となるまで追加探索を実施する。
      ------------------------------------------------------------------- */
-    if(mvlist->tdata.sh < list->tdata.sh && !list->inc)
+    if(g_gc_num && mvlist->tdata.sh < list->tdata.sh && !list->inc)
     {
         //詰んでいる着手についてさらに短い詰着手がないか調べる
         tmp = list;
         uint16_t ptsh = mvlist->tdata.sh;
-        while(!tmp->tdata.pn){
+        while(tmp && !tmp->tdata.pn){
             if(g_pv_length>=S_COUNT(sdata)){
                 nsearchlog_t *log = &(g_tsearchinf.mvinf[S_COUNT(sdata)]);
                 //探索log(1)
