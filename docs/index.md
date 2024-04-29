@@ -6,7 +6,7 @@ is a decorder for Japanese shogi art "tsumeshogi".
 
 ## Introduction  
 
-Followings are classical famus **"tsumeshogi"** and its moves solved by shtsume.
+Followings are classical famus **"tsumeshogi"** and its **moves** solved by shtsume.
 
 [muso No.30](https://youtu.be/pnf919UX1Ik)   
 
