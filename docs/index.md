@@ -6,4 +6,4 @@ is a decorder for Japanese shogi art "tsumeshogi".
 
 Introduction
 
-[muso No.30](https://youtu.be/a7_ovDpCtSU)  
+[muso No.30](https://youtu.be/pnf919UX1Ik) 
