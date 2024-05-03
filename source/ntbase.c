@@ -880,6 +880,19 @@ bool enemy_effect          (const sdata_t *sdata,
     sdata_t   sbuf;  //仮想局面
     memcpy(&sbuf, sdata, sizeof(sdata_t));
     sdata_pickup_table(&sbuf, PREV_POS(move));
+    
+    //自玉に移動できる場所があれば有効合
+    bitboard_t move_bb = evasion_bb(&sbuf);
+    if(BB_TEST(move_bb)){
+        bitboard_t move_bb1 = evasion_bb(sdata);
+        if(!BB_TEST(move_bb1)) return true;
+    }
+
+    //詰方の玉に王手が掛かっていれば有効合
+    if(ENEMY_OU(&sbuf)<HAND &&
+       BPOS_TEST(SELF_EFFECT(&sbuf), ENEMY_OU(&sbuf)))
+        return true;
+    
     //仮想局面において、dest箇所の玉方利きがあれば true;
     if(BPOS_TEST(SELF_EFFECT(&sbuf), NEW_POS(move)))
         return true;

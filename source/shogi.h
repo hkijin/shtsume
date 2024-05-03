@@ -717,6 +717,7 @@ int  is_sdata_illegal  (sdata_t *sdata);
 bitboard_t bb_to_effect(komainf_t koma,
                         const bitboard_t *bb_koma,
                         const sdata_t *sdata);
+bitboard_t evasion_bb  (const sdata_t *sdata);
 void sdata_bb_xor      (sdata_t *sdata, komainf_t koma, char pos);
 int  oute_check        (sdata_t *sdata);
 void create_pin        (sdata_t *sdata);

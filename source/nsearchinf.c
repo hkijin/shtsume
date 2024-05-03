@@ -216,10 +216,13 @@ void tsearchpv_update_or        (const sdata_t *sdata,
     }
     
     //局面を進める
-    if(list && list->mlist){
+    if(list && list->mlist && list->tdata.sh){
         memcpy(&sbuf, sdata, sizeof(sdata_t));
         sdata_move_forward(&sbuf, list->mlist->move);
         tsearchpv_update_and(&sbuf, tbase);
+    }
+    else if(list && list->mlist && !list->tdata.sh){
+        g_tsearchinf.mvinf[S_COUNT(sdata)+1].move = g_mv_toryo;
     }
     mvlist_free(list);
     return;

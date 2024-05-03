@@ -210,14 +210,14 @@ int max_pos(const bitboard_t *bb){
     return -1;
 }
 
-/*
+/* ------------------------------------------------------------
  bb_to_effect
  複数のbit（4個以下)が立っている位置bitboardより利きbitboardを算出する
  引数　: komainf_t koma            　対象の駒
  　　　: const bitboard_t *bb_koma 　駒の位置を示すbitboard
 　　　 : const sdata_t *sdata     　 局面データ
  戻り値: 利きbitboard
- */
+------------------------------------------------------------- */
 
 bitboard_t    bb_to_effect (komainf_t koma,
                             const bitboard_t *bb_koma,
@@ -232,6 +232,58 @@ bitboard_t    bb_to_effect (komainf_t koma,
         BBA_XOR(bb, g_bpos[id]);
     }
     return eff;
+}
+
+// --------------------------------------------------------------------
+// 自玉に王手がかかっている場合、玉が動ける位置のbitboard
+// 戻り値: 玉が動ける位置のbitboard
+// --------------------------------------------------------------------
+bitboard_t evasion_bb(const sdata_t *sdata)
+{
+    komainf_t koma;
+    bitboard_t move_bb;
+    //------------------------------------------------------------------
+    // 大駒や香車による王手の場合、玉の位置によって攻め方利きが変化します。
+    // 例えば飛車の王手に対し、飛車から離れるように横方向に動く手は王手回避になりません。
+    // この対策として事前に自玉を外したoccupied bitboard　を作り、これを用いて攻め方
+    // 利きを再計算しておくことが必要になります。
+    //------------------------------------------------------------------
+    int ou = SELF_OU(sdata);
+    bitboard_t occupied  = BB_OCC(sdata);  BB_UNSET(occupied,ou);
+    bitboard_t voccupied = BB_VOC(sdata); VBB_UNSET(voccupied,ou);
+    bitboard_t roccupied = BB_ROC(sdata); RBB_UNSET(roccupied,ou);
+    bitboard_t loccupied = BB_LOC(sdata); LBB_UNSET(loccupied,ou);
+    koma = S_BOARD(sdata, S_ATTACK(sdata)[0]);
+    bitboard_t effect = effect_tbl(S_ATTACK(sdata)[0], koma,
+                                   &occupied,
+                                   &voccupied,
+                                   &roccupied,
+                                   &loccupied);
+    bitboard_t effect1 = {0,0,0};
+    if(S_NOUTE(sdata)==2){
+        koma = S_BOARD(sdata, S_ATTACK(sdata)[1]);
+        effect1 = effect_tbl(S_ATTACK(sdata)[1], koma,
+                                    &occupied,
+                                    &voccupied,
+                                    &roccupied,
+                                    &loccupied);
+    }
+    
+    if(S_TURN(sdata)){ //後手番
+        move_bb = g_base_effect[GOU][S_GOU(sdata)];
+        BBA_ANDNOT(move_bb, BB_GOC(sdata));
+        BBA_ANDNOT(move_bb, SEFFECT(sdata));
+        BBA_ANDNOT(move_bb, effect );
+        BBA_ANDNOT(move_bb, effect1);
+    }
+    else{  //先手番
+        move_bb = g_base_effect[SOU][S_SOU(sdata)];
+        BBA_ANDNOT(move_bb, BB_SOC(sdata));
+        BBA_ANDNOT(move_bb, GEFFECT(sdata));
+        BBA_ANDNOT(move_bb, effect );
+        BBA_ANDNOT(move_bb, effect1);
+    }
+    return move_bb;
 }
 
 //初期化処理
