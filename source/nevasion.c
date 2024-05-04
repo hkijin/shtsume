@@ -137,7 +137,7 @@ mvlist_t *generate_evasion   (const sdata_t *sdata,
                         mvlist = move_to_dest(mvlist, dest, sdata);
                 }
                 else       {
-                    if( nflag && !drop_list && !mlist )
+                    if( !move && nflag && !drop_list && !mlist )
                         mmlist = mlist_to_destb(mmlist, dest, move, sdata);
                     else
                         mvlist = move_to_dest(mvlist, dest, sdata);
@@ -152,7 +152,7 @@ mvlist_t *generate_evasion   (const sdata_t *sdata,
                         mvlist = move_to_dest(mvlist, dest, sdata);
                 }
                 else       {
-                    if(nflag && !drop_list && !mlist )
+                    if(!move && nflag && !drop_list && !mlist )
                         mmlist = mlist_to_destc(mmlist, dest, sdata);
                     else
                         mvlist = move_to_dest(mvlist, dest, sdata);
