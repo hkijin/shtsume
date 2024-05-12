@@ -122,8 +122,11 @@ mvlist_t *generate_evasion   (const sdata_t *sdata,
                 //もしtflagがtrueでdestに玉方の利きがなければ無駄合とする。
                 if(BPOS_TEST(SELF_EFFECT(sdata),dest)) 
                     tflag = false;
-                if(!tflag)
+                if(!tflag){
                     mlist = evasion_drop(mlist, dest, sdata);
+                    //適切な持ち駒がなく、合駒着手が生成できない場合、flagを立てておく
+                    if(!mlist) nflag = true;
+                }
             }
             
             //移動合いがあれば着手に追加

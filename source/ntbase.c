@@ -267,7 +267,7 @@ void tbase_gc              (tbase_t  *tbase)
     st_tsumi_delete_flag = false;
     uint64_t i, delete_num = 0;
     uint64_t gc_target = tbase->sz_elm*GC_DELETE_RATE/100;
-    uint64_t n_tsumi_max = tbase->sz_elm*GC_TSUMI_RATE/100;
+    //uint64_t n_tsumi_max = tbase->sz_elm*GC_TSUMI_RATE/100;
     //st_gc_flag = false;
     char prefix[16];
     memset(prefix, 0 , sizeof(prefix));
@@ -369,7 +369,7 @@ void tbase_gc              (tbase_t  *tbase)
                 prefix, delete_num, gc_target);
         record_log(g_str); puts(g_str);
         if(delete_num>gc_target) break;
-        if(st_n_tsumi-st_del_tsumi>n_tsumi_max) st_tsumi_delete_flag = true;
+        //if(st_n_tsumi-st_del_tsumi>n_tsumi_max) st_tsumi_delete_flag = true;
         gc_level++;
     } while(true);
     
