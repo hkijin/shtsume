@@ -54,7 +54,8 @@ mvlist_t *generate_evasion   (const sdata_t *sdata,
     komainf_t koma;
     bitboard_t move_bb = evasion_bb(sdata);
     int dest;
-    mlist_t *mlist, *mmlist;
+    mlist_t *mlist,          //持ち駒合リスト
+            *mslist;         //移動合直列リスト
     do{
         dest = min_pos(&move_bb);
         if(dest<0) break;
@@ -130,18 +131,18 @@ mvlist_t *generate_evasion   (const sdata_t *sdata,
             }
             
             //移動合いがあれば着手に追加
-            mmlist = NULL;
+            mslist = NULL;
             //詰方玉に移動合開き王手の脅威がない場合
             if(is_ou_online(sdata)){
                 if(next_ou){
                     if(!move && !mlist)
-                        mmlist = mlist_to_desta(mmlist, dest, sdata, tbase);
+                        mslist = mlist_to_desta(mslist, dest, sdata, tbase);
                     else
                         mvlist = move_to_dest(mvlist, dest, sdata);
                 }
                 else       {
                     if( !move && nflag && !drop_list && !mlist )
-                        mmlist = mlist_to_destb(mmlist, dest, move, sdata);
+                        mslist = mlist_to_destb(mslist, dest, move, sdata);
                     else
                         mvlist = move_to_dest(mvlist, dest, sdata);
                 }
@@ -150,13 +151,13 @@ mvlist_t *generate_evasion   (const sdata_t *sdata,
             else{
                 if(next_ou){
                     if(!move && !mlist)
-                        mmlist = mlist_to_desta(mmlist, dest, sdata, tbase);
+                        mslist = mlist_to_desta(mslist, dest, sdata, tbase);
                     else
                         mvlist = move_to_dest(mvlist, dest, sdata);
                 }
                 else       {
                     if(!move && nflag && !drop_list && !mlist )
-                        mmlist = mlist_to_destc(mmlist, dest, sdata);
+                        mslist = mlist_to_destc(mslist, dest, sdata);
                     else
                         mvlist = move_to_dest(mvlist, dest, sdata);
                 }
@@ -168,11 +169,11 @@ mvlist_t *generate_evasion   (const sdata_t *sdata,
                 last = mlist_last(drop_list);
                 last->next = mlist;
             }
-            //移動合
-            if(!move_list) move_list = mmlist;
+            //移動合(直列）
+            if(!move_list) move_list = mslist;
             else {
                 last = mlist_last(move_list);
-                last->next = mmlist;
+                last->next = mslist;
             }
         }
     }
