@@ -76,14 +76,13 @@ void tsearchinf_update          (const sdata_t *sdata,
     //pv情報の更新
     g_tsearchinf.depth = S_COUNT(sdata);
     g_tsearchinf.score_cp = g_root_pn;
-//#ifndef DEBUG
+
     if(!g_commandline ||g_disp_search)
     {
         tsearchpn_sprintf(g_str);
         record_log(g_str);
         puts(g_str);
     }
-//#endif /* DEBUG */
     
     g_prev_nodes = nodes;
     g_prev_update = g_info_interval+g_tsearchinf.elapsed/CLOCKS_PER_SEC;

@@ -637,30 +637,20 @@ void bn_search_and              (const sdata_t   *sdata,
             }
         }
         
-        // ---------------------------------------------------
-        // 以下の場合着手を縮退させる（逐次探索）
-        // 1,先頭着手の証明数が上限に近付いた場合（駒を取らない玉移動）
-        // 2,先頭着手と２番目の反証数が上限に近づいた場合（移動合）
-        // ---------------------------------------------------
+        // ---------------------------------------------------------------
+        // 先頭着手の証明数または反証数が上限に近付いた場合、着手を縮退させる（逐次探索）
+        // ---------------------------------------------------------------
         if(list->next){
             //玉移動
-            if((list->tdata.pn > PRE_PROOF_MAX &&
-               list->tdata.dn                 &&
-               list->next->tdata.pn           &&
-               list->next->tdata.dn           &&
-               PREV_POS(list->mlist->move)==SELF_OU(sdata)       &&
-               PREV_POS(list->next->mlist->move)==SELF_OU(sdata) &&
-               !S_BOARD(sdata, NEW_POS(list->mlist->move))       &&
-               !S_BOARD(sdata, NEW_POS(list->next->mlist->move)))    
+            if((list->tdata.pn > PRE_PROOF_MAX       &&
+                list->tdata.dn                       &&
+                list->next->tdata.pn                 &&
+                list->next->tdata.dn                     )
                ||
                (list->tdata.pn                       &&
                 list->tdata.dn > PRE_DISPROOF_MAX    &&
                 list->next->tdata.pn                 &&
-                list->next->tdata.dn > PRE_DISPROOF_MAX           &&
-                PREV_POS(list->mlist->move) < HAND                &&
-                PREV_POS(list->next->mlist->move) < HAND          &&
-                !S_BOARD(sdata, NEW_POS(list->mlist->move))       &&
-                !S_BOARD(sdata, NEW_POS(list->next->mlist->move)))
+                list->next->tdata.dn                     )
                ){
                     tmp = list;
                     list = list->next;
@@ -1141,9 +1131,7 @@ void bns_plus_or                (const sdata_t   *sdata,
                                  unsigned int     ptsh,
                                  tbase_t          *tbase)
 {
-//#ifndef DEBUG
     tsearchinf_update(sdata, tbase, st_start, g_str);
-//#endif /* DEBUG */
     if(g_suspend) return;
     //初期化
     tdata_t thdata = {1, INFINATE-1, TSUME_MAX_DEPTH};

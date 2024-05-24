@@ -29,7 +29,7 @@ static int  st_n_fudumi;          /* 局面表内の不詰データ数 */
 static int  st_del_fudumi;        /* 削除した不詰データ数   */
 static int  st_n_fumei;           /* 局面表内の不明データ数 */
 static int  st_del_fumei;         /* 削除した不明データ数   */
-static bool st_tsumi_delete_flag; /* true 詰方１手詰みデータ削除 */
+//static bool st_tsumi_delete_flag; /* true 詰方１手詰みデータ削除 */
 //static bool st_gc_flag;           /* gcの強度変更flag     */
 
 /* --------------
@@ -208,6 +208,11 @@ static bool delete_func     (tlist_t      *tl,
     //玉方手番の詰みデータを削除する。
     if(!tl->tdata.pn){
         st_n_tsumi++;
+        if(!(tl->tdata.sh%2)) {
+            st_del_tsumi++;
+            return true;
+        }
+        /*
         if(st_tsumi_delete_flag){
             if(!(tl->tdata.sh%2)||tl->tdata.sh<2) {
                 st_del_tsumi++;
@@ -220,6 +225,7 @@ static bool delete_func     (tlist_t      *tl,
                 return true;
             }
         }
+         */
     }
     //詰方手番の不詰データを削除する
     else if(!tl->tdata.dn){
@@ -264,7 +270,7 @@ void tbase_gc              (tbase_t  *tbase)
     zfolder_t *zfolder, *new_zfolder, *tmp;
     mcard_t *mcard, *new_mcard, *mc;
     tlist_t *tlist, *new_tlist, *tl;
-    st_tsumi_delete_flag = false;
+    //st_tsumi_delete_flag = false;
     uint64_t i, delete_num = 0;
     uint64_t gc_target = tbase->sz_elm*GC_DELETE_RATE/100;
     //uint64_t n_tsumi_max = tbase->sz_elm*GC_TSUMI_RATE/100;
@@ -1739,10 +1745,6 @@ void fumei_update         (const sdata_t   *sdata,
         return;
     }
     if(g_mcard[EQUAL_TSUMI]  ){
-#if DEBUG
-        printf("EQUAL TSUMI data exist.\n");
-        SDATA_PRINTF(sdata, PR_BOARD|PR_ZKEY);
-#endif /* DEBUG */
         //この場合、局面表を元にmvlistのデータを更新する。
         memcpy(&(mvlist->tdata),&(g_mcard[EQUAL_TSUMI]->tlist->tdata),
                sizeof(tdata_t));
@@ -1757,11 +1759,6 @@ void fumei_update         (const sdata_t   *sdata,
                sizeof(tdata_t));
         memcpy(&(mvlist->mkey),&(g_mcard[EQUAL_FUDUMI]->mkey),
                sizeof(mkey_t));
-         
-#if DEBUG
-        printf("EQUAL_FUDUMI data exist.\n");
-        SDATA_PRINTF(sdata, PR_BOARD|PR_ZKEY);
-#endif /* DEBUG */
         return;
     }
     if(g_mcard[EQUAL_UNKNOWN]){
