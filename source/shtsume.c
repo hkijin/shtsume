@@ -638,10 +638,10 @@ void bn_search_and              (const sdata_t   *sdata,
         }
         
         // ---------------------------------------------------------------
-        // 先頭着手の証明数または反証数が上限に近付いた場合、着手を縮退させる（逐次探索）
+        // 先頭着手の証明数または先頭２着手の反証数が上限に近づいた場合
+        // 着手を縮退させる（逐次探索）
         // ---------------------------------------------------------------
         if(list->next){
-            //玉移動
             if((list->tdata.pn > PRE_PROOF_MAX       &&
                 list->tdata.dn                       &&
                 list->next->tdata.pn                 &&
@@ -650,7 +650,7 @@ void bn_search_and              (const sdata_t   *sdata,
                (list->tdata.pn                       &&
                 list->tdata.dn > PRE_DISPROOF_MAX    &&
                 list->next->tdata.pn                 &&
-                list->next->tdata.dn                     )
+                list->next->tdata.dn > PRE_DISPROOF_MAX  )
                ){
                     tmp = list;
                     list = list->next;
