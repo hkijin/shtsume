@@ -64,6 +64,7 @@ extern bool                 g_commandline;
 #define ADD_SEARCH_SH       30
 #define PRE_PROOF_MAX       225
 #define PRE_DISPROOF_MAX    1024
+#define DISTANCE_MAX        7
 
 /*
  * 探索パラメータ制限値

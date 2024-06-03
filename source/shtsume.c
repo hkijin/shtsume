@@ -637,15 +637,22 @@ void bn_search_and              (const sdata_t   *sdata,
             }
         }
         
+
         // ---------------------------------------------------------------
-        // 先頭着手の証明数または先頭２着手の反証数が上限に近づいた場合
+        // 玉移動で先頭着手の証明数が上限に近づいた場合、
+        // または先頭２着手の反証数が上限に近づいた場合
         // 着手を縮退させる（逐次探索）
         // ---------------------------------------------------------------
         if(list->next){
-            if((list->tdata.pn > PRE_PROOF_MAX       &&
-                list->tdata.dn                       &&
-                list->next->tdata.pn                 &&
-                list->next->tdata.dn                     )
+            if((list->tdata.pn > PRE_PROOF_MAX          &&
+                list->tdata.dn > DISTANCE_MAX           &&
+                list->next->tdata.pn                    &&
+                list->next->tdata.pn <= PRE_PROOF_MAX   &&
+                list->next->tdata.dn                    &&
+                PREV_POS(list->mlist->move)==SELF_OU(sdata)       &&
+                PREV_POS(list->next->mlist->move)==SELF_OU(sdata) &&
+                !S_BOARD(sdata, NEW_POS(list->mlist->move))       &&
+                !S_BOARD(sdata, NEW_POS(list->next->mlist->move)))
                ||
                (list->tdata.pn                       &&
                 list->tdata.dn > PRE_DISPROOF_MAX    &&
