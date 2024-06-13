@@ -62,7 +62,7 @@ extern bool                 g_commandline;
 #define PROOF_MAX           256
 #define DISPROOF_MAX        2048
 #define ADD_SEARCH_SH       30
-#define PRE_PROOF_MAX       225
+#define PRE_PROOF_MAX       240
 #define PRE_DISPROOF_MAX    1024
 #define DISTANCE_MAX        7
 
