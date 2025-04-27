@@ -29,7 +29,7 @@ static int  st_n_fudumi;          /* 局面表内の不詰データ数 */
 static int  st_del_fudumi;        /* 削除した不詰データ数   */
 static int  st_n_fumei;           /* 局面表内の不明データ数 */
 static int  st_del_fumei;         /* 削除した不明データ数   */
-//static bool st_tsumi_delete_flag; /* true 詰方１手詰みデータ削除 */
+static bool st_tsumi_delete_flag; /* true 詰方１手詰みデータ削除 */
 //static bool st_gc_flag;           /* gcの強度変更flag     */
 
 /* --------------
@@ -208,11 +208,12 @@ static bool delete_func     (tlist_t      *tl,
     //玉方手番の詰みデータを削除する。
     if(!tl->tdata.pn){
         st_n_tsumi++;
+        /*
         if(!(tl->tdata.sh%2)) {
             st_del_tsumi++;
             return true;
         }
-        /*
+         */
         if(st_tsumi_delete_flag){
             if(!(tl->tdata.sh%2)||tl->tdata.sh<2) {
                 st_del_tsumi++;
@@ -225,7 +226,6 @@ static bool delete_func     (tlist_t      *tl,
                 return true;
             }
         }
-         */
     }
     //詰方手番の不詰データを削除する
     else if(!tl->tdata.dn){
@@ -270,10 +270,10 @@ void tbase_gc              (tbase_t  *tbase)
     zfolder_t *zfolder, *new_zfolder, *tmp;
     mcard_t *mcard, *new_mcard, *mc;
     tlist_t *tlist, *new_tlist, *tl;
-    //st_tsumi_delete_flag = false;
+    st_tsumi_delete_flag = false;
     uint64_t i, delete_num = 0;
     uint64_t gc_target = tbase->sz_elm*GC_DELETE_RATE/100;
-    //uint64_t n_tsumi_max = tbase->sz_elm*GC_TSUMI_RATE/100;
+    uint64_t n_tsumi_max = tbase->sz_elm*GC_TSUMI_RATE/100;
     //st_gc_flag = false;
     char prefix[16];
     memset(prefix, 0 , sizeof(prefix));
@@ -375,8 +375,14 @@ void tbase_gc              (tbase_t  *tbase)
                 prefix, delete_num, gc_target);
         record_log(g_str); puts(g_str);
         if(delete_num>gc_target) break;
-        //if(st_n_tsumi-st_del_tsumi>n_tsumi_max) st_tsumi_delete_flag = true;
-        gc_level++;
+        if((st_n_tsumi-st_del_tsumi>n_tsumi_max) &&
+           (gc_level>=(g_root_pn/2))                )
+        {
+            st_tsumi_delete_flag = true;
+            printf("g_root_pn = %u\n", g_root_pn);
+            printf("gc_level = %u\n", gc_level);
+        }
+        else gc_level++;
     } while(true);
     
     //gc情報を出力する。
@@ -899,9 +905,32 @@ bool enemy_effect          (const sdata_t *sdata,
        BPOS_TEST(SELF_EFFECT(&sbuf), ENEMY_OU(&sbuf)))
         return true;
     
-    //仮想局面において、dest箇所の玉方利きがあれば true;
+    //仮想局面において、dest箇所の玉方利きがあれば有効合
     if(BPOS_TEST(SELF_EFFECT(&sbuf), NEW_POS(move)))
         return true;
+    
+    //移動元の位置に玉方角の利きがある場合、有効合
+    bitboard_t eff = EFFECT_TBL(PREV_POS(move), SKA, sdata);
+    bitboard_t bb = S_TURN(sdata)? BB_GUK(sdata): BB_SUK(sdata);
+    BBA_AND(eff, bb);
+    if(BB_TEST(eff))
+        return true;
+    
+    //移動元の位置に玉方飛の利きがある場合、有効合
+    eff = EFFECT_TBL(PREV_POS(move), SHI, sdata);
+    bb = S_TURN(sdata)? BB_GRH(sdata): BB_SRH(sdata);
+    BBA_AND(eff, bb);
+    if(BB_TEST(eff))
+        return true;
+    
+    //移動元の位置に玉方飛の利きがある場合、有効合
+    komainf_t koma = S_TURN(sdata)? SKY : GKY;
+    eff = EFFECT_TBL(PREV_POS(move), koma, sdata);
+    bb = S_TURN(sdata)? BB_GKY(sdata): BB_SKY(sdata);
+    BBA_AND(eff, bb);
+    if(BB_TEST(eff))
+        return true;
+    
     return false;
 }
 

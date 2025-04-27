@@ -30,7 +30,10 @@ static mlist_t *mlist_to_destc     (mlist_t       *list,
 static mlist_t *evasion_drop       (mlist_t       *list,
                                     int            dest,
                                     const sdata_t *sdata);
-static bool is_ou_online           (const sdata_t *sdata);
+static bool is_eou_offline         (const sdata_t *sdata);
+
+static bool is_hand_effective      (const sdata_t *sdata,
+                                    int            dest );
 
 /* ------------------------------------------------------------------------
  generate_evasion
@@ -82,7 +85,7 @@ mvlist_t *generate_evasion   (const sdata_t *sdata,
     mlist_t *move_list = NULL;         //移動合着手構成用
     bool next_ou = true;               //合駒の位置が玉の隣の場合、true
     bool tflag = false;                //詰み可能性flag true:詰み可能性あり
-    bool nflag = false;                //最近接の位置で合駒できない場合 true
+    bool nflag = false;                //最近接で持ち駒なく、合駒ができない場合 true
     bool move = (mvlist)?true:false;   //合駒以外の着手の有無を示すflag.
     mlist_t *last;
     mvlist_t *mvlast;
@@ -120,10 +123,10 @@ mvlist_t *generate_evasion   (const sdata_t *sdata,
                 }
             }
             else     {
-                //もしtflagがtrueでdestに玉方の利きがなければ無駄合とする。
-                if(BPOS_TEST(SELF_EFFECT(sdata),dest)) 
+                //合駒が有効となる条件を満たせばtflagを解除する
+                if(BPOS_TEST(SELF_EFFECT(sdata),dest))
                     tflag = false;
-                if(!tflag){
+                if(!tflag || is_hand_effective(sdata, dest)){
                     mlist = evasion_drop(mlist, dest, sdata);
                     //適切な持ち駒がなく、合駒着手が生成できない場合、flagを立てておく
                     if(!mlist) nflag = true;
@@ -132,22 +135,25 @@ mvlist_t *generate_evasion   (const sdata_t *sdata,
             
             //移動合いがあれば着手に追加
             mslist = NULL;
-            //詰方玉に移動合開き王手の脅威がない場合
-            if(is_ou_online(sdata)){
+            //詰方玉がない、または詰方玉に移動合開き王手の脅威がない場合
+            if(is_eou_offline(sdata)){
                 if(next_ou){
-                    if(!move && !mlist)
+                    if(!move && !mlist) //合駒以外の着手、持ち駒合着手が存在しない場合
                         mslist = mlist_to_desta(mslist, dest, sdata, tbase);
                     else
                         mvlist = move_to_dest(mvlist, dest, sdata);
                 }
                 else       {
                     if( !move && nflag && !drop_list && !mlist )
+                        //合駒以外の着手なし
+                        //最近接位置で適切な合駒ない
+                        //持ち駒による合駒の生成なし
                         mslist = mlist_to_destb(mslist, dest, move, sdata);
                     else
                         mvlist = move_to_dest(mvlist, dest, sdata);
                 }
             }
-            //詰方玉がある場合
+            //詰方玉があり、移動合開き王手の脅威がある場合、
             else{
                 if(next_ou){
                     if(!move && !mlist)
@@ -864,6 +870,7 @@ mlist_t *mlist_to_desta       (mlist_t       *list,
     }
     return mlist;
 }
+
 mlist_t *mlist_to_destb       (mlist_t       *list,
                                int            dest,
                                bool           flag,
@@ -1613,7 +1620,7 @@ mlist_t *evasion_drop         (mlist_t *list,
 // ------------------------------------------
 // 詰方玉が移動合開き王手で狙えない true
 // ------------------------------------------
-bool is_ou_online           (const sdata_t *sdata)
+bool is_eou_offline           (const sdata_t *sdata)
 {
     if(ENEMY_OU(sdata)==HAND) return true;
     
@@ -1643,3 +1650,35 @@ bool is_ou_online           (const sdata_t *sdata)
     }
     return true;
 }
+
+// -------------------------------------------------------
+// 有効な中合の判定基準
+//    ・自玉より２マス離れた位置
+//    ・詰方の角の利きがある
+//    ・王手している駒は飛車か香車である
+// -------------------------------------------------------
+
+bool is_hand_effective             (const sdata_t *sdata,
+                                    int            dest  )
+{
+    //destの位置に詰方の角が効いている
+    bitboard_t effect = EFFECT_TBL(dest, SKA, sdata);
+    bitboard_t ukbb = S_TURN(sdata)?BB_SUK(sdata):BB_GUK(sdata);
+    BBA_AND(effect, ukbb);
+    if(!BB_TEST(effect)) return false;
+    
+    //王手している駒が香または飛車
+    komainf_t attack = S_BOARD(sdata,S_ATTACK(sdata)[0]);
+    if(S_TURN(sdata)){  //後手
+        if(attack != SHI && attack != SKY) return false;
+    } else{             //先手
+        if(attack != GHI && attack != GKY) return false;
+    }
+
+    //玉の位置から２マス目
+    uint8_t d = g_distance[SELF_OU(sdata)][dest];
+    if(d >2) return false;
+
+    return true;
+}
+
