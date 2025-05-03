@@ -923,7 +923,7 @@ bool enemy_effect          (const sdata_t *sdata,
     if(BB_TEST(eff))
         return true;
     
-    //移動元の位置に玉方飛の利きがある場合、有効合
+    //移動元の位置に玉方香の利きがある場合、有効合
     komainf_t koma = S_TURN(sdata)? SKY : GKY;
     eff = EFFECT_TBL(PREV_POS(move), koma, sdata);
     bb = S_TURN(sdata)? BB_GKY(sdata): BB_SKY(sdata);
