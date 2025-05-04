@@ -907,7 +907,7 @@ void make_tree_or               (const sdata_t   *sdata,
             if(g_pv_length>=S_COUNT(sdata)){
                 nsearchlog_t *log = &(g_tsearchinf.mvinf[S_COUNT(sdata)]);
                 //探索log(1)
-                log->move = list->mlist->move;
+                log->move = tmp->mlist->move;
                 //move_sprintf(log->move_str,log->move,sdata);
                 
                 memcpy(&sbuf, sdata, sizeof(sdata_t));
@@ -1216,7 +1216,7 @@ void bns_plus_or                (const sdata_t   *sdata,
                 if(g_pv_length>=S_COUNT(sdata)){
                     nsearchlog_t *log = &(g_tsearchinf.mvinf[S_COUNT(sdata)]);
                     //探索log(1)
-                    log->move = list->mlist->move;
+                    log->move = tmp->mlist->move;
                     //move_sprintf(log->move_str,log->move,sdata);
                     
                     memcpy(&sbuf, sdata, sizeof(sdata_t));
@@ -1256,7 +1256,7 @@ void bns_plus_or                (const sdata_t   *sdata,
             if(g_pv_length>=S_COUNT(sdata)){
                 nsearchlog_t *log = &(g_tsearchinf.mvinf[S_COUNT(sdata)]);
                 //探索log(1)
-                log->move = list->mlist->move;
+                log->move = tmp->mlist->move;
                 //move_sprintf(log->move_str,log->move,sdata);
                 
                 memcpy(&sbuf, sdata, sizeof(sdata_t));
