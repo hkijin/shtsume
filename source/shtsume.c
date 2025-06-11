@@ -393,26 +393,28 @@ void bn_search_or               (const sdata_t   *sdata,
     uint16_t dcnt = 0;
     //着手の並べ替え
     list = sdata_mvlist_sort(list, sdata, proof_number_comp);
+    
     while(true){
-        //駒余り2手詰発見の際は他に0手詰が無いか確認する
-        /*
-        if(!list->tdata.pn && list->tdata.sh==2 && list->inc)
+        //駒余り詰発見の際は他に0手詰が無いか確認する
+        if(!list->tdata.pn && list->tdata.sh>1 && list->inc
+           && S_COUNT(sdata)<30)
         {
             c_threshold.pn = INFINATE-1;
             c_threshold.dn = INFINATE-1;
             c_threshold.sh = 2;
             tmp = list->next;
             while(tmp){
-                if(tmp->search) break;
-                memcpy(&sbuf, sdata, sizeof(sdata_t));
-                sdata_move_forward(&sbuf, tmp->mlist->move);
-                bn_search_and(&sbuf, &c_threshold, tmp, tbase);
-                tmp->search = 1;
+                if(!tmp->search){
+                    memcpy(&sbuf, sdata, sizeof(sdata_t));
+                    sdata_move_forward(&sbuf, tmp->mlist->move);
+                    bn_search_and(&sbuf, &c_threshold, tmp, tbase);
+                    tmp->search = 1;
+                }
                 tmp = tmp->next;
             }
             list = sdata_mvlist_sort(list, sdata, proof_number_comp);
         }
-         */
+         
         //予想手の出力
         if(S_COUNT(sdata)==0 && !g_commandline){
             g_tsearchinf.mvinf[S_COUNT(sdata)].move = list->mlist->move;
@@ -552,7 +554,7 @@ void bn_search_and              (const sdata_t   *sdata,
         tbase_update(sdata, mvlist, tn, tbase);
         return;
     }
-    
+
     /* ---------------
      * 局面表を参照する。
      --------------- */

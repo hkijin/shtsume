@@ -20,7 +20,7 @@
  * プログラムID
  */
 #define PROGRAM_NAME       "shtsume"
-#define VERSION_INFO       "v1.2.6"
+#define VERSION_INFO       "v1.2.7"
 #define AUTHOR_NAME        "hkijin"
 /*
  * USIオプション情報
@@ -439,6 +439,9 @@ bool invalid_moves         (const sdata_t *sdata,
 
 bool enemy_effect          (const sdata_t *sdata,
                             move_t         move  );
+
+int  is_attack_pinned      (const sdata_t *sdata,
+                            int            dest  );
 
 /*
  * 着手生成

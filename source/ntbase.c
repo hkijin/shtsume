@@ -886,6 +886,7 @@ bool invalid_moves         (const sdata_t *sdata,
     return res;
 }
 
+/*
 bool enemy_effect          (const sdata_t *sdata,
                             move_t         move  )
 {
@@ -906,15 +907,193 @@ bool enemy_effect          (const sdata_t *sdata,
         return true;
     
     //仮想局面において、dest箇所の玉方利きがあれば有効合
-    if(BPOS_TEST(SELF_EFFECT(&sbuf), NEW_POS(move)))
-        return true;
+    if(BPOS_TEST(SELF_EFFECT(&sbuf), NEW_POS(move))){
+        //destに利いている駒がPINされていないことを確認
+        bitboard_t effect;
+        int src, dest = NEW_POS(move);
+        if(S_TURN(&sbuf)){
+            //GFU
+            effect = EFFECT_TBL(dest, SFU, &sbuf);
+            BBA_AND(effect, BB_GFU(&sbuf));
+            while(1){
+                src = min_pos(&effect);
+                if(src<0) break;
+                if(!S_PINNED(&sbuf)[src]) return true;
+                BBA_XOR(effect, g_bpos[src]);
+            }
+            //GKY
+            effect = EFFECT_TBL(dest, SKY, &sbuf);
+            BBA_AND(effect, BB_GKY(&sbuf));
+            while(1){
+                src = min_pos(&effect);
+                if(src<0) break;
+                if(!S_PINNED(&sbuf)[src]) return true;
+                BBA_XOR(effect, g_bpos[src]);
+            }
+            //GKE
+            effect = EFFECT_TBL(dest, SKE, &sbuf);
+            BBA_AND(effect, BB_GKE(&sbuf));
+            while(1){
+                src = min_pos(&effect);
+                if(src<0) break;
+                if(!S_PINNED(&sbuf)[src]) return true;
+                BBA_XOR(effect, g_bpos[src]);
+            }
+            //GGI
+            effect = EFFECT_TBL(dest, SGI, &sbuf);
+            BBA_AND(effect, BB_GGI(&sbuf));
+            while(1){
+                src = min_pos(&effect);
+                if(src<0) break;
+                if(!S_PINNED(&sbuf)[src]) return true;
+                BBA_XOR(effect, g_bpos[src]);
+            }
+            //GKI,GTO,GNY,GNK,GNG
+            effect = EFFECT_TBL(dest, SKI, &sbuf);
+            BBA_AND(effect, BB_GTK(&sbuf));
+            while(1){
+                src = min_pos(&effect);
+                if(src<0) break;
+                if(!S_PINNED(&sbuf)[src]) return true;
+                BBA_XOR(effect, g_bpos[src]);
+            }
+            //GKA
+            effect = EFFECT_TBL(dest, SKA, &sbuf);
+            BBA_AND(effect, BB_GKA(&sbuf));
+            while(1){
+                src = min_pos(&effect);
+                if(src<0) break;
+                if(!S_PINNED(&sbuf)[src]) return true;
+                BBA_XOR(effect, g_bpos[src]);
+            }
+            //GHI
+            effect = EFFECT_TBL(dest, SHI, &sbuf);
+            BBA_AND(effect, BB_GHI(&sbuf));
+            while(1){
+                src = min_pos(&effect);
+                if(src<0) break;
+                if(!S_PINNED(&sbuf)[src]) return true;
+                BBA_XOR(effect, g_bpos[src]);
+            }
+            //GUM
+            effect = EFFECT_TBL(dest, SUM, &sbuf);
+            BBA_AND(effect, BB_GUM(&sbuf));
+            while(1){
+                src = min_pos(&effect);
+                if(src<0) break;
+                if(!S_PINNED(&sbuf)[src]) return true;
+                BBA_XOR(effect, g_bpos[src]);
+            }
+            //GRY
+            effect = EFFECT_TBL(dest, SRY, &sbuf);
+            BBA_AND(effect, BB_GRY(&sbuf));
+            while(1){
+                src = min_pos(&effect);
+                if(src<0) break;
+                if(!S_PINNED(&sbuf)[src]) return true;
+                BBA_XOR(effect, g_bpos[src]);
+            }
+        }
+        else{
+            //SFU
+            effect = EFFECT_TBL(dest, GFU, &sbuf);
+            BBA_AND(effect, BB_SFU(&sbuf));
+            while(1){
+                src = min_pos(&effect);
+                if(src<0) break;
+                if(!S_PINNED(&sbuf)[src]) return true;
+                BBA_XOR(effect, g_bpos[src]);
+            }
+            //SKY
+            effect = EFFECT_TBL(dest, GKY, &sbuf);
+            BBA_AND(effect, BB_SKY(&sbuf));
+            while(1){
+                src = min_pos(&effect);
+                if(src<0) break;
+                if(!S_PINNED(&sbuf)[src]) return true;
+                BBA_XOR(effect, g_bpos[src]);
+            }
+            //SKE
+            effect = EFFECT_TBL(dest, GKE, &sbuf);
+            BBA_AND(effect, BB_SKE(&sbuf));
+            while(1){
+                src = min_pos(&effect);
+                if(src<0) break;
+                if(!S_PINNED(&sbuf)[src]) return true;
+                BBA_XOR(effect, g_bpos[src]);
+            }
+            //SGI
+            effect = EFFECT_TBL(dest, GGI, &sbuf);
+            BBA_AND(effect, BB_SGI(&sbuf));
+            while(1){
+                src = min_pos(&effect);
+                if(src<0) break;
+                if(!S_PINNED(&sbuf)[src]) return true;
+                BBA_XOR(effect, g_bpos[src]);
+            }
+            //SKI,STO,SNY,SNK,SNG
+            effect = EFFECT_TBL(dest, GKI, &sbuf);
+            BBA_AND(effect, BB_STK(&sbuf));
+            while(1){
+                src = min_pos(&effect);
+                if(src<0) break;
+                if(!S_PINNED(&sbuf)[src]) return true;
+                BBA_XOR(effect, g_bpos[src]);
+            }
+            //SKA
+            effect = EFFECT_TBL(dest, GKA, &sbuf);
+            BBA_AND(effect, BB_SKA(&sbuf));
+            while(1){
+                src = min_pos(&effect);
+                if(src<0) break;
+                if(!S_PINNED(&sbuf)[src]) return true;
+                BBA_XOR(effect, g_bpos[src]);
+            }
+            //SHI
+            effect = EFFECT_TBL(dest, GHI, &sbuf);
+            BBA_AND(effect, BB_SHI(&sbuf));
+            while(1){
+                src = min_pos(&effect);
+                if(src<0) break;
+                if(!S_PINNED(&sbuf)[src]) return true;
+                BBA_XOR(effect, g_bpos[src]);
+            }
+            //SUM
+            effect = EFFECT_TBL(dest, GUM, &sbuf);
+            BBA_AND(effect, BB_SUM(&sbuf));
+            while(1){
+                src = min_pos(&effect);
+                if(src<0) break;
+                if(!S_PINNED(&sbuf)[src]) return true;
+                BBA_XOR(effect, g_bpos[src]);
+            }
+            //SRY
+            effect = EFFECT_TBL(dest, GRY, &sbuf);
+            BBA_AND(effect, BB_SRY(&sbuf));
+            while(1){
+                src = min_pos(&effect);
+                if(src<0) break;
+                if(!S_PINNED(&sbuf)[src]) return true;
+                BBA_XOR(effect, g_bpos[src]);
+            }
+        }
+    }
     
     //移動元の位置に玉方角の利きがある場合、有効合
     bitboard_t eff = EFFECT_TBL(PREV_POS(move), SKA, sdata);
     bitboard_t bb = S_TURN(sdata)? BB_GUK(sdata): BB_SUK(sdata);
     BBA_AND(eff, bb);
-    if(BB_TEST(eff))
+    if(BB_TEST(eff)){
+        //移動元に利いてる駒がPINされていないことを確認
+        if(S_TURN(sdata)){
+            
+        }
+        else{
+            
+        }
         return true;
+    }
+        
     
     //移動元の位置に玉方飛の利きがある場合、有効合
     eff = EFFECT_TBL(PREV_POS(move), SHI, sdata);
@@ -932,6 +1111,308 @@ bool enemy_effect          (const sdata_t *sdata,
         return true;
     
     return false;
+}
+*/
+// ---------------------------------------
+// enemy_effect 移動中合が有効であればTRUE
+// move: 移動合の候補手
+// ---------------------------------------
+
+bool enemy_effect          (const sdata_t *sdata,
+                            move_t         move  )
+{
+    sdata_t   sbuf;  //仮想局面
+    memcpy(&sbuf, sdata, sizeof(sdata_t));
+    sdata_pickup_table(&sbuf, PREV_POS(move));
+    
+    //自玉に移動できる場所があれば有効合
+    bitboard_t move_bb = evasion_bb(&sbuf);
+    if(BB_TEST(move_bb)) return true;
+    
+    //詰方の玉に王手が掛かっていれば有効合
+    if(ENEMY_OU(&sbuf)<HAND &&
+       BPOS_TEST(SELF_EFFECT(&sbuf), ENEMY_OU(&sbuf)))
+        return true;
+    
+    //手番ごとのチェック
+    int src, dest = NEW_POS(move);
+    bitboard_t effect, eff;
+    if(S_TURN(&sbuf)){
+        eff = GEFFECT(&sbuf);
+        //仮想局面において、dest箇所にpinされていない玉方利きがあれば有効合
+        if(BPOS_TEST(eff, dest)){
+            //利いてる駒がpinされていないことを確認
+            //GFU
+            effect = EFFECT_TBL(dest, SFU, &sbuf);
+            BBA_AND(effect, BB_GFU(&sbuf));
+            while(1){
+                src = min_pos(&effect);
+                if(src<0) break;
+                if(!S_PINNED(&sbuf)[src]) return true;
+                BBA_XOR(effect, g_bpos[src]);
+            }
+            //GKY
+            effect = EFFECT_TBL(dest, SKY, &sbuf);
+            BBA_AND(effect, BB_GKY(&sbuf));
+            while(1){
+                src = min_pos(&effect);
+                if(src<0) break;
+                if(!S_PINNED(&sbuf)[src]) return true;
+                BBA_XOR(effect, g_bpos[src]);
+            }
+            //GKE
+            effect = EFFECT_TBL(dest, SKE, &sbuf);
+            BBA_AND(effect, BB_GKE(&sbuf));
+            while(1){
+                src = min_pos(&effect);
+                if(src<0) break;
+                if(!S_PINNED(&sbuf)[src]) return true;
+                BBA_XOR(effect, g_bpos[src]);
+            }
+            //GGI
+            effect = EFFECT_TBL(dest, SGI, &sbuf);
+            BBA_AND(effect, BB_GGI(&sbuf));
+            while(1){
+                src = min_pos(&effect);
+                if(src<0) break;
+                if(!S_PINNED(&sbuf)[src]) return true;
+                BBA_XOR(effect, g_bpos[src]);
+            }
+            //GKI,GTO,GNY,GNK,GNG
+            effect = EFFECT_TBL(dest, SKI, &sbuf);
+            BBA_AND(effect, BB_GTK(&sbuf));
+            while(1){
+                src = min_pos(&effect);
+                if(src<0) break;
+                if(!S_PINNED(&sbuf)[src]) return true;
+                BBA_XOR(effect, g_bpos[src]);
+            }
+            //GKA
+            effect = EFFECT_TBL(dest, SKA, &sbuf);
+            BBA_AND(effect, BB_GKA(&sbuf));
+            while(1){
+                src = min_pos(&effect);
+                if(src<0) break;
+                if(!S_PINNED(&sbuf)[src]) return true;
+                BBA_XOR(effect, g_bpos[src]);
+            }
+            //GHI
+            effect = EFFECT_TBL(dest, SHI, &sbuf);
+            BBA_AND(effect, BB_GHI(&sbuf));
+            while(1){
+                src = min_pos(&effect);
+                if(src<0) break;
+                if(!S_PINNED(&sbuf)[src]) return true;
+                BBA_XOR(effect, g_bpos[src]);
+            }
+            //GUM
+            effect = EFFECT_TBL(dest, SUM, &sbuf);
+            BBA_AND(effect, BB_GUM(&sbuf));
+            while(1){
+                src = min_pos(&effect);
+                if(src<0) break;
+                if(!S_PINNED(&sbuf)[src]) return true;
+                BBA_XOR(effect, g_bpos[src]);
+            }
+            //GRY
+            effect = EFFECT_TBL(dest, SRY, &sbuf);
+            BBA_AND(effect, BB_GRY(&sbuf));
+            while(1){
+                src = min_pos(&effect);
+                if(src<0) break;
+                if(!S_PINNED(&sbuf)[src]) return true;
+                BBA_XOR(effect, g_bpos[src]);
+            }
+            
+        }
+        
+        //移動元の位置にPINされていない玉方角馬の利きがある場合、有効合
+        eff = EFFECT_TBL(PREV_POS(move), SKA, &sbuf);
+        BBA_AND(eff, BB_GUK(&sbuf));
+        while(1){
+            src = min_pos(&eff);
+            if(src<0) break;
+            if(!S_PINNED(&sbuf)[src]) {
+                //攻め駒を移動先位置まで進めた局面を作り、詰んでなければ有効合
+                return true;
+            }
+            BBA_XOR(eff, g_bpos[src]);
+        }
+        
+        //移動元の位置にPINされていない玉方飛龍の利きがある場合、有効合
+        eff = EFFECT_TBL(PREV_POS(move), SHI, &sbuf);
+        BBA_AND(eff, BB_GRH(&sbuf));
+        while(1){
+            src = min_pos(&eff);
+            if(src<0) break;
+            if(!S_PINNED(&sbuf)[src]) {
+                //攻め駒を移動先位置まで進めた局面を作り、詰んでなければ有効合
+#if DEBUG
+                SDATA_PRINTF(&sbuf, PR_BOARD);
+#endif //DEBUG
+                sdata_t sbuf1;
+                memcpy(&sbuf1, &sbuf, sizeof(sdata_t));
+                sdata_tentative_move(&sbuf1, S_ATTACK(&sbuf)[0], dest, false);
+#if DEBUG
+                SDATA_PRINTF(&sbuf1, PR_BOARD);
+#endif //DEBUG
+                return true;
+            }
+            BBA_XOR(eff, g_bpos[src]);
+        }
+        
+        //移動元の位置にPINされていない玉方香の利きがある場合、有効合
+        eff = EFFECT_TBL(PREV_POS(move), SKY, &sbuf);
+        BBA_AND(eff, BB_GKY(&sbuf));
+        while(1){
+            src = min_pos(&eff);
+            if(src<0) break;
+            if(!S_PINNED(&sbuf)[src]) {
+                //攻め駒を移動先位置まで進めた局面を作り、詰んでなければ有効合
+                return true;
+            }
+            BBA_XOR(eff, g_bpos[src]);
+        }
+    }
+    else{
+        eff = SEFFECT(&sbuf);
+        //仮想局面において、dest箇所にpinされていない玉方利きがあれば有効合
+        if(BPOS_TEST(eff, dest)){
+            //利いてる駒がpinされていないことを確認
+            //SFU
+            effect = EFFECT_TBL(dest, GFU, &sbuf);
+            BBA_AND(effect, BB_SFU(&sbuf));
+            while(1){
+                src = min_pos(&effect);
+                if(src<0) break;
+                if(!S_PINNED(&sbuf)[src]) return true;
+                BBA_XOR(effect, g_bpos[src]);
+            }
+            //SKY
+            effect = EFFECT_TBL(dest, GKY, &sbuf);
+            BBA_AND(effect, BB_SKY(&sbuf));
+            while(1){
+                src = min_pos(&effect);
+                if(src<0) break;
+                if(!S_PINNED(&sbuf)[src]) return true;
+                BBA_XOR(effect, g_bpos[src]);
+            }
+            //SKE
+            effect = EFFECT_TBL(dest, GKE, &sbuf);
+            BBA_AND(effect, BB_SKE(&sbuf));
+            while(1){
+                src = min_pos(&effect);
+                if(src<0) break;
+                if(!S_PINNED(&sbuf)[src]) return true;
+                BBA_XOR(effect, g_bpos[src]);
+            }
+            //SGI
+            effect = EFFECT_TBL(dest, GGI, &sbuf);
+            BBA_AND(effect, BB_SGI(&sbuf));
+            while(1){
+                src = min_pos(&effect);
+                if(src<0) break;
+                if(!S_PINNED(&sbuf)[src]) return true;
+                BBA_XOR(effect, g_bpos[src]);
+            }
+            //SKI,STO,SNY,SNK,SNG
+            effect = EFFECT_TBL(dest, GKI, &sbuf);
+            BBA_AND(effect, BB_STK(&sbuf));
+            while(1){
+                src = min_pos(&effect);
+                if(src<0) break;
+                if(!S_PINNED(&sbuf)[src]) return true;
+                BBA_XOR(effect, g_bpos[src]);
+            }
+            //SKA
+            effect = EFFECT_TBL(dest, GKA, &sbuf);
+            BBA_AND(effect, BB_SKA(&sbuf));
+            while(1){
+                src = min_pos(&effect);
+                if(src<0) break;
+                if(!S_PINNED(&sbuf)[src]) return true;
+                BBA_XOR(effect, g_bpos[src]);
+            }
+            //SHI
+            effect = EFFECT_TBL(dest, SHI, &sbuf);
+            BBA_AND(effect, BB_GHI(&sbuf));
+            while(1){
+                src = min_pos(&effect);
+                if(src<0) break;
+                if(!S_PINNED(&sbuf)[src]) return true;
+                BBA_XOR(effect, g_bpos[src]);
+            }
+            //SUM
+            effect = EFFECT_TBL(dest, GUM, &sbuf);
+            BBA_AND(effect, BB_SUM(&sbuf));
+            while(1){
+                src = min_pos(&effect);
+                if(src<0) break;
+                if(!S_PINNED(&sbuf)[src]) return true;
+                BBA_XOR(effect, g_bpos[src]);
+            }
+            //SRY
+            effect = EFFECT_TBL(dest, GRY, &sbuf);
+            BBA_AND(effect, BB_SRY(&sbuf));
+            while(1){
+                src = min_pos(&effect);
+                if(src<0) break;
+                if(!S_PINNED(&sbuf)[src]) return true;
+                BBA_XOR(effect, g_bpos[src]);
+            }
+        }
+        
+        //移動元の位置にPINされていない玉方角馬の利きがある場合、有効合
+        eff = EFFECT_TBL(PREV_POS(move), GKA, &sbuf);
+        BBA_AND(eff, BB_SUK(&sbuf));
+        while(1){
+            src = min_pos(&eff);
+            if(src<0) break;
+            if(!S_PINNED(&sbuf)[src]) {
+                //攻め駒を移動先位置まで進めた局面を作り、詰んでなければ有効合
+                return true;
+            }
+            BBA_XOR(eff, g_bpos[src]);
+        }
+        
+        //移動元の位置にPINされていない玉方飛龍の利きがある場合、有効合
+        eff = EFFECT_TBL(PREV_POS(move), GHI, &sbuf);
+        BBA_AND(eff, BB_SRH(&sbuf));
+        while(1){
+            src = min_pos(&eff);
+            if(src<0) break;
+            if(!S_PINNED(&sbuf)[src]) {
+                //攻め駒を移動先位置まで進めた局面を作り、詰んでなければ有効合
+#if DEBUG
+                SDATA_PRINTF(&sbuf, PR_BOARD);
+#endif //DEBUG
+                return true;
+            }
+            BBA_XOR(eff, g_bpos[src]);
+        }
+
+        //移動元の位置にPINされていない玉方香の利きがある場合、有効合
+        eff = EFFECT_TBL(PREV_POS(move), GKY, &sbuf);
+        BBA_AND(eff, BB_SKY(&sbuf));
+        while(1){
+            src = min_pos(&eff);
+            if(src<0) break;
+            if(!S_PINNED(&sbuf)[src]) {
+                //攻め駒を移動先位置まで進めた局面を作り、詰んでなければ有効合
+                return true;
+            }
+            BBA_XOR(eff, g_bpos[src]);
+        }
+    }
+    
+    return false;
+}
+
+int is_attack_pinned       (const sdata_t *sdata,
+                            int            dest  )
+{
+    set_tpin(sdata, st_tpin);
+    return st_tpin[dest];
 }
 
 

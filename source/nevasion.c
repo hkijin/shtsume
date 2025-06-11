@@ -35,6 +35,14 @@ static bool is_eou_offline         (const sdata_t *sdata);
 static bool is_hand_effective      (const sdata_t *sdata,
                                     int            dest );
 
+/*
+static bool attack_ka_effect       (const sdata_t *sdata,
+                                    int            dest );
+*/
+
+static bool is_dest_effect_valid   (const sdata_t *sdata,
+                                    int            dest );
+
 /* ------------------------------------------------------------------------
  generate_evasion
  局面表による無駄合い判定付き王手回避着手生成関数
@@ -85,7 +93,7 @@ mvlist_t *generate_evasion   (const sdata_t *sdata,
     mlist_t *move_list = NULL;         //移動合着手構成用
     bool next_ou = true;               //合駒の位置が玉の隣の場合、true
     bool tflag = false;                //詰み可能性flag true:詰み可能性あり
-    bool nflag = false;                //最近接で持ち駒なく、合駒ができない場合 true
+    bool nflag = false;                //適切な持ち駒なく、合駒不可の場合 true
     bool move = (mvlist)?true:false;   //合駒以外の着手の有無を示すflag.
     mlist_t *last;
     mvlist_t *mvlast;
@@ -109,27 +117,30 @@ mvlist_t *generate_evasion   (const sdata_t *sdata,
             //合い駒があれば着手に追加
             mlist = NULL;
             if(next_ou){
-                if(invalid_drops(sdata, dest, tbase))
-                {
-                    //合駒以外に王手回避の手段がなく、玉の最近接位置の合駒が無駄合の場合、
-                    //詰みの可能性があるのでflagを立てておく。
-                    if(!mvlist) tflag = true;
-                }
-                else
+                if(!invalid_drops(sdata, dest, tbase))
                 {
                     mlist = evasion_drop(mlist, dest, sdata);
-                    //適切な持ち駒がなく、合駒着手が生成できない場合、flagを立てておく
-                    if(!mlist) nflag = true;
+                    //適切な持ち駒がなく、合駒着手生成できない場合、nflagを立てる
+                    if(!mlist)  nflag = true;
                 }
+                //合駒以外に王手回避の手段がなく、玉の最近接合が不可能の場合、
+                //詰みの可能性があるのでtflagを立てておく。
+                if(!mvlist) tflag = true;
             }
             else     {
                 //合駒が有効となる条件を満たせばtflagを解除する
-                if(BPOS_TEST(SELF_EFFECT(sdata),dest))
-                    tflag = false;
+                if(BPOS_TEST(SELF_EFFECT(sdata),dest)){
+                    if(is_dest_effect_valid(sdata, dest))
+                        //打てる持ち駒があれば
+                        if(HAND_CHECK(sdata, dest))
+                            tflag = false;
+                }
+                    
                 if(!tflag || is_hand_effective(sdata, dest)){
                     mlist = evasion_drop(mlist, dest, sdata);
                     //適切な持ち駒がなく、合駒着手が生成できない場合、flagを立てておく
                     if(!mlist) nflag = true;
+                    //else nflag = false;
                 }
             }
             
@@ -1613,7 +1624,19 @@ mlist_t *evasion_drop         (mlist_t *list,
         MLIST_SET_DROP(mlist, new_mlist, KY, dest);
     }
     if(SELF_FU(sdata) && FU_CHECK(sdata, dest)){
-        MLIST_SET_DROP(mlist, new_mlist, FU, dest);
+        //王手になっていれば打歩詰チェック
+        int ou = ENEMY_OU(sdata);
+        if((S_TURN(sdata) && dest == (ou+DR_N)) ||
+           (!S_TURN(sdata) && dest == (ou+DR_S))){
+            move_t mv;
+            MV_SET(mv, HAND+FU, dest, 0);
+            if(fu_tsume_check(mv, sdata))
+                MLIST_SET_DROP(mlist, new_mlist, FU, dest);
+                
+        }
+        else{
+            MLIST_SET_DROP(mlist, new_mlist, FU, dest);
+        }
     }
     return mlist;
 }
@@ -1629,24 +1652,144 @@ bool is_eou_offline           (const sdata_t *sdata)
     if(S_TURN(sdata)){  //後手番
         //香
         BB_AND(bb,g_base_effect[SKY][ou],BB_GKY(sdata));
-        if(BB_TEST(bb)) return false;
+        if(BB_TEST(bb)) {
+            int src,dest;
+            while(1){
+                dest = min_pos(&bb);
+                if(dest<0) break;
+                src = ou;
+                //詰方玉と味方香の間の駒が全て味方の駒であればfalse
+                while(1){
+                    src+=DR_N;
+                    if(src==dest) return false;
+                    if(SENTE_KOMA(S_BOARD(sdata, src))) break;
+                }
+                BBA_XOR(bb, g_bpos[dest]);
+            }
+        }
         //角馬
         BB_AND(bb,g_base_effect[SKA][ou],BB_GUK(sdata));
-        if(BB_TEST(bb)) return false;
+        if(BB_TEST(bb)) {
+            int src, dest, dir;
+            while(1){
+                dest = min_pos(&bb);
+                if(dest<0) break;
+                //味方の大駒と詰方玉の位置関係より、方向を特定。
+                src = ou;
+                if(src>dest){
+                    if(!((src-dest)%DR_SW)) dir = DR_NE;
+                    else dir = DR_NW;
+                }
+                else{
+                    if(!((dest-src)%DR_SW)) dir = DR_SW;
+                    else dir = DR_SE;
+                }
+                //詰方玉と味方大駒の間の駒が全て味方の駒であればfalse
+                while(1){
+                    src+=dir;
+                    if(src==dest) return false;
+                    if(SENTE_KOMA(S_BOARD(sdata, src))) break;
+                }
+                BBA_XOR(bb, g_bpos[dest]);
+            }
+        }
         //飛龍
         BB_AND(bb,g_base_effect[SHI][ou],BB_GRH(sdata));
-        if(BB_TEST(bb)) return false;
+        if(BB_TEST(bb)) {
+            int src, dest, dir;
+            while(1){
+                dest = min_pos(&bb);
+                if(dest<0) break;
+                //味方の大駒と詰方玉の位置関係より、方向を特定。
+                src = ou;
+                if(src>dest){
+                    if((src-dest)<DR_S) dir = DR_E;
+                    else dir = DR_N;
+                }
+                else{
+                    if((dest-src)<DR_S) dir = DR_W;
+                    else dir = DR_S;
+                }
+                //詰方玉と味方大駒の間の駒が全て味方の駒であればfalse
+                while(1){
+                    src+=dir;
+                    if(src==dest) return false;
+                    if(SENTE_KOMA(S_BOARD(sdata, src))) break;
+                }
+                BBA_XOR(bb, g_bpos[dest]);
+            }
+        }
     }
     else             {
         //香
         BB_AND(bb,g_base_effect[GKY][ou],BB_SKY(sdata));
-        if(BB_TEST(bb)) return false;
+        if(BB_TEST(bb)) {
+            int src,dest;
+            while(1){
+                dest = min_pos(&bb);
+                if(dest<0) break;
+                src = ou;
+                //詰方玉と味方香の間の駒が全て味方の駒であればfalse
+                while(1){
+                    src+=DR_S;
+                    if(src==dest) return false;
+                    if(SENTE_KOMA(S_BOARD(sdata, src))) break;
+                }
+                BBA_XOR(bb, g_bpos[dest]);
+            }
+        }
         //角馬
         BB_AND(bb,g_base_effect[GKA][ou],BB_SUK(sdata));
-        if(BB_TEST(bb)) return false;
+        if(BB_TEST(bb)) {
+            int src, dest, dir;
+            while(1){
+                dest = min_pos(&bb);
+                if(dest<0) break;
+                //味方の大駒と詰方玉の位置関係より、方向を特定。
+                src = ou;
+                if(src>dest){
+                    if(!((src-dest)%DR_SW)) dir = DR_NE;
+                    else dir = DR_NW;
+                }
+                else{
+                    if(!((dest-src)%DR_SW)) dir = DR_SW;
+                    else dir = DR_SE;
+                }
+                //詰方玉と味方大駒の間の駒が全て味方の駒であればfalse
+                while(1){
+                    src+=dir;
+                    if(src==dest) return false;
+                    if(GOTE_KOMA(S_BOARD(sdata, src))) break;
+                }
+                BBA_XOR(bb, g_bpos[dest]);
+            }
+        }
         //飛龍
         BB_AND(bb,g_base_effect[GHI][ou],BB_SRH(sdata));
-        if(BB_TEST(bb)) return false;
+        if(BB_TEST(bb)) {
+            int src, dest, dir;
+            while(1){
+                dest = min_pos(&bb);
+                if(dest<0) break;
+                //味方の大駒と詰方玉の位置関係より、方向を特定。
+                src = ou;
+                if(src>dest){
+                    if((src-dest)<DR_S) dir = DR_E;
+                    else dir = DR_N;
+                }
+                else{
+                    if((dest-src)<DR_S) dir = DR_W;
+                    else dir = DR_S;
+                }
+                //詰方玉と味方大駒の間の駒が全て味方の駒であればfalse
+                while(1){
+                    src+=dir;
+                    if(src==dest) return false;
+                    if(GOTE_KOMA(S_BOARD(sdata, src))) break;
+                }
+                BBA_XOR(bb, g_bpos[dest]);
+            }
+        }
     }
     return true;
 }
@@ -1682,3 +1825,100 @@ bool is_hand_effective             (const sdata_t *sdata,
     return true;
 }
 
+#define PIN_CHECK(sdata, effect, src)              \
+        while(1){                                  \
+            (src) = min_pos(&(effect));            \
+            if((src)<0) break;                     \
+            if(!S_PINNED(sdata)[src]) return true; \
+            BBA_XOR(effect, g_bpos[src]);          \
+        }
+
+// -----------------------------------------------------
+// destへの利きが有効か
+// 有効（pinされていない）　true
+// 無効（pinされている）   false
+// -----------------------------------------------------
+bool is_dest_effect_valid          (const sdata_t *sdata,
+                                    int            dest )
+{
+    int src;
+    bitboard_t effect;
+    //destに利いてる駒がpinされていないことを確認する。
+    if(S_TURN(sdata)){
+        //GFU
+        effect = EFFECT_TBL(dest, SFU, sdata);
+        BBA_AND(effect, BB_GFU(sdata));
+        PIN_CHECK(sdata, effect, src);
+        //GKY
+        effect = EFFECT_TBL(dest, SKY, sdata);
+        BBA_AND(effect, BB_GKY(sdata));
+        PIN_CHECK(sdata, effect, src);
+        //GKE
+        effect = EFFECT_TBL(dest, SKE, sdata);
+        BBA_AND(effect, BB_GKE(sdata));
+        PIN_CHECK(sdata, effect, src);
+        //GGI
+        effect = EFFECT_TBL(dest, SGI, sdata);
+        BBA_AND(effect, BB_GGI(sdata));
+        PIN_CHECK(sdata, effect, src);
+        //GKI,GTO,GNY,GNK,GNG
+        effect = EFFECT_TBL(dest, SKI, sdata);
+        BBA_AND(effect, BB_GTK(sdata));
+        PIN_CHECK(sdata, effect, src);
+        //GKA
+        effect = EFFECT_TBL(dest, SKA, sdata);
+        BBA_AND(effect, BB_GKA(sdata));
+        PIN_CHECK(sdata, effect, src);
+        //GHI
+        effect = EFFECT_TBL(dest, SHI, sdata);
+        BBA_AND(effect, BB_GHI(sdata));
+        PIN_CHECK(sdata, effect, src);
+        //GUM
+        effect = EFFECT_TBL(dest, SUM, sdata);
+        BBA_AND(effect, BB_GUM(sdata));
+        PIN_CHECK(sdata, effect, src);
+        //GRY
+        effect = EFFECT_TBL(dest, SRY, sdata);
+        BBA_AND(effect, BB_GRY(sdata));
+        PIN_CHECK(sdata, effect, src);
+    }
+    else{
+        //SFU
+        effect = EFFECT_TBL(dest, GFU, sdata);
+        BBA_AND(effect, BB_SFU(sdata));
+        PIN_CHECK(sdata, effect, src);
+        //SKY
+        effect = EFFECT_TBL(dest, GKY, sdata);
+        BBA_AND(effect, BB_SKY(sdata));
+        PIN_CHECK(sdata, effect, src);
+        //SKE
+        effect = EFFECT_TBL(dest, GKE, sdata);
+        BBA_AND(effect, BB_SKE(sdata));
+        PIN_CHECK(sdata, effect, src);
+        //SGI
+        effect = EFFECT_TBL(dest, GGI, sdata);
+        BBA_AND(effect, BB_SGI(sdata));
+        PIN_CHECK(sdata, effect, src);
+        //SKI,STO,SNY,SNK,SNG
+        effect = EFFECT_TBL(dest, GKI, sdata);
+        BBA_AND(effect, BB_STK(sdata));
+        PIN_CHECK(sdata, effect, src);
+        //SKA
+        effect = EFFECT_TBL(dest, GKA, sdata);
+        BBA_AND(effect, BB_SKA(sdata));
+        PIN_CHECK(sdata, effect, src);
+        //SHI
+        effect = EFFECT_TBL(dest, GHI, sdata);
+        BBA_AND(effect, BB_SHI(sdata));
+        PIN_CHECK(sdata, effect, src);
+        //SUM
+        effect = EFFECT_TBL(dest, GUM, sdata);
+        BBA_AND(effect, BB_SUM(sdata));
+        PIN_CHECK(sdata, effect, src);
+        //SRY
+        effect = EFFECT_TBL(dest, GRY, sdata);
+        BBA_AND(effect, BB_SRY(sdata));
+        PIN_CHECK(sdata, effect, src);
+    }
+    return false;
+}

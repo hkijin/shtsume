@@ -313,7 +313,7 @@ bool fu_tsume_check    (move_t move,
 
 // 開き王手生成のためのpin情報セット　*discにpin情報をセット
 void set_discpin        (const sdata_t *sdata,
-                        discpin_t *disc)           {
+                         discpin_t *disc      )     {
     memset(&(disc->pin), 0, sizeof(int)*N_SQUARE);
     int ou, src, pin;
     bitboard_t src_bb, k_eff, o_eff;

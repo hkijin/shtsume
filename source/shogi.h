@@ -599,6 +599,7 @@ struct _sdata_t {
 #define S_NOUTE(sdata)        (sdata)->n_oute
 #define S_PINNED(sdata)       (sdata)->pinned
 #define S_ATTACK(sdata)       (sdata)->attack
+#define S_ATK_KOMA(sdata)     S_BOARD(sdata, (sdata)->attack[0])
 
 #ifdef SDATA_EXTENTION
 #define S_KSCORE(sdata)       (sdata)->kscore
@@ -712,6 +713,17 @@ struct _sdata_t {
 #define CHECKED     1
 #define NIFU        2
 #define ILL_POS     3
+
+// ------------------------------------------------------
+// destへ打てる持ち駒があるか
+//　ある　true
+//  ない　false
+// ------------------------------------------------------
+#define HAND_CHECK(sdata,dest)     \
+        (SELF_HI(sdata)||SELF_KA(sdata)||SELF_KI(sdata)||SELF_GI(sdata)  \
+         ||(SELF_KE(sdata) && KE_CHECK(sdata, dest))                     \
+         ||(SELF_KY(sdata) && KY_CHECK(sdata, dest))                     \
+         ||(SELF_FU(sdata) && FU_CHECK(sdata, dest)))?true:false
 
 int  is_sdata_illegal  (sdata_t *sdata);
 bitboard_t bb_to_effect(komainf_t koma,
