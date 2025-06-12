@@ -1234,7 +1234,11 @@ bool enemy_effect          (const sdata_t *sdata,
             if(src<0) break;
             if(!S_PINNED(&sbuf)[src]) {
                 //攻め駒を移動先位置まで進めた局面を作り、詰んでなければ有効合
-                return true;
+                sdata_t sbuf1;
+                memcpy(&sbuf1, &sbuf, sizeof(sdata_t));
+                sdata_tentative_move(&sbuf1, S_ATTACK(&sbuf)[0], dest, false);
+                if(tsumi_check(&sbuf1))
+                    return true;
             }
             BBA_XOR(eff, g_bpos[src]);
         }
@@ -1247,16 +1251,11 @@ bool enemy_effect          (const sdata_t *sdata,
             if(src<0) break;
             if(!S_PINNED(&sbuf)[src]) {
                 //攻め駒を移動先位置まで進めた局面を作り、詰んでなければ有効合
-#if DEBUG
-                SDATA_PRINTF(&sbuf, PR_BOARD);
-#endif //DEBUG
                 sdata_t sbuf1;
                 memcpy(&sbuf1, &sbuf, sizeof(sdata_t));
                 sdata_tentative_move(&sbuf1, S_ATTACK(&sbuf)[0], dest, false);
-#if DEBUG
-                SDATA_PRINTF(&sbuf1, PR_BOARD);
-#endif //DEBUG
-                return true;
+                if(tsumi_check(&sbuf1))
+                    return true;
             }
             BBA_XOR(eff, g_bpos[src]);
         }
@@ -1269,7 +1268,11 @@ bool enemy_effect          (const sdata_t *sdata,
             if(src<0) break;
             if(!S_PINNED(&sbuf)[src]) {
                 //攻め駒を移動先位置まで進めた局面を作り、詰んでなければ有効合
-                return true;
+                sdata_t sbuf1;
+                memcpy(&sbuf1, &sbuf, sizeof(sdata_t));
+                sdata_tentative_move(&sbuf1, S_ATTACK(&sbuf)[0], dest, false);
+                if(tsumi_check(&sbuf1))
+                    return true;
             }
             BBA_XOR(eff, g_bpos[src]);
         }
@@ -1370,7 +1373,11 @@ bool enemy_effect          (const sdata_t *sdata,
             if(src<0) break;
             if(!S_PINNED(&sbuf)[src]) {
                 //攻め駒を移動先位置まで進めた局面を作り、詰んでなければ有効合
-                return true;
+                sdata_t sbuf1;
+                memcpy(&sbuf1, &sbuf, sizeof(sdata_t));
+                sdata_tentative_move(&sbuf1, S_ATTACK(&sbuf)[0], dest, false);
+                if(tsumi_check(&sbuf1))
+                    return true;
             }
             BBA_XOR(eff, g_bpos[src]);
         }
@@ -1383,10 +1390,11 @@ bool enemy_effect          (const sdata_t *sdata,
             if(src<0) break;
             if(!S_PINNED(&sbuf)[src]) {
                 //攻め駒を移動先位置まで進めた局面を作り、詰んでなければ有効合
-#if DEBUG
-                SDATA_PRINTF(&sbuf, PR_BOARD);
-#endif //DEBUG
-                return true;
+                sdata_t sbuf1;
+                memcpy(&sbuf1, &sbuf, sizeof(sdata_t));
+                sdata_tentative_move(&sbuf1, S_ATTACK(&sbuf)[0], dest, false);
+                if(tsumi_check(&sbuf1))
+                    return true;
             }
             BBA_XOR(eff, g_bpos[src]);
         }
@@ -1399,7 +1407,11 @@ bool enemy_effect          (const sdata_t *sdata,
             if(src<0) break;
             if(!S_PINNED(&sbuf)[src]) {
                 //攻め駒を移動先位置まで進めた局面を作り、詰んでなければ有効合
-                return true;
+                sdata_t sbuf1;
+                memcpy(&sbuf1, &sbuf, sizeof(sdata_t));
+                sdata_tentative_move(&sbuf1, S_ATTACK(&sbuf)[0], dest, false);
+                if(tsumi_check(&sbuf1))
+                    return true;
             }
             BBA_XOR(eff, g_bpos[src]);
         }
