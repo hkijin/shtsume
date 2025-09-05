@@ -301,6 +301,61 @@ bool tsumi_check       (const sdata_t *sdata)      {
     }
     return true;
 }
+
+/* -----------------------------------------
+ ou_move_check
+ 玉の移動可否に特化した簡易詰みcheck
+ 玉の移動以外逃れはあり得ない局面で使用。
+ 詰み:true　詰みでない:false:
+ ------------------------------------------- */
+bool ou_move_check     (const sdata_t *sdata)
+{
+    //玉の移動
+    komainf_t koma;
+    bitboard_t move_bb; //玉が動ける場所がtrueのbitboard
+    
+    int ou = SELF_OU(sdata);
+    bitboard_t occupied  = BB_OCC(sdata);  BB_UNSET(occupied,ou);
+    bitboard_t voccupied = BB_VOC(sdata); VBB_UNSET(voccupied,ou);
+    bitboard_t roccupied = BB_ROC(sdata); RBB_UNSET(roccupied,ou);
+    bitboard_t loccupied = BB_LOC(sdata); LBB_UNSET(loccupied,ou);
+    koma = S_BOARD(sdata, S_ATTACK(sdata)[0]);
+    bitboard_t effect = effect_tbl(S_ATTACK(sdata)[0], koma,
+                                   &occupied,
+                                   &voccupied,
+                                   &roccupied,
+                                   &loccupied);
+    bitboard_t effect1 = {0,0,0};
+    if(S_NOUTE(sdata)==2){
+        koma = S_BOARD(sdata, S_ATTACK(sdata)[1]);
+        effect1 = effect_tbl(S_ATTACK(sdata)[1], koma,
+                                    &occupied,
+                                    &voccupied,
+                                    &roccupied,
+                                    &loccupied);
+    }
+    
+    if(S_TURN(sdata)){ //後手番
+        move_bb = g_base_effect[GOU][S_GOU(sdata)];
+        BBA_ANDNOT(move_bb, BB_GOC(sdata));
+        BBA_ANDNOT(move_bb, SEFFECT(sdata));
+        BBA_ANDNOT(move_bb, effect );
+        BBA_ANDNOT(move_bb, effect1);
+    }
+    else{  //先手番
+        move_bb = g_base_effect[SOU][S_SOU(sdata)];
+        BBA_ANDNOT(move_bb, BB_SOC(sdata));
+        BBA_ANDNOT(move_bb, GEFFECT(sdata));
+        BBA_ANDNOT(move_bb, effect );
+        BBA_ANDNOT(move_bb, effect1);
+    }
+    
+    //この関数は玉移動のみのチェックなのでここで終了
+    if(min_pos(&move_bb)>=0)  return false;
+    else                      return true;
+    
+}
+
 //歩詰チェック 打ち歩詰め　false  打ち歩詰めでは無い　true
 bool fu_tsume_check    (move_t move,
                         const sdata_t *sdata)      {
