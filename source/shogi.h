@@ -714,11 +714,11 @@ struct _sdata_t {
 #define NIFU        2
 #define ILL_POS     3
 
-// ------------------------------------------------------
-// destへ打てる持ち駒があるか
-//　ある　true
-//  ない　false
-// ------------------------------------------------------
+/* ------------------------------------------------------
+ HAND_CHECK(sdata,dest)
+  destへ打てる持ち駒の有無チェック
+　true:持ち駒あり　　false:持ち駒無し
+ -------------------------------------------------------- */
 #define HAND_CHECK(sdata,dest)     \
         (SELF_HI(sdata)||SELF_KA(sdata)||SELF_KI(sdata)||SELF_GI(sdata)  \
          ||(SELF_KE(sdata) && KE_CHECK(sdata, dest))                     \

@@ -16,7 +16,6 @@ static void sdata_mkey_sub  (komainf_t koma, move_t move, sdata_t *sdata);
 static void key_captured    (komainf_t captured, sdata_t *sdata);
 static void key_mkey_sub    (komainf_t koma, sdata_t *sdata);
 static bool is_move_to_dest (int dest, const sdata_t *sdata);
-static bool is_evasion_drop (int dest, const sdata_t *sdata);
 static inline void bb_to_eff(bitboard_t       *eff,
                              komainf_t         koma,
                              const bitboard_t *bb_koma,
@@ -297,7 +296,7 @@ bool tsumi_check       (const sdata_t *sdata)      {
             dest += dir;
             if(dest == S_ATTACK(sdata)[0]) break;
             if(!is_move_to_dest(dest, sdata)) return false;
-            if(!is_evasion_drop(dest, sdata)) return false;
+            if(HAND_CHECK(sdata,dest)) return false;
         }
     }
     return true;
@@ -1408,16 +1407,6 @@ bool is_move_to_dest (int dest, const sdata_t *sdata){
             }
         }
     }
-    return true;
-}
-bool is_evasion_drop (int dest, const sdata_t *sdata){
-    if(SELF_HI(sdata)) return false;
-    if(SELF_KA(sdata)) return false;
-    if(SELF_KI(sdata)) return false;
-    if(SELF_GI(sdata)) return false;
-    if(SELF_KE(sdata) && KE_CHECK(sdata, dest)) return false;
-    if(SELF_KY(sdata) && KY_CHECK(sdata, dest)) return false;
-    if(SELF_FU(sdata) && FU_CHECK(sdata, dest)) return false;
     return true;
 }
 
