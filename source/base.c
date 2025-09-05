@@ -653,7 +653,148 @@ int sdata_key_forward(sdata_t *sdata, move_t move){
     return 1;
 }
 
-void sdata_bb_xor(sdata_t *sdata, komainf_t koma, char pos)         {
+/* --------------------------------------------------------
+ 盤面上のsrcの位置の駒をdestの位置に変更した局面データを生成する
+ （無駄合判定用)
+ src : 移動前の飛び駒の位置
+ dest: 移動後の飛び駒の位置
+ promote: destに成駒を配置
+ ---------------------------------------------------------- */
+void        sdata_tentative_move (sdata_t *sdata,
+                                  char src,
+                                  char dest,
+                                  bool promote     )
+{
+    komainf_t koma;
+    
+    /* board,zkey,mkey,occupied, bb_koma, fflag, ou */
+    //移動元(src)の駒を削除
+    koma = S_BOARD(sdata, src);
+    S_BOARD(sdata, src) = SPC;
+    S_ZKEY(sdata) ^= g_zkey_seed[koma*N_SQUARE+src];
+    if(koma == SFU)
+        S_FFLAG(sdata) =
+        FLAG_UNSET(S_FFLAG(sdata), g_file[src]);
+    else if(koma == GFU)
+        S_FFLAG(sdata) =
+        FLAG_UNSET(S_FFLAG(sdata), g_file[src]+9);
+#ifdef SDATA_EXTENTION
+    S_KSCORE(sdata) -= g_koma_val[koma];
+#endif //SDATA_EXTENTION
+    
+    //ビットボード処理
+    SDATA_OCC_XOR(sdata, src);
+    if(koma==SOU||koma==GOU) ;
+    else sdata_bb_xor(sdata, koma, src);
+    S_TURN(sdata)?
+    (BBA_XOR(BB_SOC(sdata), g_bpos[src])):
+    (BBA_XOR(BB_GOC(sdata), g_bpos[src]));
+    
+    //移動先に駒を置く
+    if(promote) koma += PROMOTED;
+    S_BOARD(sdata, dest) = koma;
+    S_ZKEY(sdata) ^= g_zkey_seed[koma*N_SQUARE+dest];
+    if(koma == SFU)
+        S_FFLAG(sdata) = FLAG_SET(S_FFLAG(sdata), g_file[dest]);
+    else if(koma == GFU)
+        S_FFLAG(sdata) = FLAG_SET(S_FFLAG(sdata), g_file[dest]+9);
+#ifdef SDATA_EXTENTION
+    S_KSCORE(sdata) += g_koma_val[koma];
+#endif //SDATA_EXTENTION
+    
+    //ビットボード処理
+    SDATA_OCC_XOR(sdata, dest);
+    sdata_bb_xor(sdata, koma, dest);
+    S_TURN(sdata)?
+    (BBA_XOR(BB_SOC(sdata), g_bpos[dest])):
+    (BBA_XOR(BB_GOC(sdata), g_bpos[dest]));
+    
+    /* pinned  effect */
+    create_effect(sdata);
+    create_pin(sdata);
+    if(S_TURN(sdata)){
+        if(BPOS_TEST(SEFFECT(sdata), S_GOU(sdata)))
+            S_NOUTE(sdata) = oute_check(sdata);
+        else {
+            S_NOUTE(sdata) = 0;
+        }
+    }
+    else{
+        if(BPOS_TEST(GEFFECT(sdata), S_SOU(sdata)))
+            S_NOUTE(sdata) = oute_check(sdata);
+        else {
+            S_NOUTE(sdata) = 0;
+        }
+    }
+    return;
+}
+
+/* --------------------------------------------------------
+ 盤上(src)の自分の駒をピックアップして攻方の駒台においた局面を作る。
+ (移動無駄合判定用）
+ src : 味方の駒がある場所
+ --------------------------------------------------------- */
+void        sdata_pickup_table   (sdata_t *sdata,
+                                  char     src      )
+{
+    //移動元にある移動合駒を消去する
+    komainf_t koma = S_BOARD(sdata,src);
+    S_BOARD(sdata, src) = SPC;
+    S_ZKEY(sdata) ^= g_zkey_seed[koma*N_SQUARE+src];
+    if(koma == SFU)
+        S_FFLAG(sdata) =
+        FLAG_UNSET(S_FFLAG(sdata), g_file[src]);
+    else if(koma == GFU)
+        S_FFLAG(sdata) =
+        FLAG_UNSET(S_FFLAG(sdata), g_file[src]+9);
+    
+    // ビットボード処理
+    SDATA_OCC_XOR(sdata, src);
+    sdata_bb_xor(sdata, koma, src);
+    S_TURN(sdata)?
+    (BBA_XOR(BB_GOC(sdata), g_bpos[src])):
+    (BBA_XOR(BB_SOC(sdata), g_bpos[src]));
+    
+    //消去した駒を攻方の駒として計上する。
+    switch(koma){
+        case SFU: GMKEY_FU(sdata)++; break;
+        case SKY: GMKEY_KY(sdata)++; break;
+        case SKE: GMKEY_KE(sdata)++; break;
+        case SGI: GMKEY_GI(sdata)++; break;
+        case SKI: GMKEY_KI(sdata)++; break;
+        case SKA: GMKEY_KA(sdata)++; break;
+        case SHI: GMKEY_HI(sdata)++; break;
+        case STO: GMKEY_FU(sdata)++; break;
+        case SNY: GMKEY_KY(sdata)++; break;
+        case SNK: GMKEY_KE(sdata)++; break;
+        case SNG: GMKEY_GI(sdata)++; break;
+        case SUM: GMKEY_KA(sdata)++; break;
+        case SRY: GMKEY_HI(sdata)++; break;
+
+        case GFU: SMKEY_FU(sdata)++; break;
+        case GKY: SMKEY_KY(sdata)++; break;
+        case GKE: SMKEY_KE(sdata)++; break;
+        case GGI: SMKEY_GI(sdata)++; break;
+        case GKI: SMKEY_KI(sdata)++; break;
+        case GKA: SMKEY_KA(sdata)++; break;
+        case GHI: SMKEY_HI(sdata)++; break;
+        case GTO: SMKEY_FU(sdata)++; break;
+        case GNY: SMKEY_KY(sdata)++; break;
+        case GNK: SMKEY_KE(sdata)++; break;
+        case GNG: SMKEY_GI(sdata)++; break;
+        case GUM: SMKEY_KA(sdata)++; break;
+        case GRY: SMKEY_HI(sdata)++; break;
+        default: assert(false); break;
+    }
+    // count,turn
+    // n_oute, attack
+    // pinned, effect
+    create_effect(sdata);
+    create_pin(sdata);
+    return;
+}
+
+void sdata_bb_xor(sdata_t *sdata, komainf_t koma, char pos){
     switch(koma){
         case SFU: BBA_XOR(BB_SFU(sdata),g_bpos[pos]);
                   BBA_XOR(EF_SFU(sdata),g_bpos[pos+DR_N]); break;

@@ -806,6 +806,14 @@ extern move_t g_mv_toryo;
 
 int sdata_move_forward(sdata_t *sdata, move_t move);
 int sdata_key_forward (sdata_t *sdata, move_t move);
+
+void sdata_tentative_move (sdata_t *sdata,
+                           char src,
+                           char dest,
+                           bool promote    );
+
+void sdata_pickup_table   (sdata_t *sdata, char src);
+
 bitboard_t sdata_create_effect(sdata_t *sdata);
 bool fu_tsume_check   (move_t move,   const sdata_t *sdata);
 
