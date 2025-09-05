@@ -57,7 +57,7 @@ int main(int argc, char * const argv[]) {
     //argc,argvの処理
     int optc;
     g_info_interval = 5;
-    g_pv_length     = 5;
+    g_pv_length     = PV_LENGTH_DEFAULT;
     while((optc = getopt_long(argc, argv, "hvkgdyan:m:l:i:j:t:",
                               longopts, NULL))!= -1)
         switch(optc){
@@ -214,7 +214,7 @@ int main(int argc, char * const argv[]) {
         if(!tdata.pn){
             //詰手順、探索情報表示
             if(g_redundant){
-                printf("詰みました。駒余りのため詰手数不定。\n");
+                printf("詰みました。駒余りのため詰手順は参考。\n");
             }
             else{
                 printf("詰みました。%u手詰め\n",tdata.sh);
@@ -231,8 +231,8 @@ int main(int argc, char * const argv[]) {
             printf("不詰です。\n");
         }
         else {
-            printf("詰みを発見できませんでした。（pn=%u, dn=%u)\n",
-                   tdata.pn, tdata.dn);
+            printf("詰みを発見できませんでした。（pn=%u, dn=%u, sh=%u)\n",
+                   tdata.pn, tdata.dn, tdata.sh);
         }
         
         initialize_tbase(g_tbase);
