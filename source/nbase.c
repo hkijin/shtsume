@@ -305,6 +305,23 @@ unsigned int mvlist_length(mvlist_t *mvlist)
     return length;
 }
 
+//リスト中に含まれる着手数を表示する
+unsigned int mvlist_n_moves (mvlist_t *mvlist)
+{
+    unsigned int num = 0;
+    mvlist_t *list = mvlist;
+    mlist_t *mlist;
+    while(list){
+        mlist = list->mlist;
+        while(mlist){
+            num++;
+            mlist = mlist->next;
+        }
+        list = list->next;
+    }
+    return num;
+}
+
 //詰方着手の並べ替え
 int proof_number_comp     (const mvlist_t *a,
                            const mvlist_t *b,

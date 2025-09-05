@@ -300,6 +300,7 @@ mvlist_t* sdata_mvlist_reorder(mvlist_t *mvlist,
                                      const sdata_t  *s));
 mvlist_t* mvlist_nth  (mvlist_t  *mvlist, unsigned int n);
 unsigned int mvlist_length(mvlist_t *mvlist);
+unsigned int mvlist_n_moves(mvlist_t *mvlist);
 void mvlist_free(mvlist_t *mvlist);
 void mvlist_free_stack(void);
 void mvlist_print(mvlist_t *mvlist, sdata_t *sdata, int flag);
