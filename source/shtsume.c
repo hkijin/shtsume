@@ -484,12 +484,19 @@ void bn_search_or               (const sdata_t   *sdata,
             c_threshold.dn = th_tdata->dn;
         }
         c_threshold.sh = th_tdata->sh-1;
-        
-        if(g_pv_length>=S_COUNT(sdata)){
+ 
+#if DEBUG
+        if(S_COUNT(sdata)<1000)
+#else
+        if(g_pv_length>=S_COUNT(sdata))
+#endif //DEBUG
+        {
             nsearchlog_t *log = &(g_tsearchinf.mvinf[S_COUNT(sdata)]);
             //探索log
             log->move = list->mlist->move;
-            //move_sprintf(log->move_str,log->move,sdata);
+#if DEBUG
+            move_sprintf(log->move_str,log->move,sdata);
+#endif //debug
             log->tdata = mvlist->tdata;
             log->thdata = c_threshold;
             
@@ -742,11 +749,19 @@ void bn_search_and              (const sdata_t   *sdata,
             c_threshold.dn = th_tdata->dn;
             c_threshold.sh = th_tdata->sh-1;
         }
-        if(g_pv_length>=S_COUNT(sdata)){
+#if DEBUG
+        if(S_COUNT(sdata)<1000)
+#else
+        if(g_pv_length>=S_COUNT(sdata))
+#endif //DEBUG
+            
+        {
             nsearchlog_t *log = &(g_tsearchinf.mvinf[S_COUNT(sdata)]);
             //探索log(1)
             log->move = list->mlist->move;
-            //move_sprintf(log->move_str,log->move,sdata);
+#if DEBUG
+            move_sprintf(log->move_str,log->move,sdata);
+#endif //DEBUG
             log->tdata = mvlist->tdata;
             log->thdata = c_threshold;
             
