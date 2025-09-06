@@ -812,8 +812,7 @@ void sdata_tentative_move (sdata_t *sdata,
                            char dest,
                            bool promote    );
 
-void sdata_pickup_table   (sdata_t *sdata, char src);
-
+void sdata_pickup_table   (sdata_t *sdata, char src, bool flag);
 bitboard_t sdata_create_effect(sdata_t *sdata);
 bool fu_tsume_check   (move_t move,   const sdata_t *sdata);
 

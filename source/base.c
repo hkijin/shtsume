@@ -730,12 +730,15 @@ void        sdata_tentative_move (sdata_t *sdata,
 }
 
 /* --------------------------------------------------------
- 盤上(src)の自分の駒をピックアップして攻方の駒台においた局面を作る。
+ 盤上(src)の自分の駒をピックアップしてどちらかの駒台においた局面を作る。
  (移動無駄合判定用）
  src : 味方の駒がある場所
+ flag: false  手番側の駒台（移動近接合用）
+       true   相手番の駒台（移動中合用）
  --------------------------------------------------------- */
 void        sdata_pickup_table   (sdata_t *sdata,
-                                  char     src      )
+                                  char     src  ,
+                                  bool     flag     )
 {
     //移動元にある移動合駒を消去する
     komainf_t koma = S_BOARD(sdata,src);
@@ -755,37 +758,73 @@ void        sdata_pickup_table   (sdata_t *sdata,
     (BBA_XOR(BB_GOC(sdata), g_bpos[src])):
     (BBA_XOR(BB_SOC(sdata), g_bpos[src]));
     
-    //消去した駒を攻方の駒として計上する。
-    switch(koma){
-        case SFU: GMKEY_FU(sdata)++; break;
-        case SKY: GMKEY_KY(sdata)++; break;
-        case SKE: GMKEY_KE(sdata)++; break;
-        case SGI: GMKEY_GI(sdata)++; break;
-        case SKI: GMKEY_KI(sdata)++; break;
-        case SKA: GMKEY_KA(sdata)++; break;
-        case SHI: GMKEY_HI(sdata)++; break;
-        case STO: GMKEY_FU(sdata)++; break;
-        case SNY: GMKEY_KY(sdata)++; break;
-        case SNK: GMKEY_KE(sdata)++; break;
-        case SNG: GMKEY_GI(sdata)++; break;
-        case SUM: GMKEY_KA(sdata)++; break;
-        case SRY: GMKEY_HI(sdata)++; break;
+    
+    if(flag){
+        //消去した駒を相手の駒として計上する。
+        switch(koma){
+            case SFU: GMKEY_FU(sdata)++; break;
+            case SKY: GMKEY_KY(sdata)++; break;
+            case SKE: GMKEY_KE(sdata)++; break;
+            case SGI: GMKEY_GI(sdata)++; break;
+            case SKI: GMKEY_KI(sdata)++; break;
+            case SKA: GMKEY_KA(sdata)++; break;
+            case SHI: GMKEY_HI(sdata)++; break;
+            case STO: GMKEY_FU(sdata)++; break;
+            case SNY: GMKEY_KY(sdata)++; break;
+            case SNK: GMKEY_KE(sdata)++; break;
+            case SNG: GMKEY_GI(sdata)++; break;
+            case SUM: GMKEY_KA(sdata)++; break;
+            case SRY: GMKEY_HI(sdata)++; break;
 
-        case GFU: SMKEY_FU(sdata)++; break;
-        case GKY: SMKEY_KY(sdata)++; break;
-        case GKE: SMKEY_KE(sdata)++; break;
-        case GGI: SMKEY_GI(sdata)++; break;
-        case GKI: SMKEY_KI(sdata)++; break;
-        case GKA: SMKEY_KA(sdata)++; break;
-        case GHI: SMKEY_HI(sdata)++; break;
-        case GTO: SMKEY_FU(sdata)++; break;
-        case GNY: SMKEY_KY(sdata)++; break;
-        case GNK: SMKEY_KE(sdata)++; break;
-        case GNG: SMKEY_GI(sdata)++; break;
-        case GUM: SMKEY_KA(sdata)++; break;
-        case GRY: SMKEY_HI(sdata)++; break;
-        default: assert(false); break;
+            case GFU: SMKEY_FU(sdata)++; break;
+            case GKY: SMKEY_KY(sdata)++; break;
+            case GKE: SMKEY_KE(sdata)++; break;
+            case GGI: SMKEY_GI(sdata)++; break;
+            case GKI: SMKEY_KI(sdata)++; break;
+            case GKA: SMKEY_KA(sdata)++; break;
+            case GHI: SMKEY_HI(sdata)++; break;
+            case GTO: SMKEY_FU(sdata)++; break;
+            case GNY: SMKEY_KY(sdata)++; break;
+            case GNK: SMKEY_KE(sdata)++; break;
+            case GNG: SMKEY_GI(sdata)++; break;
+            case GUM: SMKEY_KA(sdata)++; break;
+            case GRY: SMKEY_HI(sdata)++; break;
+            default: assert(false); break;
+        }
+    }else   {
+        //消去した駒を味方の駒として計上する。
+        switch(koma){
+            case SFU: SMKEY_FU(sdata)++; break;
+            case SKY: SMKEY_KY(sdata)++; break;
+            case SKE: SMKEY_KE(sdata)++; break;
+            case SGI: SMKEY_GI(sdata)++; break;
+            case SKI: SMKEY_KI(sdata)++; break;
+            case SKA: SMKEY_KA(sdata)++; break;
+            case SHI: SMKEY_HI(sdata)++; break;
+            case STO: SMKEY_FU(sdata)++; break;
+            case SNY: SMKEY_KY(sdata)++; break;
+            case SNK: SMKEY_KE(sdata)++; break;
+            case SNG: SMKEY_GI(sdata)++; break;
+            case SUM: SMKEY_KA(sdata)++; break;
+            case SRY: SMKEY_HI(sdata)++; break;
+
+            case GFU: GMKEY_FU(sdata)++; break;
+            case GKY: GMKEY_KY(sdata)++; break;
+            case GKE: GMKEY_KE(sdata)++; break;
+            case GGI: GMKEY_GI(sdata)++; break;
+            case GKI: GMKEY_KI(sdata)++; break;
+            case GKA: GMKEY_KA(sdata)++; break;
+            case GHI: GMKEY_HI(sdata)++; break;
+            case GTO: GMKEY_FU(sdata)++; break;
+            case GNY: GMKEY_KY(sdata)++; break;
+            case GNK: GMKEY_KE(sdata)++; break;
+            case GNG: GMKEY_GI(sdata)++; break;
+            case GUM: GMKEY_KA(sdata)++; break;
+            case GRY: GMKEY_HI(sdata)++; break;
+            default: assert(false); break;
+        }
     }
+    
     // count,turn
     // n_oute, attack
     // pinned, effect
