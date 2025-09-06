@@ -1422,6 +1422,162 @@ int is_attack_pinned       (const sdata_t *sdata,
     return st_tpin[dest];
 }
 
+/* ----------------------------------------------------------
+ check_back_risk
+ 移動無駄合判定でsrcの駒を動かすことにより逆王手になるリスクを検知する
+ true: 逆王手リスクあり　　　　　false: 逆王手のリスクなし
+ ---------------------------------------------------------- */
+bool check_back_risk       (const sdata_t *sdata,
+                            int            src   )
+{
+    if(ENEMY_OU(sdata)==HAND) return false;
+    //手番ごとの判定
+    int pos, eou = ENEMY_OU(sdata);
+    bitboard_t bb;
+    //後手番
+    if(S_TURN(sdata)){
+        if(g_file[eou]==g_file[src]){
+            //GKY
+            bb = BB_GKY(sdata);
+            BBA_AND(bb, g_bb_file[g_file[eou]]);
+            if(BB_TEST(bb)){
+                while(1){
+                    pos = min_pos(&bb);
+                    if(pos<0) break;
+                    if(pos<src && src<eou) return true;
+                    BBA_XOR(bb, g_bpos[pos]);
+                }
+            }
+            //GHI,GRY
+            bb = BB_GRH(sdata);
+            BBA_AND(bb, g_bb_file[g_file[eou]]);
+            if(BB_TEST(bb)){
+                while(1){
+                    pos = min_pos(&bb);
+                    if(pos<0) break;
+                    if(pos<src && src<eou) return true;
+                    if(pos>src && src>eou) return true;
+                    BBA_XOR(bb, g_bpos[pos]);
+                }
+            }
+        }
+        
+        else if(g_rank[eou]==g_rank[src]){
+            //GHI, GRY
+            bb = BB_GRH(sdata);
+            BBA_AND(bb, g_bb_rank[g_rank[eou]]);
+            if(BB_TEST(bb)){
+                while(1){
+                    pos = min_pos(&bb);
+                    if(pos<0) break;
+                    if(pos<src && src<eou) return true;
+                    if(pos>src && src>eou) return true;
+                    BBA_XOR(bb, g_bpos[pos]);
+                }
+            }
+        }
+        else if(g_rslp[eou]==g_rslp[src]){
+            //GKA, GUM
+            bb = BB_GUK(sdata);
+            BBA_AND(bb, g_bb_pin[g_rslp[eou]+30]);
+            if(BB_TEST(bb)){
+                while(1){
+                    pos = min_pos(&bb);
+                    if(pos<0) break;
+                    if(pos<src && src<eou) return true;
+                    if(pos>src && src>eou) return true;
+                    BBA_XOR(bb, g_bpos[pos]);
+                }
+            }
+        }
+        else if(g_lslp[eou]==g_lslp[src]){
+            //GKA, GUM
+            bb = BB_GUK(sdata);
+            BBA_AND(bb, g_bb_pin[g_lslp[eou]+17]);
+            if(BB_TEST(bb)){
+                while(1){
+                    pos = min_pos(&bb);
+                    if(pos<0) break;
+                    if(pos<src && src<eou) return true;
+                    if(pos>src && src>eou) return true;
+                    BBA_XOR(bb, g_bpos[pos]);
+                }
+            }
+        }
+    }
+    //先手番
+    else             {
+        if(g_file[eou]==g_file[src]){
+            //SKY
+            bb = BB_SKY(sdata);
+            BBA_AND(bb, g_bb_file[g_file[eou]]);
+            if(BB_TEST(bb)){
+                while(1){
+                    pos = min_pos(&bb);
+                    if(pos<0) break;
+                    if(pos>src && src>eou) return true;
+                    BBA_XOR(bb, g_bpos[pos]);
+                }
+            }
+            //SHI,SRY
+            bb = BB_SRH(sdata);
+            BBA_AND(bb, g_bb_file[g_file[eou]]);
+            if(BB_TEST(bb)){
+                while(1){
+                    pos = min_pos(&bb);
+                    if(pos<0) break;
+                    if(pos<src && src<eou) return true;
+                    if(pos>src && src>eou) return true;
+                    BBA_XOR(bb, g_bpos[pos]);
+                }
+            }
+        }
+        
+        else if(g_rank[eou]==g_rank[src]){
+            //SHI, SRY
+            bb = BB_SRH(sdata);
+            BBA_AND(bb, g_bb_rank[g_rank[eou]]);
+            if(BB_TEST(bb)){
+                while(1){
+                    pos = min_pos(&bb);
+                    if(pos<0) break;
+                    if(pos<src && src<eou) return true;
+                    if(pos>src && src>eou) return true;
+                    BBA_XOR(bb, g_bpos[pos]);
+                }
+            }
+        }
+        else if(g_rslp[eou]==g_rslp[src]){
+            //SKA, SUM
+            bb = BB_SUK(sdata);
+            BBA_AND(bb, g_bb_pin[g_rslp[eou]+30]);
+            if(BB_TEST(bb)){
+                while(1){
+                    pos = min_pos(&bb);
+                    if(pos<0) break;
+                    if(pos<src && src<eou) return true;
+                    if(pos>src && src>eou) return true;
+                    BBA_XOR(bb, g_bpos[pos]);
+                }
+            }
+        }
+        else if(g_lslp[eou]==g_lslp[src]){
+            //SKA, SUM
+            bb = BB_SUK(sdata);
+            BBA_AND(bb, g_bb_pin[g_lslp[eou]+17]);
+            if(BB_TEST(bb)){
+                while(1){
+                    pos = min_pos(&bb);
+                    if(pos<0) break;
+                    if(pos<src && src<eou) return true;
+                    if(pos>src && src>eou) return true;
+                    BBA_XOR(bb, g_bpos[pos]);
+                }
+            }
+        }
+    }
+    return false;
+}
 
 /* -----------------------------------------------------
  _tbase_lookup

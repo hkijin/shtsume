@@ -444,6 +444,9 @@ bool enemy_effect          (const sdata_t *sdata,
 int  is_attack_pinned      (const sdata_t *sdata,
                             int            dest  );
 
+bool check_back_risk       (const sdata_t *sdata,
+                            int            src   );
+
 /*
  * 着手生成
  */
