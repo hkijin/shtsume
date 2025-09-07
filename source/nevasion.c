@@ -53,10 +53,8 @@ static mlist_t *_mlist_to_dest     (mlist_t       *list,
 static mlist_t *evasion_drop       (mlist_t       *list,
                                     int            dest,
                                     const sdata_t *sdata);
-static bool is_eou_offline         (const sdata_t *sdata);
 
-static bool is_hand_effective      (const sdata_t *sdata,
-                                    int            dest );
+static bool is_eou_offline         (const sdata_t *sdata);
 
 static bool is_dest_effect_valid   (const sdata_t *sdata,
                                     int            dest );
@@ -2645,37 +2643,6 @@ bool is_eou_offline           (const sdata_t *sdata)
             }
         }
     }
-    return true;
-}
-
-// -------------------------------------------------------
-// 有効な中合の判定基準
-//    ・自玉より２マス離れた位置
-//    ・詰方の角の利きがある
-//    ・王手している駒は飛車か香車である
-// -------------------------------------------------------
-
-bool is_hand_effective             (const sdata_t *sdata,
-                                    int            dest  )
-{
-    //destの位置に詰方の角が効いている
-    bitboard_t effect = EFFECT_TBL(dest, SKA, sdata);
-    bitboard_t ukbb = S_TURN(sdata)?BB_SUK(sdata):BB_GUK(sdata);
-    BBA_AND(effect, ukbb);
-    if(!BB_TEST(effect)) return false;
-    
-    //王手している駒が香または飛車
-    komainf_t attack = S_BOARD(sdata,S_ATTACK(sdata)[0]);
-    if(S_TURN(sdata)){  //後手
-        if(attack != SHI && attack != SKY) return false;
-    } else{             //先手
-        if(attack != GHI && attack != GKY) return false;
-    }
-
-    //玉の位置から２マス目
-    uint8_t d = g_distance[SELF_OU(sdata)][dest];
-    if(d >2) return false;
-
     return true;
 }
 
