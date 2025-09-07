@@ -868,7 +868,7 @@ bool invalid_moves         (const sdata_t *sdata,
 {
     sdata_t   sbuf;  //仮想局面
     memcpy(&sbuf, sdata, sizeof(sdata_t));
-    sdata_pickup_table(&sbuf, PREV_POS(move));
+    sdata_pickup_table(&sbuf, PREV_POS(move), false);
     
     //詰方の玉に王手が掛かっていれば有効合
     if(ENEMY_OU(&sbuf)<HAND &&
@@ -1118,7 +1118,7 @@ bool enemy_effect          (const sdata_t *sdata,
 {
     sdata_t   sbuf;  //仮想局面
     memcpy(&sbuf, sdata, sizeof(sdata_t));
-    sdata_pickup_table(&sbuf, PREV_POS(move));
+    sdata_pickup_table(&sbuf, PREV_POS(move), true);
     
     //自玉に移動できる場所があれば有効合
     bitboard_t move_bb = evasion_bb(&sbuf);
