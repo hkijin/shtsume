@@ -434,13 +434,6 @@ bool invalid_drops         (const sdata_t *sdata,
                             unsigned int   dest ,
                             tbase_t       *tbase );
 
-bool invalid_moves         (const sdata_t *sdata,
-                            move_t         move ,
-                            tbase_t       *tbase );
-
-bool enemy_effect          (const sdata_t *sdata,
-                            move_t         move  );
-
 int  is_attack_pinned      (const sdata_t *sdata,
                             int            dest  );
 
