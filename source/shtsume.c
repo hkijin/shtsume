@@ -618,7 +618,6 @@ void bn_search_and              (const sdata_t   *sdata,
             //その他の場合
             else
             {
-
                 mvlist_t *prev = list;
                 tmp = list->next;
                 while(tmp){
@@ -646,39 +645,6 @@ void bn_search_and              (const sdata_t   *sdata,
             }
         }
         
-
-        // ---------------------------------------------------------------
-        // 玉移動で先頭着手の証明数が上限に近づいた場合、
-        // または先頭２着手の反証数が上限に近づいた場合
-        // 着手を縮退させる（逐次探索）
-        // ---------------------------------------------------------------
-        if(list->next){
-            if((list->tdata.pn > PRE_PROOF_MAX          &&
-                list->tdata.dn > DISTANCE_MAX           &&
-                list->next->tdata.pn                    &&
-                list->next->tdata.pn <= PRE_PROOF_MAX   &&
-                list->next->tdata.dn                    &&
-                PREV_POS(list->mlist->move)==SELF_OU(sdata)       &&
-                PREV_POS(list->next->mlist->move)==SELF_OU(sdata) &&
-                !S_BOARD(sdata, NEW_POS(list->mlist->move))       &&
-                !S_BOARD(sdata, NEW_POS(list->next->mlist->move)))
-               ||
-               (list->tdata.pn                       &&
-                list->tdata.dn > PRE_DISPROOF_MAX    &&
-                list->next->tdata.pn                 &&
-                list->next->tdata.dn > PRE_DISPROOF_MAX  )
-               ){
-                    tmp = list;
-                    list = list->next;
-                    mlist_t *last = mlist_last(list->mlist);
-                    last->next = tmp->mlist;
-                    //tmpの削除
-                    tmp->mlist = NULL;
-                    tmp->next = NULL;
-                    mvlist_free(tmp);
-                }
-        }
-        
         // -----------------------------------------
         // 移動無駄合判定した局面が余り詰となった場合の処置
         // -----------------------------------------
@@ -689,11 +655,68 @@ void bn_search_and              (const sdata_t   *sdata,
             return;
         }
         
-        //証明数、反証数等の更新
-        mvlist->tdata.dn = list->tdata.dn;
-        mvlist->tdata.pn = proof_number(list, &pcnt);
-        mvlist->tdata.sh = list->tdata.sh+1;
-        
+        while(1){
+            //証明数、反証数等の更新
+            mvlist->tdata.dn = list->tdata.dn;
+            mvlist->tdata.pn = proof_number(list, &pcnt);
+            mvlist->tdata.sh = list->tdata.sh+1;
+            
+            //GHI(pn増大型）対策
+            if(mvlist->tdata.pn > PRE_PROOF_MAX &&
+               mvlist->tdata.dn                 &&
+               list->next                       &&
+               list->next->tdata.pn                )
+            {
+                //pn最大の着手は縮退させて再計算。
+                mvlist_t *new_list = NULL;
+                mvlist_t *tmp_max = list;
+                tmp = list->next;
+                tmp_max->next = NULL;
+                while(tmp){
+                    //先頭着手の切り出し
+                    tmp1 = tmp;
+                    tmp = tmp->next;
+                    tmp1->next = NULL;
+                    //比較
+                    if(tmp1->tdata.pn > tmp_max->tdata.pn){
+                        tmp_max->next = new_list;
+                        new_list = tmp_max;
+                        tmp_max = tmp1;
+                    }
+                    else{
+                        tmp1->next = new_list;
+                        new_list = tmp1;
+                    }
+                }
+                list = new_list;
+                list = sdata_mvlist_sort(list, sdata, disproof_number_comp);
+                //先頭着手に縮退させる
+                mlist_t *last = mlist_last(list->mlist);
+                last->next = tmp_max->mlist;
+                //tmp_maxの削除
+                tmp_max->mlist = NULL;
+                mvlist_free(tmp_max);
+            }
+            //GHI(dn増大型）対策
+            else if(list->tdata.pn                    &&
+                    list->tdata.dn > PRE_DISPROOF_MAX &&
+                    list->next                        &&
+                    list->next->tdata.pn              &&
+                    list->next->tdata.dn                 )
+            {
+                //２番目のリストを切り取り、先頭リストに縮退
+                tmp = list->next;
+                list->next = tmp->next;
+                mlist_t *last = mlist_last(list->mlist);
+                last->next = tmp->mlist;
+                //tmpの削除
+                tmp->mlist = NULL;
+                tmp->next = NULL;
+                mvlist_free(tmp);
+            }
+            else break;
+        }
+      
         //判定
         if(mvlist->tdata.pn >= th_tdata->pn ||
            mvlist->tdata.dn >= th_tdata->dn ||
@@ -1121,7 +1144,6 @@ void make_tree_and              (const sdata_t   *sdata,
     // 移動無駄合判定した局面が余り詰となった場合の処置
     // -----------------------------------------
     if(invalid_flag && !list->tdata.pn && list->inc){
-        
         tsumi_proof(sdata, mvlist, proof_flag);
         make_tree_update(sdata, mvlist, tn, tbase);
         mvlist_free(list);
@@ -1338,6 +1360,7 @@ void bns_plus_and               (const sdata_t   *sdata,
     bool proof_flag   = g_invalid_drops;
     bool invalid_flag = g_invalid_moves;
     g_tsearchinf.nodes++;
+    
     if(!list){
         //無駄合い判定ありの場合の証明駒　false: あり proof_flag: なし
         tsumi_proof(sdata, mvlist, proof_flag);
@@ -1447,7 +1470,6 @@ void bns_plus_and               (const sdata_t   *sdata,
     // 移動無駄合判定した局面が余り詰となった場合の処置
     // -----------------------------------------
     if(invalid_flag && !list->tdata.pn && list->inc){
-
         tsumi_proof(sdata, mvlist, proof_flag);
         make_tree_update(sdata, mvlist, tn, tbase);
         mvlist_free(list);
