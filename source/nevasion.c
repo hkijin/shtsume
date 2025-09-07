@@ -35,11 +35,6 @@ static bool is_eou_offline         (const sdata_t *sdata);
 static bool is_hand_effective      (const sdata_t *sdata,
                                     int            dest );
 
-/*
-static bool attack_ka_effect       (const sdata_t *sdata,
-                                    int            dest );
-*/
-
 static bool is_dest_effect_valid   (const sdata_t *sdata,
                                     int            dest );
 
