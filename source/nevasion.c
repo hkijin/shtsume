@@ -38,7 +38,7 @@ mvlist_t *_move_to_dest            (mvlist_t *list,
                                           move_t         m,
                                           tbase_t       *t ));
 
-static mlist_t *_mlist_to_dest     (mlist_t       *list,
+static mlist_t *mlist_to_dest      (mlist_t       *list,
                                     int            dest,
                                     const sdata_t *sdata,
                                     tbase_t       *tbase,
@@ -197,7 +197,7 @@ mvlist_t *generate_evasion    (const sdata_t *sdata,
                 }
                 //無駄合判定
                 else{
-                    mslist = _mlist_to_dest(mslist, dest, sdata,
+                    mslist = mlist_to_dest(mslist, dest, sdata,
                                             tbase, valid_next);
                     if(mslist) g_invalid_moves = false;
                 }
@@ -208,8 +208,8 @@ mvlist_t *generate_evasion    (const sdata_t *sdata,
                 }
                 //無駄合判定
                 else{
-                    mslist = _mlist_to_dest(mslist, dest, sdata, tbase,
-                                            valid_long);
+                    mslist = mlist_to_dest(mslist, dest, sdata,
+                                           tbase, valid_long);
                 }
                  
             }
@@ -1814,7 +1814,7 @@ mvlist_t *_move_to_dest       (mvlist_t *list,
 
  +--（新しい移動合）->list
  ----------------------------------------------------------------------- */
-mlist_t *_mlist_to_dest            (mlist_t       *list,
+mlist_t *mlist_to_dest             (mlist_t       *list,
                                     int            dest,
                                     const sdata_t *sdata,
                                     tbase_t       *tbase,
