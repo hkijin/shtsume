@@ -844,23 +844,6 @@ bool invalid_drops           (const sdata_t  *sdata,
         effect = EFFECT_TBL(dest, SUM, sdata);
         BBA_AND(effect, BB_GUM(sdata));
         if(src_check(sdata, effect, dest, tbase)) return true;
-
-        //移動元の位置にPINされていない玉方香の利きがある場合、有効合
-        eff = EFFECT_TBL(PREV_POS(move), GKY, &sbuf);
-        BBA_AND(eff, BB_SKY(&sbuf));
-        while(1){
-            src = min_pos(&eff);
-            if(src<0) break;
-            if(!S_PINNED(&sbuf)[src]) {
-                //攻め駒を移動先位置まで進めた局面を作り、詰んでなければ有効合
-                sdata_t sbuf1;
-                memcpy(&sbuf1, &sbuf, sizeof(sdata_t));
-                sdata_tentative_move(&sbuf1, S_ATTACK(&sbuf)[0], dest, false);
-                if(tsumi_check(&sbuf1))
-                    return true;
-            }
-            BBA_XOR(eff, g_bpos[src]);
-        }
     }
     return false;
 }
@@ -1255,7 +1238,12 @@ void _tbase_update        (const sdata_t   *sdata,
     return;
 }
 
-bool is_move_possible(komainf_t koma, char dest)
+/* -----------------------------------------------------
+    n_move_check(normal move check)
+ 　  komaがdestの位置に不成で移動できるかのチェック
+    true:移動できる　　false:移動できない
+   ----------------------------------------------------- */
+bool n_move_check(komainf_t koma, char dest)
 {
     switch(koma){
         case SFU: if(dest>8)  return true; return false; break;
@@ -1267,6 +1255,7 @@ bool is_move_possible(komainf_t koma, char dest)
         default: return true; break;
     }
 }
+
 bool _invalid_drops       (const sdata_t   *sdata,
                            unsigned int       src,
                            unsigned int      dest,
@@ -1276,7 +1265,7 @@ bool _invalid_drops       (const sdata_t   *sdata,
     sdata_t  sbuf;
     komainf_t koma = S_BOARD(sdata, src);
     //不成でkomaがdestに移動できる場合
-    if(is_move_possible(koma,dest))
+    if(n_move_check(koma,dest))
     {
         memcpy(&sbuf, sdata, sizeof(sdata_t));
         sdata_tentative_move(&sbuf, src, dest, false);
