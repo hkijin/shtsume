@@ -43,6 +43,10 @@ static bool attack_ka_effect       (const sdata_t *sdata,
 static bool is_dest_effect_valid   (const sdata_t *sdata,
                                     int            dest );
 
+static bool cross_point_check      (const sdata_t *sdata,
+                                    int            dest,
+                                    tbase_t       *tbase);
+
 /* ------------------------------------------------------------------------
  generate_evasion
  局面表による無駄合い判定付き王手回避着手生成関数
@@ -1919,6 +1923,137 @@ bool is_dest_effect_valid          (const sdata_t *sdata,
         effect = EFFECT_TBL(dest, GRY, sdata);
         BBA_AND(effect, BB_SRY(sdata));
         PIN_CHECK(sdata, effect, src);
+    }
+    return false;
+}
+
+// ----------------------------------------------------------------
+// 大駒の利きが交差する場所に合駒をした場合、逃れが発生する場合があります。
+// cross_point_checkは逃れ発生の有無を検知し、以下の出力を返します。
+// [逃れ例]
+// 後手の持駒：飛　角　金三　銀三　桂　香四　歩十三
+// ９ ８ ７ ６ ５ ４ ３ ２ １
+// +---------------------------+
+// | ・ ・ ・ ・ ・v金 ・ ・ ・|一
+// | ・ ・ ・ ・ ・ ・ ・ ・ ・|二
+// | ・ ・ ・ 歩 ・ 桂 ・v桂v銀|三
+// | 飛 ・ ・ ・ ・ ・ ・v王 ・|四
+// | ・v歩 ・ ・ ・ ・v歩v歩v歩|五
+// | ・ ・ ・ ・ ・ 桂 ・ ・ ・|六
+// | ・ ・ ・ ・ ・ ・ ・ ・ ・|七
+// | ・ ・ ・ ・ ・ ・ ・ ・ ・|八
+// | 馬 ・ ・ ・ ・ ・ ・ ・ ・|九
+// +---------------------------+
+// 先手の持駒：なし
+//
+// 逃れあり：true
+// 逃れなし：false
+// ----------------------------------------------------------------
+
+/* ----------------------------------------------------------------
+ 大駒の利きが交差する場所に合駒をした場合、逃れが発生する場合があります。
+ cross_point_checkは逃れ発生の有無を検知し、以下の出力を返します。
+ [例1]
+ 後手の持駒：飛　角　金三　銀三　桂　香四　歩十三
+ ９ ８ ７ ６ ５ ４ ３ ２ １
+ +---------------------------+
+ | ・ ・ ・ ・ ・v金 ・ ・ ・|一
+ | ・ ・ ・ ・ ・ ・ ・ ・ ・|二
+ | ・ ・ ・ 歩 ・ 桂 ・v桂v銀|三
+ | 飛 ・ ・ ・ ・ ⚪︎ ・v王 ・|四
+ | ・v歩 ・ ・ ・ ・v歩v歩v歩|五
+ | ・ ・ ・ ・ ・ 桂 ・ ・ ・|六
+ | ・ ・ ・ ・ ・ ・ ・ ・ ・|七
+ | ・ ・ ・ ・ ・ ・ ・ ・ ・|八
+ | 馬 ・ ・ ・ ・ ・ ・ ・ ・|九
+ +---------------------------+
+ 先手の持駒：なし
+ 
+ ⚪︎は有効合  ->true
+ 
+ 
+ 後手の持駒：飛　角　金三　銀三　桂　香四　歩十二
+  ９ ８ ７ ６ ５ ４ ３ ２ １
+ +---------------------------+
+ | ・ ・ ・ ・ ・v金 ・ ・ ・|一
+ | ・ ・ ・ ・ ・ ・ ・ ・ ・|二
+ | ・ ・ と 歩 ・ 桂 ・v桂v銀|三
+ | 飛 ・ ・ ・ ・ ⚪︎ ・v王 ・|四
+ | ・v歩 ・ ・ ・ ・v歩v歩v歩|五
+ | ・ ・ ・ ・ ・ 桂 ・ ・ ・|六
+ | ・ ・ ・ ・ ・ ・ ・ ・ ・|七
+ | ・ ・ ・ ・ ・ ・ ・ ・ ・|八
+ | 馬 ・ ・ ・ ・ ・ ・ ・ ・|九
+ +---------------------------+
+ 先手の持駒：なし
+
+ ⚪︎は無駄合 -> false
+ 
+  逃れあり：true
+  逃れなし：false
+ ---------------------------------------------------------------- */
+
+bool cross_point_check             (const sdata_t *sdata,
+                                    int            dest,
+                                    tbase_t       *tbase)
+{
+    //destの位置に詰方の角が効いている
+    bitboard_t effect = EFFECT_TBL(dest, SKA, sdata);
+    bitboard_t ukbb = S_TURN(sdata)?BB_SUK(sdata):BB_GUK(sdata);
+    BBA_AND(effect, ukbb);
+    if(!BB_TEST(effect)) return false;
+    
+    //王手している駒を確かめる
+    komainf_t attack = S_BOARD(sdata,S_ATTACK(sdata)[0]);
+    int src = S_ATTACK(sdata)[0];
+    //後手番
+    if(S_TURN(sdata)){
+        //王手している駒が飛車且つdestで成れない場合
+        //王手している駒が香車の場合
+        if((attack == SHI && !SHI_PROMOTE(src, dest)) ||
+           (attack == SKY))
+        {
+            //destに王手している駒を移動させてみる。
+            //詰んでいれば無駄合。そうでなければ有効合い
+            sdata_t sbuf;
+            memcpy(&sbuf, sdata, sizeof(sdata_t));
+            sdata_tentative_move(&sbuf, src, dest, false);
+            
+            //詰みチェックで詰んでいればfalse（無駄合）
+            if(ou_move_check(&sbuf)) return false;
+            
+            //ハッシュ探索して詰んでなければ有効合い
+            mvlist_t mvlist;
+            memset(&mvlist, 0, sizeof(mvlist_t));
+            memcpy(&(mvlist.tdata), &g_tdata_init, sizeof(tdata_t));
+            tbase_lookup(&sbuf, &mvlist, S_TURN(&sbuf), tbase);
+            if(mvlist.tdata.pn) return true;
+        }
+    }
+    
+    //先手番
+    else{
+        //王手している駒が飛車且つdestで成れない場合
+        //王手している駒が香車の場合
+        if((attack == GHI && !GHI_PROMOTE(src, dest)) ||
+           (attack == GKY))
+        {
+            //destに王手している駒を移動させてみる。
+            //詰んでいれば無駄合。そうでなければ有効合い
+            sdata_t sbuf;
+            memcpy(&sbuf, sdata, sizeof(sdata_t));
+            sdata_tentative_move(&sbuf, src, dest, false);
+            
+            //詰みチェックで詰んでいればfalse（無駄合）
+            if(tsumi_check(&sbuf)) return false;
+            
+            //ハッシュ探索して詰んでなければ有効合い
+            mvlist_t mvlist;
+            memset(&mvlist, 0, sizeof(mvlist_t));
+            memcpy(&(mvlist.tdata), &g_tdata_init, sizeof(tdata_t));
+            tbase_lookup(&sbuf, &mvlist, S_TURN(&sbuf), tbase);
+            if(mvlist.tdata.pn) return true;
+        }
     }
     return false;
 }
