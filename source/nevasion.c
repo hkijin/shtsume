@@ -97,7 +97,7 @@ mvlist_t *generate_evasion    (const sdata_t *sdata,
     
     //王手している駒を取る手
     dest = S_ATTACK(sdata)[0];
-    mvlist = move_to_dest_t(mvlist, dest, sdata);
+    mvlist = move_to_dest(mvlist, dest, sdata);
     
     //王手している駒が飛び駒で無ければここで終了
     koma = S_BOARD(sdata, dest);
