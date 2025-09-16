@@ -376,6 +376,7 @@ void print_tbase                (const sdata_t   *sdata,
     //データ内容表示
     if     (g_mcard[SUPER_TSUMI])  {
         printf("優越詰み %u手\n", g_mcard[SUPER_TSUMI]->tlist->tdata.sh);
+        PRINT_MKEY(g_mcard[SUPER_TSUMI]->mkey);
         return;
     }
     else if(g_mcard[INFER_FUDUMI]) {
