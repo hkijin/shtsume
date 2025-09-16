@@ -573,7 +573,7 @@ void shtsume_error_log          (const sdata_t *sdata,
             "g_gc_num       =      %u\n\n",
             g_gc_max_level, g_gc_num);
     //探索状況
-    fprintf(fp, "探索状況\n");
+    fprintf(fp, "探索状況 着手 ZKEY (攻方持駒:飛角金銀桂香歩)\n");
     char mkey_str[32];
     for(int i=0; i<S_COUNT(sdata); i++){
         SPRINTF_MKEY(mkey_str, g_tsearchinf.mvinf[i].mkey);
