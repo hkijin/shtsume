@@ -94,7 +94,7 @@ void generate_kif_file          (const char      *filename,
  * 局面表の内容を表示する。
  */
 
-void tlist_display              (const sdata_t   *sdata,
+void print_tbase                (const sdata_t   *sdata,
                                  turn_t              tn,
                                  tbase_t         *tbase);
 

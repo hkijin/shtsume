@@ -286,7 +286,7 @@ void generate_kif_file          (const char      *filename,
     return;
 }
 
-void tlist_display              (const sdata_t   *sdata,
+void print_tbase                (const sdata_t   *sdata,
                                  turn_t              tn,
                                  tbase_t         *tbase)
 {
