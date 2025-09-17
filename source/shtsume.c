@@ -1278,6 +1278,7 @@ void bns_plus_or                (const sdata_t   *sdata,
                 }
                 if(current) current->current = 0;
                 tmp->pr = 1;
+                if(!tmp->tdata.pn && tmp->inc) break;
             }
         }
         
@@ -1317,6 +1318,7 @@ void bns_plus_or                (const sdata_t   *sdata,
                 bn_search_and(&sbuf, &thdata, tmp, tbase);
             }
             tmp->pr = 1;
+            if(!tmp->tdata.pn && tmp->inc) break;
         }
         
         tmp = tmp->next;
