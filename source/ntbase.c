@@ -203,12 +203,6 @@ static bool delete_func     (tlist_t      *tl,
     //玉方手番の詰みデータを削除する。
     if(!tl->tdata.pn){
         st_n_tsumi++;
-        /*
-        if(!(tl->tdata.sh%2)) {
-            st_del_tsumi++;
-            return true;
-        }
-         */
         if(st_tsumi_delete_flag){
             if(!(tl->tdata.sh%2)||tl->tdata.sh<2) {
                 st_del_tsumi++;
