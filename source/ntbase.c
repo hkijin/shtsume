@@ -263,7 +263,7 @@ void tbase_gc              (tbase_t  *tbase)
     uint64_t i, delete_num = 0;
     uint64_t gc_target = tbase->sz_elm*GC_DELETE_RATE/100;
     uint64_t n_tsumi_max = tbase->sz_elm*GC_TSUMI_RATE/100;
-    //st_gc_flag = false;
+    
     char prefix[16];
     memset(prefix, 0 , sizeof(prefix));
     if(!g_commandline)
@@ -282,6 +282,7 @@ void tbase_gc              (tbase_t  *tbase)
         sprintf(g_str, "%sgc_level:%u", prefix, gc_level);
         record_log(g_str); puts(g_str);
         counter_reset();
+        //gc実行部
         for(i=0; i<tbase->sz_tbl; i++)
         {
             zfolder = *(tbase->table+i);
@@ -368,8 +369,8 @@ void tbase_gc              (tbase_t  *tbase)
            (gc_level>=(g_root_pn/2))                )
         {
             st_tsumi_delete_flag = true;
-            printf("g_root_pn = %u\n", g_root_pn);
-            printf("gc_level = %u\n", gc_level);
+            sprintf(g_str, "delete 1step mate." );
+            record_log(g_str); puts(g_str);
         }
         else gc_level++;
     } while(true);
