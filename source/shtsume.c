@@ -1036,7 +1036,7 @@ void make_tree_and              (const sdata_t   *sdata,
                                  mvlist_t       *mvlist,
                                  tbase_t         *tbase )
 {
-    tdata_t thdata = {INFINATE-1, INFINATE-1, 2000};
+    tdata_t thdata = {INFINATE-1, INFINATE-1, TSUME_MAX_DEPTH};
     if(g_suspend || g_stop_received ) return;
     turn_t tn = TURN_FLIP(S_TURN(sdata));
     
