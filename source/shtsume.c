@@ -661,11 +661,25 @@ void bn_search_and              (const sdata_t   *sdata,
             mvlist->tdata.pn = proof_number(list, &pcnt);
             mvlist->tdata.sh = list->tdata.sh+1;
             
+            //単純ループ局面は不詰とする
+            if(list->tdata.pn >= PRE_PROOF_MAX-1 &&
+               list->tdata.dn == 1)
+            {
+#if DEBUG
+                //SDATA_PRINTF(sdata, PR_BOARD|PR_ZKEY);
+                //MVLIST_PRINTF_ITEM(list, sdata);
+#endif //DEBUG
+                mvlist->tdata.dn = 0;
+                mvlist->tdata.pn = INFINATE;
+                break;
+            }
+            
             //GHI(pn増大型）対策
-            if(mvlist->tdata.pn > PRE_PROOF_MAX &&
+            else if(mvlist->tdata.pn > PRE_PROOF_MAX &&
                mvlist->tdata.dn                 &&
                list->next                       &&
-               list->next->tdata.pn                )
+               list->next->tdata.pn             &&
+               !S_BOARD(sdata,NEW_POS(list->mlist->move)))
             {
                 //pn最大の着手は縮退させて再計算。
                 mvlist_t *new_list = NULL;
@@ -1376,7 +1390,9 @@ void bns_plus_and               (const sdata_t   *sdata,
         return;
     }
     
-    //局面表を参照する
+    /* ---------------
+     * 局面表を参照する。
+     --------------- */
     mvlist_t *tmp = list, *tmp1;
     sdata_t sbuf;
     while(tmp){

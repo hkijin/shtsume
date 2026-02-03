@@ -20,6 +20,9 @@ static mvlist_t *move_to_dest_t    (mvlist_t      *list,
                                     int            dest,
                                     const sdata_t *sdata);
 
+static mvlist_t *move_to_dest_w    (mvlist_t      *list,
+                                    int            dest,
+                                    const sdata_t *sdata);
 
 static bool valid_next             (const sdata_t *sdata,
                                     move_t         move,
@@ -114,8 +117,8 @@ mvlist_t *generate_evasion    (const sdata_t *sdata,
     // -----------------
     mlist_t *drop_list = NULL;         //合駒着手構成用
     mlist_t *move_list = NULL;         //移動合着手構成用
-    bool hand_exist = MKEY_EXIST(ENEMY_MKEY(sdata));
-    if(!mvlist && !hand_exist) g_invalid_moves = true;
+    //bool hand_exist = MKEY_EXIST(ENEMY_MKEY(sdata));
+    //if(!mvlist && !hand_exist) g_invalid_moves = true;
     mlist_t *last;
     mvlist_t *mvlast;
     
@@ -190,18 +193,18 @@ mvlist_t *generate_evasion    (const sdata_t *sdata,
             mslist = NULL;
             if(n==1){
                 if(mvlist || drop_list){
-                    mvlist = move_to_dest_t(mvlist, dest, sdata);
+                    mvlist = move_to_dest_w(mvlist, dest, sdata);
                 }
                 //無駄合判定
                 else{
                     mslist = mlist_to_dest(mslist, dest, sdata,
                                             tbase, valid_next);
-                    if(mslist) g_invalid_moves = false;
+                    //if(mslist) g_invalid_moves = false;
                 }
             }
             else{
                 if(mvlist || drop_list ){
-                    mvlist = move_to_dest_t(mvlist, dest, sdata);
+                    mvlist = move_to_dest_w(mvlist, dest, sdata);
                 }
                 //無駄合判定
                 else{
@@ -220,15 +223,27 @@ mvlist_t *generate_evasion    (const sdata_t *sdata,
         
     }
     if(drop_list){
-        mvlist_t *dlist = mvlist_alloc();
-        dlist->mlist = drop_list;
-        if (mvlist) {
-            mvlast = mvlist_last(mvlist);
-            mvlast->next = dlist;
+        /*
+        //合駒が大駒のみの場合は先頭着手に縮退させる
+        if(PREV_POS(drop_list->move)>(HAND+KI) && mvlist){
+            if(mvlist){
+                mlist_t *last = mlist_last(mvlist->mlist);
+                last->next = drop_list;
+            }
         }
-        else        {
-            mvlist = dlist;
-        }
+        else{
+        */
+            mvlist_t *dlist = mvlist_alloc();
+            dlist->mlist = drop_list;
+            if (mvlist) {
+                mvlast = mvlist_last(mvlist);
+                mvlast->next = dlist;
+            }
+            else        {
+                mvlist = dlist;
+            }
+            
+        //}
     }
     
     if(move_list){
@@ -891,6 +906,429 @@ mvlist_t *move_to_dest_t      (mvlist_t *list,
     return mvlist;
 }
 
+/* --------------------------------
+ move_to_dest_w
+ destに駒（玉以外)を動かす手を生成する。
+ 歩、香、桂、銀：成る、成らないは縮退させる
+ と金、大駒：縮退させる
+ ---------------------------------- */
+mvlist_t *move_to_dest_w      (mvlist_t *list,
+                               int dest,
+                               const sdata_t *sdata)
+{
+    mvlist_t *mvlist = list;
+    mlist_t *mlist, *plist, *tolist = NULL, *klist = NULL;
+    int src;
+    bitboard_t eff = SELF_EFFECT(sdata);
+    bitboard_t effect;
+    if(BPOS_TEST(eff,dest))
+    {
+        //後手番
+        if(S_TURN(sdata)){
+            //GFU
+            effect = EFFECT_TBL(dest, SFU, sdata);
+            BBA_AND(effect, BB_GFU(sdata));
+            while(1){
+                src = min_pos(&effect);
+                if(src<0) break;
+                if(!S_PINNED(sdata)[src]){
+                    plist = NULL;
+                    if(GFU_PROMOTE(dest)){
+                        MVLIST_SET_PROM(mvlist, plist, src, dest);
+                    }
+                    if(GFU_NORMAL(dest) ){
+                        if(plist){
+                            MLIST_SET_NORM(mlist, src, dest);
+                            plist->next = mlist;
+                        }
+                        else
+                            MVLIST_SET_NORM(mvlist, mlist, src, dest);
+                    }
+                }
+                BBA_XOR(effect, g_bpos[src]);
+            }
+            //GKY
+            effect = EFFECT_TBL(dest, SKY, sdata);
+            BBA_AND(effect, BB_GKY(sdata));
+            while(1){
+                src = min_pos(&effect);
+                if(src<0) break;
+                if(!S_PINNED(sdata)[src]){
+                    plist = NULL;
+                    if(GKY_PROMOTE(dest)){
+                        MVLIST_SET_PROM(mvlist, plist, src, dest);
+                    }
+                    if(GKY_NORMAL(dest) ){
+                        if(plist){
+                            MLIST_SET_NORM(mlist, src, dest);
+                            plist->next = mlist;
+                        }
+                        else
+                            MVLIST_SET_NORM(mvlist, mlist, src, dest);
+                    }
+                }
+                BBA_XOR(effect, g_bpos[src]);
+            }
+            //GKE
+            effect = EFFECT_TBL(dest, SKE, sdata);
+            BBA_AND(effect, BB_GKE(sdata));
+            while(1){
+                src = min_pos(&effect);
+                if(src<0) break;
+                if(!S_PINNED(sdata)[src]){
+                    plist = NULL;
+                    if(GKE_PROMOTE(dest)){
+                        MVLIST_SET_PROM(mvlist, plist, src, dest);
+                    }
+                    if(GKE_NORMAL(dest) ){
+                        if(plist){
+                            MLIST_SET_NORM(mlist, src, dest);
+                            plist->next = mlist;
+                        }
+                        else
+                            MVLIST_SET_NORM(mvlist, mlist, src, dest);
+                    }
+                }
+                BBA_XOR(effect, g_bpos[src]);
+            }
+            //GGI
+            effect = EFFECT_TBL(dest, SGI, sdata);
+            BBA_AND(effect, BB_GGI(sdata));
+            while(1){
+                src = min_pos(&effect);
+                if(src<0) break;
+                if(!S_PINNED(sdata)[src]){
+                    plist = NULL;
+                    if(GGI_PROMOTE(src,dest)){
+                        MVLIST_SET_PROM(mvlist, plist, src, dest);
+                    }
+                    if(plist){
+                        MLIST_SET_NORM(mlist, src, dest);
+                        plist->next = mlist;
+                    }
+                    else
+                        MVLIST_SET_NORM(mvlist, mlist, src, dest);
+                }
+                BBA_XOR(effect, g_bpos[src]);
+            }
+            //GKI,GTO,GNY,GNK,GNG
+            effect = EFFECT_TBL(dest, SKI, sdata);
+            BBA_AND(effect, BB_GTK(sdata));
+            while(1){
+                src = min_pos(&effect);
+                if(src<0) break;
+                if(!S_PINNED(sdata)[src]){
+                    if(S_BOARD(sdata,src)==GTO){
+                        MLIST_SET_NORM(mlist, src, dest);
+                        mlist->next = tolist;
+                        tolist = mlist;
+                    }
+                    else{
+                        MVLIST_SET_NORM(mvlist, mlist, src, dest);
+                    }
+                }
+                BBA_XOR(effect, g_bpos[src]);
+            }
+            
+            //GHI
+            effect = EFFECT_TBL(dest, SHI, sdata);
+            BBA_AND(effect, BB_GHI(sdata));
+            while(1){
+                src = min_pos(&effect);
+                if(src<0) break;
+                if(!S_PINNED(sdata)[src]){
+                    /*
+                    plist = NULL;
+                    if(GHI_PROMOTE(src,dest)){
+                        MVLIST_SET_PROM(mvlist, plist, src, dest);
+                    }
+                    if(plist){
+                        MLIST_SET_NORM(mlist, src, dest);
+                        plist->next = mlist;
+                    }
+                    else
+                        MVLIST_SET_NORM(mvlist, mlist, src, dest);
+                     */
+                    if(GHI_PROMOTE(src,dest)){
+                        MLIST_SET_PROM(mlist, src, dest);
+                        mlist->next = klist;
+                        klist = mlist;
+                    }
+                    MLIST_SET_NORM(mlist, src, dest);
+                    mlist->next = klist;
+                    klist = mlist;
+                }
+                BBA_XOR(effect, g_bpos[src]);
+            }
+            //GRY
+            effect = EFFECT_TBL(dest, SRY, sdata);
+            BBA_AND(effect, BB_GRY(sdata));
+            while(1){
+                src = min_pos(&effect);
+                if(src<0) break;
+                if(!S_PINNED(sdata)[src]) {
+                    /*
+                    MVLIST_SET_NORM(mvlist, mlist, src, dest);
+                     */
+                    MLIST_SET_NORM(mlist, src, dest);
+                    mlist->next = klist;
+                    klist = mlist;
+                }
+                BBA_XOR(effect, g_bpos[src]);
+            }
+            //GKA
+            effect = EFFECT_TBL(dest, SKA, sdata);
+            BBA_AND(effect, BB_GKA(sdata));
+            while(1){
+                src = min_pos(&effect);
+                if(src<0) break;
+                if(!S_PINNED(sdata)[src]){
+                    /*
+                    plist = NULL;
+                    if(GKA_PROMOTE(src,dest)){
+                        MVLIST_SET_PROM(mvlist, plist, src, dest);
+                    }
+                    if(plist){
+                        MLIST_SET_NORM(mlist, src, dest);
+                        plist->next = mlist;
+                    }
+                    else
+                        MVLIST_SET_NORM(mvlist, mlist, src, dest);
+                     */
+                    if(GKA_PROMOTE(src,dest)){
+                        MLIST_SET_PROM(mlist, src, dest);
+                        mlist->next = klist;
+                        klist = mlist;
+                    }
+                    MLIST_SET_NORM(mlist, src, dest);
+                    mlist->next = klist;
+                    klist = mlist;
+                }
+                BBA_XOR(effect, g_bpos[src]);
+            }
+            //GUM
+            effect = EFFECT_TBL(dest, SUM, sdata);
+            BBA_AND(effect, BB_GUM(sdata));
+            while(1){
+                src = min_pos(&effect);
+                if(src<0) break;
+                if(!S_PINNED(sdata)[src]) {
+                    /*
+                    MVLIST_SET_NORM(mvlist, mlist, src, dest);
+                     */
+                    MLIST_SET_NORM(mlist, src, dest);
+                    mlist->next = klist;
+                    klist = mlist;
+                }
+                BBA_XOR(effect, g_bpos[src]);
+            }
+        }
+        //先手版
+        else             {
+            //SFU
+            effect = EFFECT_TBL(dest, GFU, sdata);
+            BBA_AND(effect, BB_SFU(sdata));
+            while(1){
+                src = min_pos(&effect);
+                if(src<0) break;
+                if(!S_PINNED(sdata)[src]){
+                    plist = NULL;
+                    if(SFU_PROMOTE(dest)){
+                        MVLIST_SET_PROM(mvlist, plist, src, dest);
+                    }
+                    if(SFU_NORMAL(dest) ){
+                        if(plist){
+                            MLIST_SET_NORM(mlist, src, dest);
+                            plist->next = mlist;
+                        }
+                        else
+                            MVLIST_SET_NORM(mvlist, mlist, src, dest);
+                    }
+                }
+                BBA_XOR(effect, g_bpos[src]);
+            }
+            //SKY
+            effect = EFFECT_TBL(dest, GKY, sdata);
+            BBA_AND(effect, BB_SKY(sdata));
+            while(1){
+                src = min_pos(&effect);
+                if(src<0) break;
+                if(!S_PINNED(sdata)[src]){
+                    plist = NULL;
+                    if(SKY_PROMOTE(dest)){
+                        MVLIST_SET_PROM(mvlist, plist, src, dest);
+                    }
+                    if(SKY_NORMAL(dest) ){
+                        if(plist){
+                            MLIST_SET_NORM(mlist, src, dest);
+                            plist->next = mlist;
+                        }
+                        else
+                            MVLIST_SET_NORM(mvlist, mlist, src, dest);
+                    }
+                }
+                BBA_XOR(effect, g_bpos[src]);
+            }
+            //SKE
+            effect = EFFECT_TBL(dest, GKE, sdata);
+            BBA_AND(effect, BB_SKE(sdata));
+            while(1){
+                src = min_pos(&effect);
+                if(src<0) break;
+                if(!S_PINNED(sdata)[src]){
+                    plist = NULL;
+                    if(SKE_PROMOTE(dest)){
+                        MVLIST_SET_PROM(mvlist, plist, src, dest);
+                    }
+                    if(SKE_NORMAL(dest) ){
+                        if(plist){
+                            MLIST_SET_NORM(mlist, src, dest);
+                            plist->next = mlist;
+                        }
+                        else
+                            MVLIST_SET_NORM(mvlist, mlist, src, dest);
+                    }
+                }
+                BBA_XOR(effect, g_bpos[src]);
+            }
+            //SGI
+            effect = EFFECT_TBL(dest, GGI, sdata);
+            BBA_AND(effect, BB_SGI(sdata));
+            while(1){
+                src = min_pos(&effect);
+                if(src<0) break;
+                if(!S_PINNED(sdata)[src]){
+                    plist = NULL;
+                    if(SGI_PROMOTE(src,dest)){
+                        MVLIST_SET_PROM(mvlist, plist, src, dest);
+                    }
+                    if(plist){
+                        MLIST_SET_NORM(mlist, src, dest);
+                        plist->next = mlist;
+                    }
+                    else
+                        MVLIST_SET_NORM(mvlist, mlist, src, dest);
+                }
+                BBA_XOR(effect, g_bpos[src]);
+            }
+            //SKI,STO,SNY,SNK,SNG
+            effect = EFFECT_TBL(dest, GKI, sdata);
+            BBA_AND(effect, BB_STK(sdata));
+            while(1){
+                src = min_pos(&effect);
+                if(src<0) break;
+                if(!S_PINNED(sdata)[src]){
+                    if(S_BOARD(sdata,src)==GTO){
+                        MLIST_SET_NORM(mlist, src, dest);
+                        mlist->next = tolist;
+                        tolist = mlist;
+                    }
+                    else{
+                        MVLIST_SET_NORM(mvlist, mlist, src, dest);
+                    }
+                }
+                BBA_XOR(effect, g_bpos[src]);
+            }
+            //SHI
+            effect = EFFECT_TBL(dest, GHI, sdata);
+            BBA_AND(effect, BB_SHI(sdata));
+            while(1){
+                src = min_pos(&effect);
+                if(src<0) break;
+                if(!S_PINNED(sdata)[src]){
+                    /*
+                    plist = NULL;
+                    if(SHI_PROMOTE(src,dest)){
+                        MVLIST_SET_PROM(mvlist, plist, src, dest);
+                    }
+                    if(plist){
+                        MLIST_SET_NORM(mlist, src, dest);
+                        plist->next = mlist;
+                    }
+                    else
+                        MVLIST_SET_NORM(mvlist, mlist, src, dest);
+                     */
+                    if(SHI_PROMOTE(src,dest)){
+                        MLIST_SET_PROM(mlist, src, dest);
+                        mlist->next = klist;
+                        klist = mlist;
+                    }
+                    MLIST_SET_NORM(mlist, src, dest);
+                    mlist->next = klist;
+                    klist = mlist;
+                }
+                BBA_XOR(effect, g_bpos[src]);
+            }
+            //SRY
+            effect = EFFECT_TBL(dest, GRY, sdata);
+            BBA_AND(effect, BB_SRY(sdata));
+            while(1){
+                src = min_pos(&effect);
+                if(src<0) break;
+                if(!S_PINNED(sdata)[src]) {
+                    /*
+                    MVLIST_SET_NORM(mvlist, mlist, src, dest);
+                     */
+                    MLIST_SET_NORM(mlist, src, dest);
+                    mlist->next = klist;
+                    klist = mlist;
+                }
+                BBA_XOR(effect, g_bpos[src]);
+            }
+            //SKA
+            effect = EFFECT_TBL(dest, GKA, sdata);
+            BBA_AND(effect, BB_SKA(sdata));
+            while(1){
+                src = min_pos(&effect);
+                if(src<0) break;
+                if(!S_PINNED(sdata)[src]){
+                    /*
+                    plist = NULL;
+                    if(SKA_PROMOTE(src,dest)){
+                        MVLIST_SET_PROM(mvlist, plist, src, dest);
+                    }
+                    if(plist){
+                        MLIST_SET_NORM(mlist, src, dest);
+                        plist->next = mlist;
+                    }
+                    else
+                        MVLIST_SET_NORM(mvlist, mlist, src, dest);
+                     */
+                    if(SKA_PROMOTE(src,dest)){
+                        MLIST_SET_PROM(mlist, src, dest);
+                        mlist->next = klist;
+                        klist = mlist;
+                    }
+                    MLIST_SET_NORM(mlist, src, dest);
+                    mlist->next = klist;
+                    klist = mlist;
+                }
+                BBA_XOR(effect, g_bpos[src]);
+            }
+            //SUM
+            effect = EFFECT_TBL(dest, GUM, sdata);
+            BBA_AND(effect, BB_SUM(sdata));
+            while(1){
+                src = min_pos(&effect);
+                if(src<0) break;
+                if(!S_PINNED(sdata)[src]) {
+                    /*
+                    MVLIST_SET_NORM(mvlist, mlist, src, dest);
+                     */
+                    MLIST_SET_NORM(mlist, src, dest);
+                    mlist->next = klist;
+                    klist = mlist;
+                }
+                BBA_XOR(effect, g_bpos[src]);
+            }
+
+        }
+    }
+    if(klist)  mvlist = mvlist_add(mvlist, klist);
+    if(tolist) mvlist = mvlist_add(mvlist, tolist);
+    return mvlist;
+}
+
 /* -------------------------------------------------------------------
     funcの評価結果がtrueであればdestに駒を移動する着手を生成する
  　　・valid_next:destが玉の隣の場合、無駄移動合にならない着手のみを生成。
@@ -911,6 +1349,7 @@ bool valid_next               (const sdata_t *sdata,
         return true;
     
     //移動元に味方の飛び駒の利きがあり、逆王手のリスクがあれば有効合
+    //無駄移動合の可能性もあるのでg_invalid_movesをtrueとする
     bitboard_t bb, effect;
     int src = PREV_POS(move), pos;
     int eou = ENEMY_OU(&sbuf);
@@ -923,7 +1362,11 @@ bool valid_next               (const sdata_t *sdata,
                 if(pos<0) break;
                 effect = EFFECT_TBL(pos, GKY, &sbuf);
                 if(BPOS_TEST(effect, src)){
-                    if(g_file[eou]==g_file[src] && eou > src) return true;
+                    if(g_file[eou]==g_file[src] && eou > src){
+                        if(!MKEY_EXIST(ENEMY_MKEY(sdata)))
+                            g_invalid_moves = true;
+                        return true;
+                    }
                 }
                 BBA_XOR(bb, g_bpos[pos]);
             }
@@ -938,7 +1381,11 @@ bool valid_next               (const sdata_t *sdata,
                        (g_lslp[eou]==g_lslp[src] && g_lslp[src]==g_lslp[pos])  )
                     {
                         if((eou>src && src>pos) ||
-                           (eou<src && src<pos)    ) return true;
+                           (eou<src && src<pos)    ){
+                            if(!MKEY_EXIST(ENEMY_MKEY(sdata)))
+                                g_invalid_moves = true;
+                            return true;
+                        }
                     }
                 }
                 BBA_XOR(bb, g_bpos[pos]);
@@ -954,7 +1401,11 @@ bool valid_next               (const sdata_t *sdata,
                        (g_file[eou]==g_file[src] && g_file[src]==g_file[pos])  )
                     {
                         if((eou>src && src>pos) ||
-                           (eou<src && src<pos)    ) return true;
+                           (eou<src && src<pos)    ){
+                            if(!MKEY_EXIST(ENEMY_MKEY(sdata)))
+                                g_invalid_moves = true;
+                            return true;
+                        }
                     }
                 }
                 BBA_XOR(bb, g_bpos[pos]);
@@ -968,7 +1419,11 @@ bool valid_next               (const sdata_t *sdata,
                 if(pos<0) break;
                 effect = EFFECT_TBL(pos, SKY, &sbuf);
                 if(BPOS_TEST(effect, src)){
-                    if(g_file[eou]==g_file[src] && eou < src) return true;
+                    if(g_file[eou]==g_file[src] && eou < src){
+                        if(!MKEY_EXIST(ENEMY_MKEY(sdata)))
+                            g_invalid_moves = true;
+                        return true;
+                    }
                 }
                 BBA_XOR(bb, g_bpos[pos]);
             }
@@ -983,7 +1438,11 @@ bool valid_next               (const sdata_t *sdata,
                        (g_lslp[eou]==g_lslp[src] && g_lslp[src]==g_lslp[pos])  )
                     {
                         if((eou>src && src>pos) ||
-                           (eou<src && src<pos)    ) return true;
+                           (eou<src && src<pos)    ){
+                            if(!MKEY_EXIST(ENEMY_MKEY(sdata)))
+                                g_invalid_moves = true;
+                            return true;
+                        }
                     }
                 }
                 BBA_XOR(bb, g_bpos[pos]);
@@ -999,8 +1458,11 @@ bool valid_next               (const sdata_t *sdata,
                        (g_file[eou]==g_file[src] && g_file[src]==g_file[pos])  )
                     {
                         if((eou>src && src>pos) ||
-                           (eou<src && src<pos)    ) return true;
-                    }
+                           (eou<src && src<pos)    ){
+                            if(!MKEY_EXIST(ENEMY_MKEY(sdata)))
+                                g_invalid_moves = true;
+                            return true;
+                        }                    }
                 }
                 BBA_XOR(bb, g_bpos[pos]);
             }
@@ -1042,9 +1504,12 @@ bool valid_long               (const sdata_t *sdata,
         if(BPOS_TEST(SELF_EFFECT(&sbuf), ENEMY_OU(&sbuf)))
             return true;
         //移動元の位置を空けることにより逆王手の可能性があれば有効合
-        if(check_back_risk(&sbuf, PREV_POS(move)))
+        //探索の結果、無駄合の場合もあるのでg_invalid_moveはtrueとしておく
+        if(check_back_risk(&sbuf, PREV_POS(move))){
+            if(!MKEY_EXIST(ENEMY_MKEY(sdata)))
+                g_invalid_moves = true;
             return true;
-        
+        }
     }
     
     //手番ごとのチェック
@@ -1061,7 +1526,10 @@ bool valid_long               (const sdata_t *sdata,
             while(1){
                 src = min_pos(&effect);
                 if(src<0) break;
-                if(!S_PINNED(&sbuf)[src]) return true;
+                if(!S_PINNED(&sbuf)[src]) {
+                    g_invalid_moves = false;
+                    return true;
+                }
                 BBA_XOR(effect, g_bpos[src]);
             }
             //GKY
@@ -1070,7 +1538,10 @@ bool valid_long               (const sdata_t *sdata,
             while(1){
                 src = min_pos(&effect);
                 if(src<0) break;
-                if(!S_PINNED(&sbuf)[src]) return true;
+                if(!S_PINNED(&sbuf)[src]) {
+                    g_invalid_moves = false;
+                    return true;
+                }
                 BBA_XOR(effect, g_bpos[src]);
             }
             //GKE
@@ -1079,7 +1550,10 @@ bool valid_long               (const sdata_t *sdata,
             while(1){
                 src = min_pos(&effect);
                 if(src<0) break;
-                if(!S_PINNED(&sbuf)[src]) return true;
+                if(!S_PINNED(&sbuf)[src]) {
+                    g_invalid_moves = false;
+                    return true;
+                }
                 BBA_XOR(effect, g_bpos[src]);
             }
             //GGI
@@ -1088,7 +1562,10 @@ bool valid_long               (const sdata_t *sdata,
             while(1){
                 src = min_pos(&effect);
                 if(src<0) break;
-                if(!S_PINNED(&sbuf)[src]) return true;
+                if(!S_PINNED(&sbuf)[src]) {
+                    g_invalid_moves = false;
+                    return true;
+                }
                 BBA_XOR(effect, g_bpos[src]);
             }
             //GKI,GTO,GNY,GNK,GNG
@@ -1097,7 +1574,10 @@ bool valid_long               (const sdata_t *sdata,
             while(1){
                 src = min_pos(&effect);
                 if(src<0) break;
-                if(!S_PINNED(&sbuf)[src]) return true;
+                if(!S_PINNED(&sbuf)[src]) {
+                    g_invalid_moves = false;
+                    return true;
+                }
                 BBA_XOR(effect, g_bpos[src]);
             }
             //GKA
@@ -1106,7 +1586,10 @@ bool valid_long               (const sdata_t *sdata,
             while(1){
                 src = min_pos(&effect);
                 if(src<0) break;
-                if(!S_PINNED(&sbuf)[src]) return true;
+                if(!S_PINNED(&sbuf)[src]) {
+                    g_invalid_moves = false;
+                    return true;
+                }
                 BBA_XOR(effect, g_bpos[src]);
             }
             //GHI
@@ -1115,7 +1598,10 @@ bool valid_long               (const sdata_t *sdata,
             while(1){
                 src = min_pos(&effect);
                 if(src<0) break;
-                if(!S_PINNED(&sbuf)[src]) return true;
+                if(!S_PINNED(&sbuf)[src]) {
+                    g_invalid_moves = false;
+                    return true;
+                }
                 BBA_XOR(effect, g_bpos[src]);
             }
             //GUM
@@ -1124,7 +1610,10 @@ bool valid_long               (const sdata_t *sdata,
             while(1){
                 src = min_pos(&effect);
                 if(src<0) break;
-                if(!S_PINNED(&sbuf)[src]) return true;
+                if(!S_PINNED(&sbuf)[src]) {
+                    g_invalid_moves = false;
+                    return true;
+                }
                 BBA_XOR(effect, g_bpos[src]);
             }
             //GRY
@@ -1133,7 +1622,10 @@ bool valid_long               (const sdata_t *sdata,
             while(1){
                 src = min_pos(&effect);
                 if(src<0) break;
-                if(!S_PINNED(&sbuf)[src]) return true;
+                if(!S_PINNED(&sbuf)[src]) {
+                    g_invalid_moves = false;
+                    return true;
+                }
                 BBA_XOR(effect, g_bpos[src]);
             }
             
@@ -1150,8 +1642,11 @@ bool valid_long               (const sdata_t *sdata,
                 sdata_t sbuf1;
                 memcpy(&sbuf1, &sbuf, sizeof(sdata_t));
                 sdata_tentative_move(&sbuf1, S_ATTACK(&sbuf)[0], dest, false);
-                if(!tsumi_check(&sbuf1))
+                if(!tsumi_check(&sbuf1)){
+                    if(!MKEY_EXIST(ENEMY_MKEY(sdata)))
+                        g_invalid_moves = true;
                     return true;
+                }
             }
             BBA_XOR(eff, g_bpos[src]);
         }
@@ -1167,8 +1662,11 @@ bool valid_long               (const sdata_t *sdata,
                 sdata_t sbuf1;
                 memcpy(&sbuf1, &sbuf, sizeof(sdata_t));
                 sdata_tentative_move(&sbuf1, S_ATTACK(&sbuf)[0], dest, false);
-                if(!tsumi_check(&sbuf1))
+                if(!tsumi_check(&sbuf1)){
+                    if(!MKEY_EXIST(ENEMY_MKEY(sdata)))
+                        g_invalid_moves = true;
                     return true;
+                }
             }
             BBA_XOR(eff, g_bpos[src]);
         }
@@ -1184,8 +1682,11 @@ bool valid_long               (const sdata_t *sdata,
                 sdata_t sbuf1;
                 memcpy(&sbuf1, &sbuf, sizeof(sdata_t));
                 sdata_tentative_move(&sbuf1, S_ATTACK(&sbuf)[0], dest, false);
-                if(!tsumi_check(&sbuf1))
+                if(!tsumi_check(&sbuf1)){
+                    if(!MKEY_EXIST(ENEMY_MKEY(sdata)))
+                        g_invalid_moves = true;
                     return true;
+                }
             }
             BBA_XOR(eff, g_bpos[src]);
         }
@@ -1201,7 +1702,10 @@ bool valid_long               (const sdata_t *sdata,
             while(1){
                 src = min_pos(&effect);
                 if(src<0) break;
-                if(!S_PINNED(&sbuf)[src]) return true;
+                if(!S_PINNED(&sbuf)[src]) {
+                    g_invalid_moves = false;
+                    return true;
+                }
                 BBA_XOR(effect, g_bpos[src]);
             }
             //SKY
@@ -1210,7 +1714,10 @@ bool valid_long               (const sdata_t *sdata,
             while(1){
                 src = min_pos(&effect);
                 if(src<0) break;
-                if(!S_PINNED(&sbuf)[src]) return true;
+                if(!S_PINNED(&sbuf)[src]) {
+                    g_invalid_moves = false;
+                    return true;
+                }
                 BBA_XOR(effect, g_bpos[src]);
             }
             //SKE
@@ -1219,7 +1726,10 @@ bool valid_long               (const sdata_t *sdata,
             while(1){
                 src = min_pos(&effect);
                 if(src<0) break;
-                if(!S_PINNED(&sbuf)[src]) return true;
+                if(!S_PINNED(&sbuf)[src]) {
+                    g_invalid_moves = false;
+                    return true;
+                }
                 BBA_XOR(effect, g_bpos[src]);
             }
             //SGI
@@ -1228,7 +1738,10 @@ bool valid_long               (const sdata_t *sdata,
             while(1){
                 src = min_pos(&effect);
                 if(src<0) break;
-                if(!S_PINNED(&sbuf)[src]) return true;
+                if(!S_PINNED(&sbuf)[src]) {
+                    g_invalid_moves = false;
+                    return true;
+                }
                 BBA_XOR(effect, g_bpos[src]);
             }
             //SKI,STO,SNY,SNK,SNG
@@ -1237,7 +1750,10 @@ bool valid_long               (const sdata_t *sdata,
             while(1){
                 src = min_pos(&effect);
                 if(src<0) break;
-                if(!S_PINNED(&sbuf)[src]) return true;
+                if(!S_PINNED(&sbuf)[src]) {
+                    g_invalid_moves = false;
+                    return true;
+                }
                 BBA_XOR(effect, g_bpos[src]);
             }
             //SKA
@@ -1246,7 +1762,10 @@ bool valid_long               (const sdata_t *sdata,
             while(1){
                 src = min_pos(&effect);
                 if(src<0) break;
-                if(!S_PINNED(&sbuf)[src]) return true;
+                if(!S_PINNED(&sbuf)[src]) {
+                    g_invalid_moves = false;
+                    return true;
+                }
                 BBA_XOR(effect, g_bpos[src]);
             }
             //SHI
@@ -1255,7 +1774,10 @@ bool valid_long               (const sdata_t *sdata,
             while(1){
                 src = min_pos(&effect);
                 if(src<0) break;
-                if(!S_PINNED(&sbuf)[src]) return true;
+                if(!S_PINNED(&sbuf)[src]) {
+                    g_invalid_moves = false;
+                    return true;
+                }
                 BBA_XOR(effect, g_bpos[src]);
             }
             //SUM
@@ -1264,7 +1786,10 @@ bool valid_long               (const sdata_t *sdata,
             while(1){
                 src = min_pos(&effect);
                 if(src<0) break;
-                if(!S_PINNED(&sbuf)[src]) return true;
+                if(!S_PINNED(&sbuf)[src]) {
+                    g_invalid_moves = false;
+                    return true;
+                }
                 BBA_XOR(effect, g_bpos[src]);
             }
             //SRY
@@ -1273,7 +1798,10 @@ bool valid_long               (const sdata_t *sdata,
             while(1){
                 src = min_pos(&effect);
                 if(src<0) break;
-                if(!S_PINNED(&sbuf)[src]) return true;
+                if(!S_PINNED(&sbuf)[src]) {
+                    g_invalid_moves = false;
+                    return true;
+                }
                 BBA_XOR(effect, g_bpos[src]);
             }
         }
@@ -1289,8 +1817,11 @@ bool valid_long               (const sdata_t *sdata,
                 sdata_t sbuf1;
                 memcpy(&sbuf1, &sbuf, sizeof(sdata_t));
                 sdata_tentative_move(&sbuf1, S_ATTACK(&sbuf)[0], dest, false);
-                if(!tsumi_check(&sbuf1))
+                if(!tsumi_check(&sbuf1)){
+                    if(!MKEY_EXIST(ENEMY_MKEY(sdata)))
+                        g_invalid_moves = true;
                     return true;
+                }
             }
             BBA_XOR(eff, g_bpos[src]);
         }
@@ -1306,8 +1837,11 @@ bool valid_long               (const sdata_t *sdata,
                 sdata_t sbuf1;
                 memcpy(&sbuf1, &sbuf, sizeof(sdata_t));
                 sdata_tentative_move(&sbuf1, S_ATTACK(&sbuf)[0], dest, false);
-                if(!tsumi_check(&sbuf1))
+                if(!tsumi_check(&sbuf1)){
+                    if(!MKEY_EXIST(ENEMY_MKEY(sdata)))
+                        g_invalid_moves = true;
                     return true;
+                }
             }
             BBA_XOR(eff, g_bpos[src]);
         }
@@ -1323,8 +1857,11 @@ bool valid_long               (const sdata_t *sdata,
                 sdata_t sbuf1;
                 memcpy(&sbuf1, &sbuf, sizeof(sdata_t));
                 sdata_tentative_move(&sbuf1, S_ATTACK(&sbuf)[0], dest, false);
-                if(!tsumi_check(&sbuf1))
+                if(!tsumi_check(&sbuf1)){
+                    if(!MKEY_EXIST(ENEMY_MKEY(sdata)))
+                        g_invalid_moves = true;
                     return true;
+                }
             }
             BBA_XOR(eff, g_bpos[src]);
         }
@@ -1384,19 +1921,43 @@ mlist_t *mlist_to_dest             (mlist_t       *list,
         move_t mv;
         //後手番
         if(S_TURN(sdata)){
-            //GFU
-            effect = EFFECT_TBL(dest, SFU, sdata);
-            BBA_AND(effect, BB_GFU(sdata));
+            //GRY
+            effect = EFFECT_TBL(dest, SRY, sdata);
+            BBA_AND(effect, BB_GRY(sdata));
+            while(1){
+                src = min_pos(&effect);
+                if(src<0) break;
+                if(!S_PINNED(sdata)[src]) {
+                    MV_SET(mv,src,dest,0);
+                    if(func(sdata,mv,tbase))
+                        MLIST_SET_MOVE_NORM(mlist, new_mlist, src, dest);
+                }
+                BBA_XOR(effect, g_bpos[src]);
+            }
+            //GUM
+            effect = EFFECT_TBL(dest, SUM, sdata);
+            BBA_AND(effect, BB_GUM(sdata));
+            while(1){
+                src = min_pos(&effect);
+                if(src<0) break;
+                if(!S_PINNED(sdata)[src]) {
+                    MV_SET(mv,src,dest,0);
+                    if(func(sdata,mv,tbase))
+                        MLIST_SET_MOVE_NORM(mlist, new_mlist, src, dest);
+                }
+                BBA_XOR(effect, g_bpos[src]);
+            }
+            //GHI
+            effect = EFFECT_TBL(dest, SHI, sdata);
+            BBA_AND(effect, BB_GHI(sdata));
             while(1){
                 src = min_pos(&effect);
                 if(src<0) break;
                 if(!S_PINNED(sdata)[src]){
-                    if(GFU_NORMAL(dest) ){
-                        MV_SET(mv,src,dest,0);
-                        if(func(sdata,mv,tbase))
-                            MLIST_SET_MOVE_NORM(mlist, new_mlist, src, dest);
-                    }
-                    if(GFU_PROMOTE(dest)){
+                    MV_SET(mv,src,dest,0);
+                    if(func(sdata,mv,tbase))
+                        MLIST_SET_MOVE_NORM(mlist, new_mlist, src, dest);
+                    if(GHI_PROMOTE(src,dest)){
                         MV_SET(mv,src,dest,1);
                         if(func(sdata,mv,tbase))
                             MLIST_SET_MOVE_PROM(mlist, new_mlist, src, dest);
@@ -1404,19 +1965,48 @@ mlist_t *mlist_to_dest             (mlist_t       *list,
                 }
                 BBA_XOR(effect, g_bpos[src]);
             }
-            //GKY
-            effect = EFFECT_TBL(dest, SKY, sdata);
-            BBA_AND(effect, BB_GKY(sdata));
+            //GKA
+            effect = EFFECT_TBL(dest, SKA, sdata);
+            BBA_AND(effect, BB_GKA(sdata));
             while(1){
                 src = min_pos(&effect);
                 if(src<0) break;
                 if(!S_PINNED(sdata)[src]){
-                    if(GKY_NORMAL(dest) ){
-                        MV_SET(mv,src,dest,0);
+                    MV_SET(mv,src,dest,0);
+                    if(func(sdata,mv,tbase))
+                        MLIST_SET_MOVE_NORM(mlist, new_mlist, src, dest);
+                    if(GKA_PROMOTE(src,dest)){
+                        MV_SET(mv,src,dest,1);
                         if(func(sdata,mv,tbase))
-                            MLIST_SET_MOVE_NORM(mlist, new_mlist, src, dest);
+                            MLIST_SET_MOVE_PROM(mlist, new_mlist, src, dest);
                     }
-                    if(GKY_PROMOTE(dest)){
+                }
+                BBA_XOR(effect, g_bpos[src]);
+            }
+            //GKI,GTO,GNY,GNK,GNG
+            effect = EFFECT_TBL(dest, SKI, sdata);
+            BBA_AND(effect, BB_GTK(sdata));
+            while(1){
+                src = min_pos(&effect);
+                if(src<0) break;
+                if(!S_PINNED(sdata)[src]){
+                    MV_SET(mv,src,dest,0);
+                    if(func(sdata,mv,tbase))
+                        MLIST_SET_MOVE_NORM(mlist, new_mlist, src, dest);
+                }
+                BBA_XOR(effect, g_bpos[src]);
+            }
+            //GGI
+            effect = EFFECT_TBL(dest, SGI, sdata);
+            BBA_AND(effect, BB_GGI(sdata));
+            while(1){
+                src = min_pos(&effect);
+                if(src<0) break;
+                if(!S_PINNED(sdata)[src]){
+                    MV_SET(mv,src,dest,0);
+                    if(func(sdata,mv,tbase))
+                        MLIST_SET_MOVE_NORM(mlist, new_mlist, src, dest);
+                    if(GGI_PROMOTE(src,dest)){
                         MV_SET(mv,src,dest,1);
                         if(func(sdata,mv,tbase))
                             MLIST_SET_MOVE_PROM(mlist, new_mlist, src, dest);
@@ -1444,17 +2034,19 @@ mlist_t *mlist_to_dest             (mlist_t       *list,
                 }
                 BBA_XOR(effect, g_bpos[src]);
             }
-            //GGI
-            effect = EFFECT_TBL(dest, SGI, sdata);
-            BBA_AND(effect, BB_GGI(sdata));
+            //GKY
+            effect = EFFECT_TBL(dest, SKY, sdata);
+            BBA_AND(effect, BB_GKY(sdata));
             while(1){
                 src = min_pos(&effect);
                 if(src<0) break;
                 if(!S_PINNED(sdata)[src]){
-                    MV_SET(mv,src,dest,0);
-                    if(func(sdata,mv,tbase))
-                        MLIST_SET_MOVE_NORM(mlist, new_mlist, src, dest);
-                    if(GGI_PROMOTE(src,dest)){
+                    if(GKY_NORMAL(dest) ){
+                        MV_SET(mv,src,dest,0);
+                        if(func(sdata,mv,tbase))
+                            MLIST_SET_MOVE_NORM(mlist, new_mlist, src, dest);
+                    }
+                    if(GKY_PROMOTE(dest)){
                         MV_SET(mv,src,dest,1);
                         if(func(sdata,mv,tbase))
                             MLIST_SET_MOVE_PROM(mlist, new_mlist, src, dest);
@@ -1462,97 +2054,66 @@ mlist_t *mlist_to_dest             (mlist_t       *list,
                 }
                 BBA_XOR(effect, g_bpos[src]);
             }
-            //GKI,GTO,GNY,GNK,GNG
-            effect = EFFECT_TBL(dest, SKI, sdata);
-            BBA_AND(effect, BB_GTK(sdata));
+            //GFU
+            effect = EFFECT_TBL(dest, SFU, sdata);
+            BBA_AND(effect, BB_GFU(sdata));
             while(1){
                 src = min_pos(&effect);
                 if(src<0) break;
                 if(!S_PINNED(sdata)[src]){
-                    MV_SET(mv,src,dest,0);
-                    if(func(sdata,mv,tbase))
-                        MLIST_SET_MOVE_NORM(mlist, new_mlist, src, dest);
-                }
-                BBA_XOR(effect, g_bpos[src]);
-            }
-            //GKA
-            effect = EFFECT_TBL(dest, SKA, sdata);
-            BBA_AND(effect, BB_GKA(sdata));
-            while(1){
-                src = min_pos(&effect);
-                if(src<0) break;
-                if(!S_PINNED(sdata)[src]){
-                    MV_SET(mv,src,dest,0);
-                    if(func(sdata,mv,tbase))
-                        MLIST_SET_MOVE_NORM(mlist, new_mlist, src, dest);
-                    if(GKA_PROMOTE(src,dest)){
+                    if(GFU_NORMAL(dest) ){
+                        MV_SET(mv,src,dest,0);
+                        if(func(sdata,mv,tbase))
+                            MLIST_SET_MOVE_NORM(mlist, new_mlist, src, dest);
+                    }
+                    if(GFU_PROMOTE(dest)){
                         MV_SET(mv,src,dest,1);
                         if(func(sdata,mv,tbase))
                             MLIST_SET_MOVE_PROM(mlist, new_mlist, src, dest);
                     }
-                }
-                BBA_XOR(effect, g_bpos[src]);
-            }
-            //GHI
-            effect = EFFECT_TBL(dest, SHI, sdata);
-            BBA_AND(effect, BB_GHI(sdata));
-            while(1){
-                src = min_pos(&effect);
-                if(src<0) break;
-                if(!S_PINNED(sdata)[src]){
-                    MV_SET(mv,src,dest,0);
-                    if(func(sdata,mv,tbase))
-                        MLIST_SET_MOVE_NORM(mlist, new_mlist, src, dest);
-                    if(GHI_PROMOTE(src,dest)){
-                        MV_SET(mv,src,dest,1);
-                        if(func(sdata,mv,tbase))
-                            MLIST_SET_MOVE_PROM(mlist, new_mlist, src, dest);
-                    }
-                }
-                BBA_XOR(effect, g_bpos[src]);
-            }
-            //GUM
-            effect = EFFECT_TBL(dest, SUM, sdata);
-            BBA_AND(effect, BB_GUM(sdata));
-            while(1){
-                src = min_pos(&effect);
-                if(src<0) break;
-                if(!S_PINNED(sdata)[src]) {
-                    MV_SET(mv,src,dest,0);
-                    if(func(sdata,mv,tbase))
-                        MLIST_SET_MOVE_NORM(mlist, new_mlist, src, dest);
-                }
-                BBA_XOR(effect, g_bpos[src]);
-            }
-            //GRY
-            effect = EFFECT_TBL(dest, SRY, sdata);
-            BBA_AND(effect, BB_GRY(sdata));
-            while(1){
-                src = min_pos(&effect);
-                if(src<0) break;
-                if(!S_PINNED(sdata)[src]) {
-                    MV_SET(mv,src,dest,0);
-                    if(func(sdata,mv,tbase))
-                        MLIST_SET_MOVE_NORM(mlist, new_mlist, src, dest);
                 }
                 BBA_XOR(effect, g_bpos[src]);
             }
         }
         //先手番
         else             {
-            //SFU
-            effect = EFFECT_TBL(dest, GFU, sdata);
-            BBA_AND(effect, BB_SFU(sdata));
+            //SRY
+            effect = EFFECT_TBL(dest, GRY, sdata);
+            BBA_AND(effect, BB_SRY(sdata));
+            while(1){
+                src = min_pos(&effect);
+                if(src<0) break;
+                if(!S_PINNED(sdata)[src]) {
+                    MV_SET(mv,src,dest,0);
+                    if(func(sdata,mv,tbase))
+                        MLIST_SET_MOVE_NORM(mlist, new_mlist, src, dest);
+                }
+                BBA_XOR(effect, g_bpos[src]);
+            }
+            //SUM
+            effect = EFFECT_TBL(dest, GUM, sdata);
+            BBA_AND(effect, BB_SUM(sdata));
+            while(1){
+                src = min_pos(&effect);
+                if(src<0) break;
+                if(!S_PINNED(sdata)[src]) {
+                    MV_SET(mv,src,dest,0);
+                    if(func(sdata,mv,tbase))
+                        MLIST_SET_MOVE_NORM(mlist, new_mlist, src, dest);
+                }
+                BBA_XOR(effect, g_bpos[src]);
+            }
+            //SHI
+            effect = EFFECT_TBL(dest, GHI, sdata);
+            BBA_AND(effect, BB_SHI(sdata));
             while(1){
                 src = min_pos(&effect);
                 if(src<0) break;
                 if(!S_PINNED(sdata)[src]){
-                    if(SFU_NORMAL(dest) ){
-                        MV_SET(mv,src,dest,0);
-                        if(func(sdata,mv,tbase))
-                            MLIST_SET_MOVE_NORM(mlist, new_mlist, src, dest);
-                    }
-                    if(SFU_PROMOTE(dest)){
+                    MV_SET(mv,src,dest,0);
+                    if(func(sdata,mv,tbase))
+                        MLIST_SET_MOVE_NORM(mlist, new_mlist, src, dest);
+                    if(SHI_PROMOTE(src,dest)){
                         MV_SET(mv,src,dest,1);
                         if(func(sdata,mv,tbase))
                             MLIST_SET_MOVE_PROM(mlist, new_mlist, src, dest);
@@ -1560,19 +2121,48 @@ mlist_t *mlist_to_dest             (mlist_t       *list,
                 }
                 BBA_XOR(effect, g_bpos[src]);
             }
-            //SKY
-            effect = EFFECT_TBL(dest, GKY, sdata);
-            BBA_AND(effect, BB_SKY(sdata));
+            //SKA
+            effect = EFFECT_TBL(dest, GKA, sdata);
+            BBA_AND(effect, BB_SKA(sdata));
             while(1){
                 src = min_pos(&effect);
                 if(src<0) break;
                 if(!S_PINNED(sdata)[src]){
-                    if(SKY_NORMAL(dest) ){
-                        MV_SET(mv,src,dest,0);
+                    MV_SET(mv,src,dest,0);
+                    if(func(sdata,mv,tbase))
+                        MLIST_SET_MOVE_NORM(mlist, new_mlist, src, dest);
+                    if(SKA_PROMOTE(src,dest)){
+                        MV_SET(mv,src,dest,1);
                         if(func(sdata,mv,tbase))
-                            MLIST_SET_MOVE_NORM(mlist, new_mlist, src, dest);
+                            MLIST_SET_MOVE_PROM(mlist, new_mlist, src, dest);
                     }
-                    if(SKY_PROMOTE(dest)){
+                }
+                BBA_XOR(effect, g_bpos[src]);
+            }
+            //SKI,STO,SNY,SNK,SNG
+            effect = EFFECT_TBL(dest, GKI, sdata);
+            BBA_AND(effect, BB_STK(sdata));
+            while(1){
+                src = min_pos(&effect);
+                if(src<0) break;
+                if(!S_PINNED(sdata)[src]) {
+                    MV_SET(mv,src,dest,0);
+                    if(func(sdata,mv,tbase))
+                        MLIST_SET_MOVE_NORM(mlist, new_mlist, src, dest);
+                }
+                BBA_XOR(effect, g_bpos[src]);
+            }
+            //SGI
+            effect = EFFECT_TBL(dest, GGI, sdata);
+            BBA_AND(effect, BB_SGI(sdata));
+            while(1){
+                src = min_pos(&effect);
+                if(src<0) break;
+                if(!S_PINNED(sdata)[src]){
+                    MV_SET(mv,src,dest,0);
+                    if(func(sdata,mv,tbase))
+                        MLIST_SET_MOVE_NORM(mlist, new_mlist, src, dest);
+                    if(SGI_PROMOTE(src,dest)){
                         MV_SET(mv,src,dest,1);
                         if(func(sdata,mv,tbase))
                             MLIST_SET_MOVE_PROM(mlist, new_mlist, src, dest);
@@ -1600,17 +2190,19 @@ mlist_t *mlist_to_dest             (mlist_t       *list,
                 }
                 BBA_XOR(effect, g_bpos[src]);
             }
-            //SGI
-            effect = EFFECT_TBL(dest, GGI, sdata);
-            BBA_AND(effect, BB_SGI(sdata));
+            //SKY
+            effect = EFFECT_TBL(dest, GKY, sdata);
+            BBA_AND(effect, BB_SKY(sdata));
             while(1){
                 src = min_pos(&effect);
                 if(src<0) break;
                 if(!S_PINNED(sdata)[src]){
-                    MV_SET(mv,src,dest,0);
-                    if(func(sdata,mv,tbase))
-                        MLIST_SET_MOVE_NORM(mlist, new_mlist, src, dest);
-                    if(SGI_PROMOTE(src,dest)){
+                    if(SKY_NORMAL(dest) ){
+                        MV_SET(mv,src,dest,0);
+                        if(func(sdata,mv,tbase))
+                            MLIST_SET_MOVE_NORM(mlist, new_mlist, src, dest);
+                    }
+                    if(SKY_PROMOTE(dest)){
                         MV_SET(mv,src,dest,1);
                         if(func(sdata,mv,tbase))
                             MLIST_SET_MOVE_PROM(mlist, new_mlist, src, dest);
@@ -1618,78 +2210,23 @@ mlist_t *mlist_to_dest             (mlist_t       *list,
                 }
                 BBA_XOR(effect, g_bpos[src]);
             }
-            //SKI,STO,SNY,SNK,SNG
-            effect = EFFECT_TBL(dest, GKI, sdata);
-            BBA_AND(effect, BB_STK(sdata));
-            while(1){
-                src = min_pos(&effect);
-                if(src<0) break;
-                if(!S_PINNED(sdata)[src]) {
-                    MV_SET(mv,src,dest,0);
-                    if(func(sdata,mv,tbase))
-                        MLIST_SET_MOVE_NORM(mlist, new_mlist, src, dest);
-                }
-                BBA_XOR(effect, g_bpos[src]);
-            }
-            //SKA
-            effect = EFFECT_TBL(dest, GKA, sdata);
-            BBA_AND(effect, BB_SKA(sdata));
+            //SFU
+            effect = EFFECT_TBL(dest, GFU, sdata);
+            BBA_AND(effect, BB_SFU(sdata));
             while(1){
                 src = min_pos(&effect);
                 if(src<0) break;
                 if(!S_PINNED(sdata)[src]){
-                    MV_SET(mv,src,dest,0);
-                    if(func(sdata,mv,tbase))
-                        MLIST_SET_MOVE_NORM(mlist, new_mlist, src, dest);
-                    if(SKA_PROMOTE(src,dest)){
+                    if(SFU_NORMAL(dest) ){
+                        MV_SET(mv,src,dest,0);
+                        if(func(sdata,mv,tbase))
+                            MLIST_SET_MOVE_NORM(mlist, new_mlist, src, dest);
+                    }
+                    if(SFU_PROMOTE(dest)){
                         MV_SET(mv,src,dest,1);
                         if(func(sdata,mv,tbase))
                             MLIST_SET_MOVE_PROM(mlist, new_mlist, src, dest);
                     }
-                }
-                BBA_XOR(effect, g_bpos[src]);
-            }
-            //SHI
-            effect = EFFECT_TBL(dest, GHI, sdata);
-            BBA_AND(effect, BB_SHI(sdata));
-            while(1){
-                src = min_pos(&effect);
-                if(src<0) break;
-                if(!S_PINNED(sdata)[src]){
-                    MV_SET(mv,src,dest,0);
-                    if(func(sdata,mv,tbase))
-                        MLIST_SET_MOVE_NORM(mlist, new_mlist, src, dest);
-                    if(SHI_PROMOTE(src,dest)){
-                        MV_SET(mv,src,dest,1);
-                        if(func(sdata,mv,tbase))
-                            MLIST_SET_MOVE_PROM(mlist, new_mlist, src, dest);
-                    }
-                }
-                BBA_XOR(effect, g_bpos[src]);
-            }
-            //SUM
-            effect = EFFECT_TBL(dest, GUM, sdata);
-            BBA_AND(effect, BB_SUM(sdata));
-            while(1){
-                src = min_pos(&effect);
-                if(src<0) break;
-                if(!S_PINNED(sdata)[src]) {
-                    MV_SET(mv,src,dest,0);
-                    if(func(sdata,mv,tbase))
-                        MLIST_SET_MOVE_NORM(mlist, new_mlist, src, dest);
-                }
-                BBA_XOR(effect, g_bpos[src]);
-            }
-            //SRY
-            effect = EFFECT_TBL(dest, GRY, sdata);
-            BBA_AND(effect, BB_SRY(sdata));
-            while(1){
-                src = min_pos(&effect);
-                if(src<0) break;
-                if(!S_PINNED(sdata)[src]) {
-                    MV_SET(mv,src,dest,0);
-                    if(func(sdata,mv,tbase))
-                        MLIST_SET_MOVE_NORM(mlist, new_mlist, src, dest);
                 }
                 BBA_XOR(effect, g_bpos[src]);
             }
